@@ -10,13 +10,13 @@ This document describes the repository as currently inspected. Do not treat plan
 |---|---|---|
 | Frontend | implemented | React + Vite + TypeScript app under `frontend/`. |
 | Wallet | implemented | Coinbase Smart Wallet and injected wallet fallback through wagmi. |
-| Chain config | partial | Frontend currently uses Sepolia as a placeholder. Target chain is Base Sepolia. |
-| Contracts | planned | No Solidity, Foundry project, ABI, deployments, or tests found. |
+| Chain config | implemented | Frontend and Milestone 2 deployment use Ethereum Sepolia (chain ID `11155111`), selected for Milestone 3. |
+| Contracts | prototype | Foundry project includes market creation/read, a Sepolia deployment, and basic tests; no trading or resolution logic. |
 | Backend | scaffolded | FastAPI app under `backend/` with health and fake sample-match endpoints. |
 | Oracle | planned | No oracle service found. |
 | Indexer | planned | No indexer found. |
 | Database | scaffolded | Milestone 2 sample data uses Supabase PostgreSQL through `DATABASE_URL`; data is fake and non-authoritative. |
-| CI | scaffolded | GitHub Actions runs frontend build and backend tests. |
+| CI | scaffolded | GitHub Actions runs frontend build, backend tests, and contract formatting/build/tests. |
 
 ## Current Diagram
 
@@ -35,11 +35,11 @@ wagmi + viem
     +--> Injected wallet connector
     |
     v
-Sepolia placeholder RPC
+Ethereum Sepolia
 
 Planned:
 
-React frontend --> Base Sepolia contracts --> contract events
+React frontend --> Ethereum Sepolia contracts --> contract events
         |                 ^                       |
         v                 |                       v
 FastAPI backend ---- oracle service          indexer
@@ -57,13 +57,13 @@ Status: implemented, minimal prototype.
 
 The frontend lives in `frontend/` and uses React, Vite, TypeScript, Tailwind, wagmi, viem, and Coinbase Wallet SDK. It currently supports wallet connection and balance display.
 
-The app does not yet read or write AC_ON contracts.
+The app reads placeholder market `0` from the deployed Ethereum Sepolia contract. It does not submit contract writes or trades.
 
 ## Contracts
 
-Status: planned.
+Status: prototype.
 
-No Solidity, Foundry, ABI, deployment scripts, or contract tests were found. The intended project architecture requires contracts to own market lifecycle, trades, LMSR pricing, challenge state, resolver selection/voting, settlement, and payouts.
+The Foundry project under `contracts/` implements `createMarket`, `getMarket`, `marketCount`, and `MarketCreated`. A prototype is deployed on Ethereum Sepolia and read by the frontend. The checked-in source does not accept funds or implement trading, LMSR pricing, challenges, resolver voting, settlement, or payouts. The deployed prototype came from an earlier source version, so Milestone 3 requires a fresh deployment after the ABI is frozen.
 
 ## Backend
 
@@ -93,9 +93,9 @@ Milestone 2 uses Supabase PostgreSQL as a hosted development database so teammat
 
 ## Deployment Assumptions
 
-Status: planned.
+Status: partial.
 
-The project target chain is Base Sepolia. The current frontend uses Sepolia as a placeholder. No deployment scripts or environment variable templates were found.
+Ethereum Sepolia is the selected Milestone 3 network. A deployment script and environment template exist under `contracts/`. RPC URLs and private keys remain local/hosted secrets and must not be exposed to the frontend or committed.
 
 ## On-Chain vs Off-Chain Boundary
 
@@ -152,16 +152,18 @@ Important invariants:
 - Unauthorized resolver voting must fail.
 - Conflicted resolver participation must fail.
 
-## Interfaces To Add
-
-Actual contract and backend interfaces do not exist yet. Proposed Milestone 2 interfaces:
+## Current And Planned Interfaces
 
 | Boundary | Interface | Status |
 |---|---|---|
-| Frontend -> contract | one simple read, such as `marketCount()` or sample market getter | proposed |
-| Frontend -> contract | one simple write, such as creating a sample market or placing a temporary trade | proposed |
-| Backend -> frontend/dev tools | `GET /health` | proposed |
-| Contract -> indexer | basic event for market creation or sample state change | proposed |
+| Frontend -> contract | `getMarket(0)` | implemented |
+| Contract -> indexer | `MarketCreated` | implemented but not indexed |
+| Backend -> frontend/dev tools | `GET /health`, sample-match reads | implemented |
+| Frontend -> contract | guarded quote/buy and position read | Milestone 3 proposed |
+| Contract -> indexer | `TradeExecuted` with complete post-trade projection fields | Milestone 3 proposed |
+| Backend -> frontend | indexed market, trade, and indexer-status reads | Milestone 3 proposed |
+
+See `milestones/MILESTONE_3.md` for the proposed interface freeze, recovery model, and acceptance criteria.
 
 ## Setup Notes
 
@@ -189,11 +191,12 @@ uvicorn app.main:app --reload
 
 Set `DATABASE_URL` in `backend/.env` to the Supabase PostgreSQL connection string before seeding/running.
 
-No contract, oracle, or indexer setup commands exist yet.
+Contract setup and deployment commands are documented in `contracts/README.md`. Oracle and indexer setup commands do not exist yet.
 
 ## Known Gaps
 
-- Base Sepolia is the target, but the frontend currently uses Sepolia placeholder config.
-- No contract ABI/address exists for frontend reads or writes.
-- No smart contracts, oracle, indexer, or contract tests exist yet.
+- The checked-in contract and the existing Sepolia deployment came from different source versions.
+- No contract write or trading interface exists in the frontend.
+- No oracle or indexer exists yet.
+- Resolver selection randomness, conflict exclusions, and timeout/liveness behavior are not decided.
 - Backend sample-match data is fake/off-chain and exists only for Milestone 2 fallback display.

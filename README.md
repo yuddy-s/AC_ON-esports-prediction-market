@@ -19,8 +19,8 @@ Milestone 2 is focused on proving the architecture can run end to end. The curre
 
 - Sample match data is fake Milestone 2 display data only.
 - PostgreSQL/Supabase is not authoritative for real market state.
-- Future smart contracts on Base Sepolia should be the source of truth for markets, trades, settlement, and payouts.
-- The frontend and the Milestone 2 contract run on Ethereum Sepolia (see `frontend/src/wagmi.ts`); moving to Base Sepolia is planned for Milestone 3.
+- Ethereum Sepolia smart contracts are the source of truth for markets, trades, settlement, and payouts.
+- Ethereum Sepolia (chain ID `11155111`) is the selected Milestone 3 testnet; the team is not planning a network migration during MVP integration.
 - The frontend, contract, and backend are not connected to each other yet (Milestone 3).
 
 ## Quick Start (macOS / Linux)
@@ -32,7 +32,7 @@ Terminal 1, frontend:
 ```bash
 git clone https://github.com/yuddy-s/AC_ON-esports-prediction-market.git
 cd AC_ON-esports-prediction-market
-git checkout feature/contract-read
+git checkout dev
 cd frontend
 npm install
 npm run dev
@@ -53,8 +53,6 @@ uvicorn app.main:app --reload
 ```
 
 Open http://localhost:8000/docs (or `/api/sample-matches` and `/health`). Windows commands and the Supabase option are in the sections below.
-
-Note: `feature/contract-read` is the branch with the on-chain market card. After that pull request is merged, replace it with `dev` in the checkout line above.
 
 ## Get The Code
 
@@ -177,7 +175,7 @@ python -m pytest
 ## Not Here Yet
 
 - Full Solidity contracts (only a placeholder market exists).
-- Base Sepolia deployment.
+- A fresh Ethereum Sepolia deployment of the eventual Milestone 3 contract.
 - Contract writes and a trading UI in the frontend.
 - Real on-chain markets/trading.
 - Oracle service implementation.
