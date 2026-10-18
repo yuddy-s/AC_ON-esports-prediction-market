@@ -2,7 +2,7 @@
 
 AC_ON is a testnet-only decentralized esports prediction market. Users connect Coinbase Wallet and trade YES/NO shares on binary esports match outcomes.
 
-Core market logic is planned to run on-chain on Base Sepolia. Off-chain services support esports API access, oracle automation, indexing, PostgreSQL derived data, and FastAPI queries. The system is not fully trustless or fully permissionless.
+Core market logic is planned to run on-chain on Ethereum Sepolia for Milestone 3. Off-chain services support esports API access, oracle automation, indexing, PostgreSQL derived data, and FastAPI queries. The system is not fully trustless or fully permissionless.
 
 ## Main System Architecture
 
@@ -33,7 +33,7 @@ flowchart TB
   end
 
   subgraph onchain["ON-CHAIN / AUTHORITATIVE STATE"]
-    base["Base Sepolia<br/>AUTHORITATIVE SOURCE OF TRUTH"]
+    base["Ethereum Sepolia<br/>AUTHORITATIVE SOURCE OF TRUTH"]
 
     subgraph contracts["Smart Contract System"]
       market["PredictionMarket.sol<br/>main market contract<br/>market lifecycle<br/>YES / NO share balances<br/>trading<br/>trading deadline enforcement<br/>oracle proposals<br/>challenge state<br/>settlement<br/>payout claims<br/>emits market events"]
@@ -164,12 +164,12 @@ flowchart TB
 
 | Data / Action | Authoritative Source |
 | --- | --- |
-| Market state | Base Sepolia smart contracts |
-| YES/NO ownership | Base Sepolia smart contracts |
-| LMSR pricing/trades | Base Sepolia smart contracts |
-| Resolver votes | Base Sepolia smart contracts |
-| Settlement | Base Sepolia smart contracts |
-| Payout status | Base Sepolia smart contracts |
+| Market state | Ethereum Sepolia smart contracts |
+| YES/NO ownership | Ethereum Sepolia smart contracts |
+| LMSR pricing/trades | Ethereum Sepolia smart contracts |
+| Resolver votes | Ethereum Sepolia smart contracts |
+| Settlement | Ethereum Sepolia smart contracts |
+| Payout status | Ethereum Sepolia smart contracts |
 | Esports match result input | Approved external APIs via oracle |
 | Market list cache | PostgreSQL |
 | Price/trade history cache | PostgreSQL |

@@ -1,16 +1,23 @@
 # Milestone 5: Testing and Integration
 
-Status: future placeholder
+Status: planned
 
-Goal: integration testing results, deployed version where applicable, deployment plan, and draft final documentation.
+## Course Goal
 
-Agents should not work on Milestone 5 tasks until feature-complete work is ready to test.
+Present integration test results, defects and fixes, and the deployment plan. Deliver test results, a public Ethereum Sepolia deployment, and draft user/developer guides.
 
-Likely focus:
+## Testing And Deployment Ownership
 
-- integration tests
-- bug fixing
-- Base Sepolia deployment
-- deployment documentation
-- user guide draft
-- developer guide draft
+- Adriel validates frontend journeys and wallet/browser behavior, deploys the frontend to Vercel, and drafts the user guide.
+- Benny runs contract security/static checks, deployment verification, and settlement/claim regression tests on Ethereum Sepolia.
+- Matthew analyzes failed economic properties and publishes LMSR/accounting test results and parameter rationale.
+- Yudhveer runs API/indexer/oracle integration, retry/replay/reorganization and database-rebuild tests; deploys FastAPI/background services to Render and PostgreSQL to Supabase; drafts the developer guide.
+- The team triages integration defects, records fixes and residual risks, and runs the complete public deployment acceptance checklist.
+
+## Exit Criteria
+
+- Public Vercel, Render, Supabase, and Ethereum Sepolia components work together.
+- Integration results include transaction submission, mining, indexing, API reflection, oracle proposal, dispute, resolver voting, finalization, and claim paths.
+- Secrets are hosted outside source control and rotation/revocation steps are documented.
+- Draft user and developer guides reproduce setup, deployment, recovery, and normal product use.
+- NGINX is not part of the managed Render deployment; reconsider it only for future self-hosting.
