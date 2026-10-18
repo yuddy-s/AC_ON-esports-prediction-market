@@ -12,10 +12,10 @@ This document describes the repository as currently inspected. Do not treat plan
 | Wallet | implemented | Coinbase Smart Wallet and injected wallet fallback through wagmi. |
 | Chain config | implemented | Frontend and Milestone 2 deployment use Ethereum Sepolia (chain ID `11155111`), selected for Milestone 3. |
 | Contracts | prototype | Foundry project includes market creation/read, a Sepolia deployment, and basic tests; no trading or resolution logic. |
-| Backend | scaffolded | FastAPI app under `backend/` with health and fake sample-match endpoints. |
+| Backend | foundation | FastAPI app has health, deprecated sample-match endpoints, and paginated indexed market/trade/status reads. |
 | Oracle | planned | No oracle service found. |
-| Indexer | planned | No indexer found. |
-| Database | scaffolded | Milestone 2 sample data uses Supabase PostgreSQL through `DATABASE_URL`; data is fake and non-authoritative. |
+| Indexer | foundation | Normalized provider boundary, atomic checkpoints, idempotent projections, rebuild/reorg recovery, and tests exist; live RPC/ABI decoding is deferred. |
+| Database | foundation | Alembic manages indexed contract/checkpoint/log/market/trade tables; sample data remains non-authoritative fallback data. |
 | CI | scaffolded | GitHub Actions runs frontend build, backend tests, and contract formatting/build/tests. |
 
 ## Current Diagram
@@ -81,9 +81,9 @@ No oracle service exists yet. Intended behavior: compare approved esports API re
 
 ## Indexer
 
-Status: planned.
+Status: foundation.
 
-No indexer exists yet. Intended behavior: read contract events and store derived data in PostgreSQL for efficient application queries.
+The backend contains a provider-independent event indexer with normalized `MarketCreated` and proposed `TradeExecuted` handlers. It persists a unique `(chain_id, transaction_hash, log_index)` event identity, advances each bounded block range atomically with its checkpoint, waits for configurable confirmations, and rebuilds derived projections when the checkpoint block hash no longer matches the canonical chain. A live Ethereum RPC client and final ABI decoder are intentionally deferred until the trade ABI freezes.
 
 ## Database
 
@@ -157,11 +157,11 @@ Important invariants:
 | Boundary | Interface | Status |
 |---|---|---|
 | Frontend -> contract | `getMarket(0)` | implemented |
-| Contract -> indexer | `MarketCreated` | implemented but not indexed |
+| Contract -> indexer | normalized `MarketCreated` projection | foundation implemented; live decoder pending |
 | Backend -> frontend/dev tools | `GET /health`, sample-match reads | implemented |
 | Frontend -> contract | guarded quote/buy and position read | Milestone 3 proposed |
 | Contract -> indexer | `TradeExecuted` with complete post-trade projection fields | Milestone 3 proposed |
-| Backend -> frontend | indexed market, trade, and indexer-status reads | Milestone 3 proposed |
+| Backend -> frontend | indexed market, trade, and indexer-status reads | foundation implemented |
 
 See `milestones/MILESTONE_3.md` for the proposed interface freeze, recovery model, and acceptance criteria.
 
@@ -185,18 +185,19 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 copy .env.example .env
+alembic upgrade head
 python -m scripts.seed_sample_matches
 uvicorn app.main:app --reload
 ```
 
 Set `DATABASE_URL` in `backend/.env` to the Supabase PostgreSQL connection string before seeding/running.
 
-Contract setup and deployment commands are documented in `contracts/README.md`. Oracle and indexer setup commands do not exist yet.
+Contract setup and deployment commands are documented in `contracts/README.md`. Database migrations use `alembic upgrade head`. A live indexer runner command will be added with the RPC/ABI decoder after the trade interface freezes.
 
 ## Known Gaps
 
 - The checked-in contract and the existing Sepolia deployment came from different source versions.
 - No contract write or trading interface exists in the frontend.
-- No oracle or indexer exists yet.
+- No production oracle or live Ethereum RPC/ABI decoder runner exists yet.
 - Resolver selection randomness, conflict exclusions, and timeout/liveness behavior are not decided.
 - Backend sample-match data is fake/off-chain and exists only for Milestone 2 fallback display.

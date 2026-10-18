@@ -48,6 +48,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 export DATABASE_URL="sqlite:///demo.db"
+alembic upgrade head
 python -m scripts.seed_sample_matches
 uvicorn app.main:app --reload
 ```
@@ -134,6 +135,7 @@ FRONTEND_ORIGIN=http://localhost:5173
 Seed the fake sample matches:
 
 ```bash
+alembic upgrade head
 python -m scripts.seed_sample_matches
 ```
 
@@ -150,6 +152,8 @@ Open these in your browser (the bare address `http://localhost:8000/` shows "Not
 ```text
 http://localhost:8000/docs
 http://localhost:8000/health
+http://localhost:8000/api/indexer/status
+http://localhost:8000/api/markets
 http://localhost:8000/api/sample-matches
 http://localhost:8000/api/sample-matches/valorant-sentinels-loud
 ```
@@ -179,7 +183,7 @@ python -m pytest
 - Contract writes and a trading UI in the frontend.
 - Real on-chain markets/trading.
 - Oracle service implementation.
-- Indexer implementation.
+- Live Ethereum RPC/ABI decoder runner for the indexer foundation.
 - Resolver committee implementation.
 
 ## Notes
