@@ -1,54 +1,187 @@
-# Esports Prediction Market — Frontend (AC_ON)
+# AC_ON Esports Prediction Market
 
-Milestone 2 prototype. Connects a wallet and shows the address + balance.
+AC_ON is a testnet-only decentralized esports prediction market for binary esports match outcomes. Users connect a Coinbase Wallet and eventually trade YES/NO shares on match results.
 
-## What's running
+Milestone 2 is focused on proving the architecture can run end to end. The current repo has a working frontend wallet prototype, a FastAPI backend scaffold, Supabase/PostgreSQL-backed fake sample match data, and GitHub Actions CI.
 
-- React + Vite + Tailwind
-- Wallet connect via wagmi:
-  - **Coinbase Smart Wallet** (primary) — no extension needed, signs in with a passkey or email. Works on any computer, including school lab machines.
-  - **MetaMask/injected** (fallback) — for anyone who already has a wallet extension.
-- Shows connected wallet address and testnet balance
+## What Works Now
 
-## Not here yet
+- React + Vite + TypeScript + Tailwind frontend.
+- Coinbase Smart Wallet connection through wagmi/viem.
+- Connected wallet address and testnet balance display.
+- Frontend reads a placeholder market (`getMarket(0)`) from the deployed `PredictionMarket` contract. Set the address in `frontend/src/predictionMarket.ts`.
+- FastAPI backend with health and sample-match endpoints.
+- Supabase PostgreSQL connection through `DATABASE_URL`.
+- Repeatable seed script for three fake sample matches.
+- CI workflow that builds the frontend and runs backend tests.
 
-- No contract reads (waiting on a deployed contract address + ABI)
-- No trading UI
-- Chain is set to Sepolia as a placeholder — swap it in `src/wagmi.ts` once we pick the real testnet
+## Important Boundaries
 
-## Run it locally
+- Sample match data is fake Milestone 2 display data only.
+- PostgreSQL/Supabase is not authoritative for real market state.
+- Ethereum Sepolia smart contracts are the source of truth for markets, trades, settlement, and payouts.
+- Ethereum Sepolia (chain ID `11155111`) is the selected Milestone 3 testnet; the team is not planning a network migration during MVP integration.
+- The frontend, contract, and backend are not connected to each other yet (Milestone 3).
 
-**Requires [Node.js](https://nodejs.org/) installed first (any recent LTS version).**
+## Quick Start (macOS / Linux)
 
-1. Clone the whole repo (not just this folder), then open a terminal (Terminal on Mac, PowerShell or Command Prompt on Windows):
+Requires Git, Node.js LTS, and Python 3. Use two terminal windows.
 
-   ```bash
-   git clone https://github.com/adriel-vel/AC_ON-esports-prediction-market.git
-   ```
+Terminal 1, frontend:
 
-2. Move into this folder — it's the `frontend` folder inside the repo you just cloned:
+```bash
+git clone https://github.com/yuddy-s/AC_ON-esports-prediction-market.git
+cd AC_ON-esports-prediction-market
+git checkout dev
+cd frontend
+npm install
+npm run dev
+```
 
-   ```bash
-   cd AC_ON-esports-prediction-market/frontend
-   ```
+Open http://localhost:5173
 
-   (adjust the path if you cloned into a different location, or already have the repo cloned elsewhere — the key part is you need to be *inside* the `frontend` folder, not the repo root, before running npm commands)
+Terminal 2, backend (open a new terminal in the same folder where you ran `git clone`):
 
-   Tip: you can type `cd ` (with a space) and then drag the `frontend` folder into the terminal window — it fills in the path for you.
+```bash
+cd AC_ON-esports-prediction-market/backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+export DATABASE_URL="sqlite:///demo.db"
+python -m scripts.seed_sample_matches
+uvicorn app.main:app --reload
+```
 
-3. Install dependencies and start the app:
+Open http://localhost:8000/docs (or `/api/sample-matches` and `/health`). Windows commands and the Supabase option are in the sections below.
 
-   ```bash
-   npm install
-   npm run dev
-   ```
+## Get The Code
 
-4. Open **http://localhost:5173** in your browser, click **Connect Wallet**, and sign in with a passkey or email (no extension needed).
+Requires [Git](https://git-scm.com/). `main` and `dev` are protected: create a branch from `dev` and open a pull request into `dev`.
 
-If you pull new changes later and `npm run dev` errors, run `npm install` again first — dependencies may have changed.
+```bash
+git clone https://github.com/yuddy-s/AC_ON-esports-prediction-market.git
+cd AC_ON-esports-prediction-market
+git checkout dev
+```
 
-## Next steps
+## Run The Frontend
 
-1. Swap Sepolia for the real testnet in `src/wagmi.ts`
-2. Add the deployed contract address + ABI, wire up a read call
-3. Note for Benny/Yudhveer: Smart Wallet is a contract wallet (ERC-4337) — any signature checks in the resolver contract need EIP-1271 support, not just `ecrecover`
+Requires Node.js LTS. Works the same on macOS, Linux, and Windows.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:5173
+```
+
+Click **Connect Wallet** and sign in with a passkey (Coinbase Smart Wallet, no extension needed).
+
+## Run The Backend
+
+Requires Python 3.12 or newer (3.13 also works). Open a second terminal so the frontend keeps running.
+
+### 1. Create a virtual environment and install dependencies
+
+macOS / Linux:
+
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Windows (PowerShell):
+
+```powershell
+cd backend
+py -3 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+### 2. Choose a database
+
+**Option A: local SQLite (quickest, no password needed).** Good for demos and testing. Set `DATABASE_URL` in the same terminal you will run the backend from (it resets when you open a new terminal):
+
+macOS / Linux:
+
+```bash
+export DATABASE_URL="sqlite:///demo.db"
+```
+
+Windows (PowerShell):
+
+```powershell
+$env:DATABASE_URL = "sqlite:///demo.db"
+```
+
+**Option B: Supabase PostgreSQL (shared team database).** Copy `.env.example` to `.env` (`cp .env.example .env` on macOS/Linux, `copy .env.example .env` on Windows), then edit `backend/.env` and set `DATABASE_URL` to the Supabase connection string. Ask Yudhveer for it; never commit it. Use the SQLAlchemy psycopg format:
+
+```env
+DATABASE_URL=postgresql+psycopg://USER:PASSWORD@HOST:PORT/DBNAME?sslmode=require
+FRONTEND_ORIGIN=http://localhost:5173
+```
+
+### 3. Seed and run
+
+Seed the fake sample matches:
+
+```bash
+python -m scripts.seed_sample_matches
+```
+
+Run the backend:
+
+```bash
+uvicorn app.main:app --reload
+```
+
+Keep this terminal open while you use the backend. If port 8000 is already in use, add `--port 8010` and use `8010` in the URLs below.
+
+Open these in your browser (the bare address `http://localhost:8000/` shows "Not Found" because no page is defined there):
+
+```text
+http://localhost:8000/docs
+http://localhost:8000/health
+http://localhost:8000/api/sample-matches
+http://localhost:8000/api/sample-matches/valorant-sentinels-loud
+```
+
+`/docs` lists every endpoint. Click an endpoint, then **Try it out**, then **Execute**.
+
+## Run Checks
+
+Frontend:
+
+```bash
+cd frontend
+npm run build
+```
+
+Backend (with the virtual environment activated):
+
+```bash
+cd backend
+python -m pytest
+```
+
+## Not Here Yet
+
+- Full Solidity contracts (only a placeholder market exists).
+- A fresh Ethereum Sepolia deployment of the eventual Milestone 3 contract.
+- Contract writes and a trading UI in the frontend.
+- Real on-chain markets/trading.
+- Oracle service implementation.
+- Indexer implementation.
+- Resolver committee implementation.
+
+## Notes
+
+- Coinbase Smart Wallet is a contract wallet (ERC-4337), so any signature checks in the resolver contract need EIP-1271 support, not just `ecrecover`.

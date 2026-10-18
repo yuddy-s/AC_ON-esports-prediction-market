@@ -34,20 +34,20 @@ Implemented:
 - wallet connect
 - address display
 - balance display
+- FastAPI backend scaffold
+- Supabase PostgreSQL sample-data path
+- fake sample-match endpoints
 
 Missing:
 
-- CI skeleton
 - contracts
 - contract read
 - contract write
 - sample market
-- backend
-- database
 - oracle scaffold
 - indexer scaffold
 - contract events
-- full setup docs
+- full cross-subsystem setup docs
 
 ## Team Artifact Assignments
 
@@ -69,7 +69,7 @@ Missing:
 7. Wire frontend to perform one contract write.
 8. Add minimal FastAPI backend with `GET /health`.
 9. Choose and document Milestone 2 database mode.
-10. Add a small oracle/indexer scaffold or documented boundary.
+10. Add a small oracle/indexer scaffold or documented boundary. The real indexer is deferred for now.
 11. Update setup docs with commands that actually work.
 12. Prepare demo checklist for the presentation.
 

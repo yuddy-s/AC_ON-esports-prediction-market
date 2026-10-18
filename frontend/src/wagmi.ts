@@ -2,9 +2,7 @@ import { http, createConfig } from "wagmi";
 import { sepolia } from "wagmi/chains";
 import { coinbaseWallet, injected } from "wagmi/connectors";
 
-// TODO: swap `sepolia` for whatever testnet Benny/Yudhveer deploy to
-// (the M1 architecture sketch calls it "ACON" testnet — update once we
-// know if that's Sepolia, a custom Hardhat/Anvil network, or something else).
+// The Milestone 2 PredictionMarket deployment is on Ethereum Sepolia.
 export const config = createConfig({
   chains: [sepolia],
   connectors: [
