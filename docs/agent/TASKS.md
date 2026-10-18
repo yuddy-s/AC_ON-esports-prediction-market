@@ -41,7 +41,7 @@ These ownership areas remain stable through the final product so later milestone
 |---|---|---|
 | Adriel | Frontend and Web3 flows: browse/create markets, quote/trade, positions, challenges, resolver voting, claims, and transaction/indexer synchronization. | Vitest and frontend end-to-end coverage; Vercel deployment. |
 | Benny | Solidity market lifecycle and authorization, resolver registry/selection/voting, settlement, claims, VOID behavior, contract events, and Sepolia deployment scripts. | Foundry unit/security tests, contract static analysis, and contract CI. |
-| Matthew | `LMSR.sol`, fixed-point arithmetic, fixed `b`, creator subsidy, fees, buy/sell pricing, and payout/VOID accounting rules. | Foundry fuzz/invariant tests and economic/accounting documentation. |
+| Matthew | `LMSR.sol`, 1e18 fixed-point arithmetic, `b = 50`, creator subsidy, buy/sell pricing, and payout/VOID accounting rules. Trading/platform fees are out of scope. | Foundry fuzz/invariant tests and economic/accounting documentation. |
 | Yudhveer | FastAPI, PostgreSQL, event indexer, oracle providers/signer operations, resolver projections/APIs, replay/reorganization recovery, and trust/security documentation. | Pytest and cross-layer integration coverage; Render/Supabase deployment. |
 | Team | ABI/event freezes, secrets policy, live demos, cross-layer acceptance, reports, and release validation. | Review required across subsystem boundaries. |
 
@@ -52,7 +52,7 @@ The shared priority is one end-to-end guarded buy on Ethereum Sepolia. Full reso
 | Priority | Owner | Subsystem | Task | Dependencies | Status |
 |---|---|---|---|---|---|
 | P0 | team | interfaces | Freeze market/trade ABI, enum order, event fields, numeric units, and deployment handoff. | LMSR and payment decisions | blocked on team decisions |
-| P0 | Matthew | LMSR/contracts | Implement `LMSR.sol`, fixed-point scale, fixed `b`, subsidy formula, quote/cost math, and economic invariants. | team review | ready |
+| P0 | Matthew | LMSR/contracts | Implement `LMSR.sol` with 1e18 precision, `b = 50`, creator subsidy `ceil(b * ln(2))`, quote/cost math, and economic invariants. | team review | ready |
 | P0 | Benny | contracts | Integrate LMSR into the market contract, implement guarded YES/NO buy, and emit `TradeExecuted`. | interface freeze and LMSR library | blocked |
 | P0 | Yudhveer | indexer/database | Design migrations, event identity, checkpoint, confirmation, replay, and reorg behavior. | event interface freeze | ready for schema design |
 | P0 | Yudhveer | backend | Implement indexed market/trade/status read APIs. | indexed schema | blocked |

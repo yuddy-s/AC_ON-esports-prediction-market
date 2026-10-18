@@ -34,14 +34,14 @@ User requests a buy quote
 
 Market creation may be included in the demo, but a confirmed buy is the core acceptance path because trading/LMSR is the principal technical risk identified in Milestone 2 feedback.
 
-AC_ON uses an on-chain binary LMSR automated market maker funded by creator subsidy. The contract team must define the exact fixed-point representation, fixed `b`, subsidy formula, and insufficient-funding revert before implementation.
+AC_ON uses an on-chain binary LMSR automated market maker funded by creator subsidy. LMSR arithmetic uses 1e18 fixed-point precision, `b = 50` (`50e18` base units), and a minimum creator subsidy of `ceil(b * ln(2))`: `34,657,359,027,997,265,471` base units, or approximately `34.657359` test tokens. Market creation must revert atomically when the subsidy is insufficient. Trading and platform fees are not part of the planned product scope.
 
 ## Scope By Owner
 
 | Owner | Milestone 3 responsibility |
 |---|---|
 | Benny | Core market lifecycle and guarded-buy contract integration, authorization, event emission, Ethereum Sepolia deployment, Foundry tests, and contract CI. |
-| Matthew | Implement `LMSR.sol`, fixed-point quote/cost math, fixed `b`, subsidy and accounting rules, and Foundry unit/fuzz/invariant tests. |
+| Matthew | Implement `LMSR.sol` with 1e18 precision, `b = 50`, the `ceil(b * ln(2))` subsidy rule, quote/cost accounting, and Foundry unit/fuzz/invariant tests. |
 | Adriel | Market UI and Web3 integration, quote/buy flow, wallet transaction states, indexed-state refresh, and frontend tests. |
 | Yudhveer | Event indexer, derived PostgreSQL schema, FastAPI read API, checkpoint/reorg recovery, mock oracle boundary, resolver projections, backend tests, and architecture/trust documentation. |
 | Team | Freeze cross-layer interfaces, run an integrated demo, and reconcile presentation claims with the repository. |
@@ -84,7 +84,7 @@ event TradeExecuted(
 );
 ```
 
-Exact numeric units and fixed-point scale must be documented in the ABI handoff. Every event projection also records chain ID, contract address, block number, block hash, transaction hash, and log index from the Ethereum log envelope.
+All share, quantity, and cost values use 1e18 fixed-point base units. The ABI handoff must identify any value that uses a different unit. Every event projection also records chain ID, contract address, block number, block hash, transaction hash, and log index from the Ethereum log envelope.
 
 Future resolution events should follow the same projection model:
 
@@ -171,7 +171,7 @@ PostgreSQL deletion or corruption must not affect authoritative contract state.
 
 1. **Decision and interface freeze**
    - confirm Ethereum Sepolia as the milestone network
-   - freeze enum names/order, event fields, fixed-point units, `b`, subsidy, and slippage/revert behavior
+   - freeze enum names/order, event fields, payment asset, and slippage/revert behavior while retaining the approved 1e18 precision, `b = 50`, and subsidy rule
    - record contract address, deployment block, ABI version, and RPC configuration handoff
 2. **Contract trading risk first**
    - implement quote and minimal guarded buy
@@ -247,7 +247,6 @@ PostgreSQL deletion or corruption must not affect authoritative contract state.
 
 ## Open Team Decisions
 
-- exact LMSR `b`, fixed-point scale, and creator subsidy formula
 - value/payment asset for testnet trading
 - confirmation depth and RPC provider
 - resolver randomness and liveness rules

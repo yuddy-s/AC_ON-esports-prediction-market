@@ -10,7 +10,7 @@ Demonstrate the complete planned feature set, explain trade-offs made while fini
 
 - Adriel completes market creation/browsing, buy/sell, positions, challenges, resolver voting, settlement/claim, VOID, and error/recovery UI flows.
 - Benny completes the authoritative market lifecycle, access control, resolver registry/selection/voting, challenge, settlement, claim, and VOID contracts.
-- Matthew completes LMSR sell/fee behavior, subsidy and bounded-loss accounting, payout/VOID accounting, and the economic invariant suite.
+- Matthew completes LMSR sell behavior, subsidy and bounded-loss accounting, payout/VOID accounting, and the economic invariant suite. Trading/platform fees remain out of scope.
 - Yudhveer completes production esports-provider adapters, least-privilege oracle signing, all event projections/APIs, resolver status/history, and replay/reorganization support.
 - The team freezes the final ABI, state terminology, event schema, secrets model, and full documented test plan.
 
