@@ -22,6 +22,7 @@ Milestone 2 is focused on proving the architecture can run end to end. The curre
 - Ethereum Sepolia smart contracts are the source of truth for markets, trades, settlement, and payouts.
 - Ethereum Sepolia (chain ID `11155111`) is the selected Milestone 3 testnet; the team is not planning a network migration during MVP integration.
 - The frontend, contract, and backend are not connected to each other yet (Milestone 3).
+- The proposed Milestone 3 payment token, LMSR boundary, guarded-buy ABI, events, and deployment handoff are recorded in [`docs/agent/interfaces/M3_TRADING_INTERFACE.md`](docs/agent/interfaces/M3_TRADING_INTERFACE.md) for team review; they are not implemented by the current prototype.
 
 ## Quick Start (macOS / Linux)
 

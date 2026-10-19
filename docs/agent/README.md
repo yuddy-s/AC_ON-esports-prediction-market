@@ -10,6 +10,7 @@ Keep this folder small. It should help agents pick the right slice of work witho
 
 - `ARCHITECTURE.md`: current repo state, target architecture, known gaps, and setup notes.
 - `TASKS.md`: current team assignments and coding-agent work queue.
+- `interfaces/`: proposed or approved cross-layer interface decision records.
 - `milestones/`: milestone scope so agents do not overbuild beyond the active course milestone.
 
 ## Agent Workflow
@@ -18,10 +19,11 @@ Keep this folder small. It should help agents pick the right slice of work witho
 2. Read `ARCHITECTURE.md`.
 3. Check `TASKS.md`.
 4. Check the active milestone file in `milestones/`.
-5. Inspect the relevant code before editing.
-6. Make scoped changes on a branch.
-7. Run applicable tests or document why they could not run.
-8. Update these docs only when the change affects architecture, setup, milestone scope, or task ownership.
+5. Read any relevant decision record in `interfaces/`.
+6. Inspect the relevant code before editing.
+7. Make scoped changes on a branch.
+8. Run applicable tests or document why they could not run.
+9. Update these docs only when the change affects architecture, setup, milestone scope, or task ownership.
 
 ## Branch Workflow
 
