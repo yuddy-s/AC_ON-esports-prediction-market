@@ -54,7 +54,7 @@ The proposed cross-layer freeze is documented in [`interfaces/M3_TRADING_INTERFA
 | Priority | Owner | Subsystem | Task | Dependencies | Status |
 |---|---|---|---|---|---|
 | P0 | team | interfaces | Review and freeze the proposed payment asset, market/trade ABI, enum order, event fields, numeric units, and deployment handoff. | Team approval of the decision record | proposed for review |
-| P0 | Matthew | LMSR/contracts | Implement `LMSR.sol` with 1e18 precision, `b = 50`, creator subsidy `ceil(b * ln(2))`, quote/cost math, and economic invariants. | team review | ready |
+| P0 | Matthew | LMSR/contracts | Implement `LMSR.sol` with 1e18 precision, `b = 50`, creator subsidy `ceil(b * ln(2))`, quote/cost math, and economic invariants. | team review | PR #13 in review |
 | P0 | Benny | contracts | Integrate LMSR into the market contract, implement guarded YES/NO buy, and emit `TradeExecuted`. | interface freeze and LMSR library | blocked |
 | P0 | Yudhveer | indexer/database | Design migrations, event identity, checkpoint, confirmation, replay, and reorg behavior. | event interface freeze | ready for schema design |
 | P0 | Yudhveer | backend | Implement indexed market/trade/status read APIs. | indexed schema | blocked |

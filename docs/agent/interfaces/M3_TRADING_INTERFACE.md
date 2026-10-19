@@ -98,23 +98,25 @@ buyCost = C(after) - C(before)
 
 ## Fixed-Point Dependency
 
-- Use PRBMath v4 for signed 59.18-decimal `exp` and `ln`; do not implement custom approximations.
-- The implementation PR must pin an exact reviewed release tag or commit after a compatibility spike against Solidity `0.8.24`.
+- Use PRBMath v4.2.2 at commit `4bb0a1b8788d16541d4b5148a94d5fc7dda1d4ab` for signed 59.18-decimal `exp` and `ln`; do not implement custom approximations.
+- The compatibility spike in implementation PR [#13](https://github.com/yuddy-s/AC_ON-esports-prediction-market/pull/13) compiles the dependency against Solidity `0.8.24` and exercises it through deterministic, fuzz, and invariant tests.
 - A moving branch such as `release-v4` is not an acceptable final pin.
-- If installed as a Forge Git submodule, the implementation PR must update GitHub Actions checkout to initialize submodules recursively and add the required remapping.
+- PRBMath is installed as a Forge Git submodule. GitHub Actions initializes submodules recursively, and `@prb/math/` maps to `lib/prb-math/`.
 - The CI-pinned Foundry version is authoritative for merge validation. Local newer versions are acceptable only when the same changes pass CI.
 
-## Validation-Gated Numeric Policy
+## Validated Numeric Policy
 
-The following values must be frozen in the implementation PR after deterministic and boundary tests against the pinned math dependency:
+Implementation PR [#13](https://github.com/yuddy-s/AC_ON-esports-prediction-market/pull/13) validates and freezes these values:
 
-- Maximum total quantity per outcome.
-- Maximum shares per transaction.
-- Price-sum tolerance.
-- Telescoping-cost tolerance.
-- Any positive buy-cost rounding buffer needed to avoid undercharging.
+| Item | Frozen value | Rationale |
+|---|---:|---|
+| Maximum total quantity per outcome | `2_000e18` | Bounds `abs(qYes - qNo) / B` to `40`, below PRBMath's negative-exponent zero threshold. |
+| Maximum shares per transaction | `100e18` | Bounds one transaction's normalized inventory movement to `2`. |
+| Price-sum tolerance | `0` | One price is computed and the other is its complement, so the pair sums exactly to `1e18`. |
+| Telescoping-cost tolerance | `0` for accepted trades | Every accepted payment is exactly `C(after) - C(before)`. |
+| Positive buy-cost rounding buffer | `0` | No additive buffer is required for the bounded-loss invariant. Rounded non-increasing payments revert with `TradeTooSmall`. |
 
-The implementation may not merge with undocumented or unbounded inputs. Zero shares must revert. A positive share amount whose calculated payment rounds to zero must revert as a trade that is too small. Quote and execution must call the same `buyCost` path and apply the same rounding policy.
+The PRBMath value for `C(0, 0)` is `34_657_359_027_997_265_450`, leaving the approved ceiling subsidy 21 base units higher. Zero shares revert. A positive share amount whose calculated payment does not increase the rounded potential reverts as a trade that is too small. Quote and execution call the same `buyCost` path and apply the same rounding policy.
 
 ## Creator Subsidy And Token Flow
 
@@ -216,7 +218,7 @@ forge build script/Deploy.s.sol
 forge test
 ```
 
-The LMSR implementation PR must also run deterministic tests, bounded fuzz/property tests, and the bounded-loss invariant. The team must record the CI fuzz-run count; a larger local pre-PR run may supplement but not replace CI.
+The LMSR implementation PR also runs deterministic tests, bounded fuzz/property tests, and the bounded-loss invariant. CI is pinned to 256 fuzz runs and 256 invariant runs at depth 500 (128,000 stateful calls). A supplemental local run of 10,000 cases per fuzz property passed against PRBMath v4.2.2; it supplements but does not replace CI.
 
 ## Explicitly Deferred Decisions
 
