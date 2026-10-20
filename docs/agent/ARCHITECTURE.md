@@ -85,7 +85,7 @@ No oracle service exists yet. Intended behavior: compare approved esports API re
 
 Status: foundation.
 
-The backend contains a provider-independent event indexer with normalized `MarketCreated` and approved `TradeExecuted` handlers. It persists a unique `(chain_id, transaction_hash, log_index)` event identity, checks range-end hashes before and after applying each batch, advances each bounded block range atomically with its checkpoint, waits for configurable confirmations, and rebuilds derived projections when the checkpoint block hash no longer matches the canonical chain. A live Ethereum RPC client and final ABI decoder are deferred until the approved trade ABI is implemented in the contract.
+The backend contains a provider-independent event indexer with normalized `MarketCreated` and approved `TradeExecuted` handlers. It persists a unique `(chain_id, transaction_hash, log_index)` event identity, checks range-end hashes before and after applying each batch, advances each bounded block range atomically with its checkpoint, waits for configurable confirmations, and rebuilds derived projections when the checkpoint block hash no longer matches the canonical chain. The RPC-worker feature branch adds validated JSON-RPC retrieval, bounded retries and range splitting, continuous polling, and an ABI-driven decoder that fails closed unless both approved events are present. Live Sepolia validation still needs Benny's exact compiled ABI and deployment record.
 
 ## Database
 
@@ -159,7 +159,7 @@ Important invariants:
 | Boundary | Interface | Status |
 |---|---|---|
 | Frontend -> contract | `getMarket(0)` | implemented |
-| Contract -> indexer | normalized `MarketCreated` projection | foundation implemented; live decoder pending |
+| Contract -> indexer | normalized `MarketCreated` projection | foundation merged; RPC/ABI worker implemented on feature branch |
 | Backend -> frontend/dev tools | `GET /health`, sample-match reads | implemented |
 | Frontend -> contract | guarded quote/buy and position read | Milestone 3 proposed |
 | Contract -> indexer | `TradeExecuted` with complete post-trade projection fields | Milestone 3 proposed |
@@ -194,12 +194,12 @@ uvicorn app.main:app --reload
 
 Set `DATABASE_URL` in `backend/.env` to the Supabase PostgreSQL connection string before seeding/running.
 
-Contract setup and deployment commands are documented in `contracts/README.md`. Database migrations use `alembic upgrade head`. A live indexer runner command will be added with the RPC/ABI decoder after the trade interface freezes.
+Contract setup and deployment commands are documented in `contracts/README.md`. Database migrations use `alembic upgrade head`. The indexer supports one-shot synchronization with `python -m app.indexer.worker --once`, continuous polling without a flag, and deterministic projection rebuilding with `--rebuild`; hosted setup is documented in `DEPLOYMENT_RUNBOOK.md`.
 
 ## Known Gaps
 
 - The checked-in contract and the existing Sepolia deployment came from different source versions.
 - No contract write or trading interface exists in the frontend.
-- No production oracle or live Ethereum RPC/ABI decoder runner exists yet.
+- The RPC/ABI worker is implemented but cannot be validated against live contract logs until the final ABI, address, and deployment block are published.
 - Resolver selection randomness, conflict exclusions, and timeout/liveness behavior are not decided.
 - Backend sample-match data is fake/off-chain and exists only for Milestone 2 fallback display.

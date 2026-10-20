@@ -32,9 +32,23 @@ PREDICTION_MARKET_DEPLOYMENT_BLOCK=0
 INDEXER_CONFIRMATION_DEPTH=2
 INDEXER_POLL_INTERVAL_SECONDS=5
 INDEXER_BLOCK_BATCH_SIZE=500
+INDEXER_RPC_TIMEOUT_SECONDS=10
+INDEXER_RPC_MAX_ATTEMPTS=3
+INDEXER_RPC_BACKOFF_SECONDS=0.5
+PREDICTION_MARKET_ABI_PATH=path/to/PredictionMarket.json
 ```
 
-Two confirmations are the approved Sepolia demo default; deployments may override the value. The provider/decoder runner will be connected after the approved Milestone 3 trade ABI is implemented. The current service and tests consume normalized chain logs through a provider interface.
+Two confirmations are the approved Sepolia demo default; deployments may override the value. Before touching indexer state, the worker verifies `eth_chainId` against `INDEXER_CHAIN_ID` and validates the supplied ABI against the approved `MarketCreated` and `TradeExecuted` event contracts. It fails closed for a wrong network or while the final deployed ABI is unavailable.
+
+Run one backfill/live synchronization pass, continuous polling, or a deterministic rebuild:
+
+```bash
+python -m app.indexer.worker --once
+python -m app.indexer.worker
+python -m app.indexer.worker --rebuild
+```
+
+The JSON-RPC transport retries bounded transient failures and splits provider-rejected block ranges. Run only one worker instance for the Milestone 3 deployment.
 
 ## Seed Sample Data
 

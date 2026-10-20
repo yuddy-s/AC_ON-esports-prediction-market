@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     indexer_confirmation_depth: int = Field(default=2, ge=0)
     indexer_poll_interval_seconds: float = Field(default=5.0, gt=0)
     indexer_block_batch_size: int = Field(default=500, ge=1, le=10_000)
+    indexer_rpc_timeout_seconds: float = Field(default=10.0, gt=0)
+    indexer_rpc_max_attempts: int = Field(default=3, ge=1, le=10)
+    indexer_rpc_backoff_seconds: float = Field(default=0.5, ge=0)
+    prediction_market_abi_path: str | None = None
 
     model_config = SettingsConfigDict(
         env_file=".env",

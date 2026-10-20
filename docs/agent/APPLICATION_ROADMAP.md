@@ -2,9 +2,9 @@
 
 This is the canonical implementation checklist for coding agents and team members. It records what exists, what remains, who owns each area, and whether work can proceed without another team decision. Detailed milestone scope remains in `milestones/` and current assignments remain in `TASKS.md`.
 
-Last reviewed: 2026-10-19 on `feature/backend-indexer-foundation`.
+Last reviewed: 2026-10-20 on `feature/indexer-sepolia-rpc-worker`.
 
-Pull-request review refreshed: 2026-10-20. PR #12 approved the M3 trading-interface freeze and PR #13 implemented the bounded LMSR library; both are merged into `dev`. PR #10 contains the repaired backend/indexer foundation and awaits refreshed CI and review.
+PRs #10, #12, #13, and #14 are merged. The shared `dev` baseline contains the repaired database/indexer/API foundation, approved M3 trading interface, bounded LMSR library, and their documentation integration. The current feature branch adds the live Sepolia RPC worker while preserving ABI-specific decoding as an explicit boundary.
 
 ## Status Key
 
@@ -31,9 +31,9 @@ The Solidity source is written for people and the compiler. The ABI is the machi
 |---|---|---|
 | Frontend | Wallet connection, Sepolia balance, and a read of prototype market `0`. | On `dev`; no trading write or indexed API integration. |
 | Contracts | Prototype `PredictionMarket` supports `createMarket`, `getMarket`, and `MarketCreated`; the bounded `LMSR.sol` library is implemented and tested. | On `dev`; LMSR is not yet integrated with collateral, buy, resolution, or payout. |
-| Backend API | Health, deprecated sample data, and indexed market/trade/status endpoints. | Indexer endpoints are on the feature branch pending review. |
-| Database | Alembic models for indexed contracts, checkpoints, processed logs, markets, and trades. | On the feature branch pending review; not yet applied to shared Supabase. |
-| Indexer | Normalized log boundary, confirmations, atomic checkpoints, idempotency, restart, and deterministic rebuild/reorg recovery. | On the feature branch pending review; no live JSON-RPC decoder/worker. |
+| Backend API | Health, deprecated sample data, and indexed market/trade/status endpoints. | Merged into `dev`; not yet deployed with live indexed data. |
+| Database | Alembic models for indexed contracts, checkpoints, processed logs, markets, and trades. | Merged into `dev`; not yet applied to shared Supabase. |
+| Indexer | Confirmed-log projections, atomic checkpoints, idempotency, restart/reorg recovery, JSON-RPC transport, polling worker, and strict ABI decoder. | Foundation merged; RPC worker implemented on the current feature branch; live validation awaits the contract handoff. |
 | Oracle | Design boundary only. | Not implemented. |
 | Resolver | Design and ownership boundary only. | Not implemented; Milestone 4 scope. |
 | CI | Frontend build, backend migrations/tests, and Foundry format/build/tests. | Implemented; no cross-layer end-to-end job. |
@@ -43,8 +43,8 @@ The Solidity source is written for people and the compiler. The ABI is the machi
 ### PR #10: backend indexer foundation
 
 - Contains the database/indexer/API foundation described in this roadmap.
-- The branch is refreshed after PRs #12 and #13.
-- The four review findings are resolved: mid-batch reorganization consistency, direct-to-`OPEN` projection, the two-confirmation default, and an explicit derived-state marker on trade responses. Refreshed CI and review remain.
+- The branch was refreshed after PRs #12 and #13 and merged into `dev`.
+- The four review findings were resolved: mid-batch reorganization consistency, direct-to-`OPEN` projection, the two-confirmation default, and an explicit derived-state marker on trade responses.
 
 ### PR #12: Milestone 3 trading-interface decision
 
@@ -78,8 +78,8 @@ Verification confirmed that the Foundry invariant executed 256 runs and 128,000 
 
 1. **Done:** approve and merge PR #12 so its product and interface decisions become the integration baseline.
 2. **Done:** refresh PR #13 from the new `dev`, preserve both documentation sets, rerun CI with submodules, and merge it.
-3. Refresh PR #10 from the new `dev`, retain its implemented backend statuses, fix all four review findings, rerun CI, and merge it.
-4. Branch Yudhveer's live RPC worker from the resulting `dev`.
+3. **Done:** refresh PR #10 from the new `dev`, retain its implemented backend statuses, fix all four review findings, rerun CI, and merge it.
+4. **In review:** branch Yudhveer's live RPC worker from the resulting `dev`, implement and validate it, then merge it through a reviewed PR.
 5. Benny integrates the reviewed LMSR library and approved interface, then publishes the compiled ABI and Sepolia deployment handoff.
 
 ## Milestone 3 Definition Of Done
@@ -104,9 +104,9 @@ The full resolver committee, production esports provider, selling, settlement, p
 |---:|---|---|---|---|
 | 1 | Team, coordinated by Yudhveer | Review and merge PR #12 to freeze the M3 cross-layer interface. | Done | Approved and merged. |
 | 2 | Matthew | Refresh, review, and merge PR #13 implementing binary LMSR math. | Done | Approved, verified, and merged. |
-| 3 | Yudhveer/team | Refresh and repair PR #10, then merge the indexer foundation into `dev`. | Partial | Four findings fixed; refreshed CI, human approval, and merge remain. |
+| 3 | Yudhveer/team | Refresh and repair PR #10, then merge the indexer foundation into `dev`. | Done | Merged and included in the PR #14 integration baseline. |
 | 4 | Benny | Integrate market creation, creator subsidy, quote, guarded buy, balances, and complete events. | Partial | Can design now; final Solidity/API freeze is shared. |
-| 5 | Yudhveer | Implement JSON-RPC transport, polling worker, backfill, retries, range splitting, and operational logging. | Ready | Must initially keep raw retrieval separate from ABI-specific decoding. |
+| 5 | Yudhveer | Implement JSON-RPC transport, polling worker, backfill, retries, range splitting, and operational logging. | Partial | Implemented on the feature branch; review and live deployment validation remain. |
 | 6 | Yudhveer | Implement final ABI decoder and live market/trade projections. | Blocked | Needs compiled ABI, deployed address, deployment block, and event/unit freeze from Benny. |
 | 7 | Benny | Deploy the integrated contract to Sepolia and publish its handoff record. | Blocked | Requires completed/tested LMSR and market contract. |
 | 8 | Yudhveer | Apply migrations and deploy API/worker using Render and Supabase. | Partial | Deployment preparation is ready; execution needs hosted credentials and the final contract handoff. |
@@ -118,23 +118,23 @@ The full resolver committee, production esports provider, selling, settlement, p
 
 ### Ready now
 
-- [ ] Refresh the indexer-foundation PR after PRs #12 and #13, resolve the four review findings, and get it reviewed and merged; do not build unrelated RPC-worker work on the branch awaiting review.
-- [ ] Review and coordinate PR #12's ABI/event freeze using the handoff checklist below.
-- [ ] Add a JSON-RPC client that calls `eth_blockNumber`, `eth_getBlockByNumber`, and `eth_getLogs`.
-- [ ] Validate hexadecimal RPC responses, contract addresses, block numbers, block hashes, transaction hashes, and log indexes.
-- [ ] Add bounded retries with backoff for temporary HTTP/RPC failures; do not retry invalid requests forever.
-- [ ] Split a requested block range when the provider rejects a range as too large.
-- [ ] Add a worker entry point for one-shot backfill and continuous polling with clean shutdown.
-- [ ] Add structured logs for chain head, safe head, requested range, processed-log count, checkpoint, lag, rebuild, and failures.
-- [ ] Test HTTP failure, malformed response, rate limiting, oversized ranges, empty ranges, restart, and shutdown using mocked RPC responses.
-- [ ] Add a deployment runbook for Alembic, Render API/worker processes, Supabase, secrets, health checks, rollback, and rebuild.
+- [x] Refresh and merge the repaired indexer foundation after PRs #12 and #13.
+- [x] Review and coordinate PR #12's ABI/event freeze using the handoff checklist below.
+- [x] Add a JSON-RPC client that calls `eth_blockNumber`, `eth_getBlockByNumber`, and `eth_getLogs`.
+- [x] Validate hexadecimal RPC responses, contract addresses, block numbers, block hashes, transaction hashes, and log indexes.
+- [x] Add bounded retries with backoff for temporary HTTP/RPC failures; do not retry invalid requests forever.
+- [x] Split a requested block range when the provider rejects a range as too large.
+- [x] Add a worker entry point for one-shot backfill and continuous polling with clean shutdown.
+- [x] Add operational logs for completed sync state, RPC retries/range splits, rebuilds, and failures.
+- [x] Test transient/non-retryable HTTP failures, malformed responses, oversized ranges, worker modes, and shutdown using mocked dependencies.
+- [x] Add a deployment runbook for Alembic, Render API/worker processes, Supabase, secrets, health checks, rollback, and rebuild.
 - [ ] Add a checked-in ABI-version convention and deployment manifest format without committing secrets.
 - [ ] Confirm pagination limits, validation, empty responses, metadata, and lag reporting on the indexed APIs.
 
 ### Can be scaffolded now but needs a final handoff
 
-- [ ] Build decoder dispatch that maps a known event topic to a normalized `ChainLog`; final topic hashes and field mappings wait for the compiled ABI.
-- [ ] Prepare `MarketCreated` and `TradeExecuted` decoder fixtures; replace placeholders with Foundry-generated fixtures after the ABI freezes.
+- [x] Build ABI-driven decoder dispatch that maps known event topics to normalized `ChainLog` values and rejects ABIs missing the approved events.
+- [x] Prepare a generated `MarketCreated` decoder fixture; add exact Foundry-generated fixtures for both events after the deployed ABI freezes.
 - [ ] Prepare Supabase migrations and a staging verification query; running them requires authorized database credentials.
 - [ ] Prepare Render service/worker settings; live deployment requires RPC/database secrets and the contract deployment record.
 - [ ] Prepare a Sepolia smoke test; its assertions require the final contract address and known transactions.
@@ -177,7 +177,7 @@ Yudhveer may propose event fields because the indexer consumes them. Benny must 
 - [ ] Payment token address/decimals or an explicit statement that native Sepolia ETH is used.
 - [ ] Example successful creation and trade transaction hashes for integration fixtures.
 
-Minimum proposed M3 events remain:
+Approved M3 event interfaces are:
 
 ```solidity
 event MarketCreated(
@@ -198,7 +198,7 @@ event TradeExecuted(
 );
 ```
 
-These declarations now match PR #12's proposal, but remain proposals until that decision is approved and the declarations are merged into the Solidity source. All share, cost, and LMSR quantity fields use 1e18 base units under that proposal. The decoder must project a newly created market as `OPEN` if the final contract follows PR #12's direct-to-`OPEN` rule.
+These declarations match the approved PR #12 decision record but are not yet implemented in the integrated Solidity contract. All share, cost, and LMSR quantity fields use 1e18 base units. The decoder projects a newly created market as `OPEN` under the approved direct-to-`OPEN` rule and fails startup if the supplied ABI does not contain these exact event shapes.
 
 ## Remaining Application Work By Owner
 
