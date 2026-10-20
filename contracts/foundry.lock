@@ -1,0 +1,8 @@
+{
+  "lib/prb-math": {
+    "tag": {
+      "name": "v4.2.2",
+      "rev": "4bb0a1b8788d16541d4b5148a94d5fc7dda1d4ab"
+    }
+  }
+}
