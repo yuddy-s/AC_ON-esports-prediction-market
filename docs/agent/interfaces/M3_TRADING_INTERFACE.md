@@ -60,7 +60,7 @@ FINALIZED = 5
 VOID = 6
 ```
 
-A market creation transaction must collect the full subsidy atomically and create the market directly in `OPEN`. Quote and buy operations require `OPEN` and `block.timestamp < tradingDeadline`; trading is closed at the exact deadline. `CLAIMABLE` and other future states are not added in Milestone 3.
+A market creation transaction must collect the full subsidy atomically and create the market directly in `OPEN`. Quote and buy operations require `OPEN` and `block.timestamp < tradingDeadline`; trading is closed at the exact deadline. Milestone 3 does not require a separate transaction or event that changes the stored state to `CLOSED`, so clients must treat an `OPEN` market at or after its deadline as not tradable. An explicit close transition and `CLAIMABLE` or other future states are deferred.
 
 ## LMSR Library Boundary
 
