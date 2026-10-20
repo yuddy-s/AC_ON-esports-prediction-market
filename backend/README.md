@@ -38,7 +38,7 @@ INDEXER_RPC_BACKOFF_SECONDS=0.5
 PREDICTION_MARKET_ABI_PATH=path/to/PredictionMarket.json
 ```
 
-Two confirmations are the approved Sepolia demo default; deployments may override the value. The worker validates the supplied ABI against the approved `MarketCreated` and `TradeExecuted` event contracts before reading or advancing a checkpoint. It fails closed while the final deployed ABI is unavailable.
+Two confirmations are the approved Sepolia demo default; deployments may override the value. Before touching indexer state, the worker verifies `eth_chainId` against `INDEXER_CHAIN_ID` and validates the supplied ABI against the approved `MarketCreated` and `TradeExecuted` event contracts. It fails closed for a wrong network or while the final deployed ABI is unavailable.
 
 Run one backfill/live synchronization pass, continuous polling, or a deterministic rebuild:
 

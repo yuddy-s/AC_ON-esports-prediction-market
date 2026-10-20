@@ -8,7 +8,7 @@ import time
 from app.config import get_settings
 from app.database import SessionLocal
 from app.indexer.decoder import DecodingEthereumLogProvider, JsonAbiLogDecoder
-from app.indexer.rpc import EthereumJsonRpcClient, RpcTransientError
+from app.indexer.rpc import EthereumJsonRpcClient, RpcError, RpcTransientError
 from app.indexer.service import EventIndexer, IndexerConfig, IndexerReorganizationError
 
 
@@ -66,14 +66,24 @@ def build_worker() -> tuple[PollingIndexerWorker, EthereumJsonRpcClient]:
         missing.append("PREDICTION_MARKET_ABI_PATH")
     if missing:
         raise ValueError(f"missing required indexer configuration: {', '.join(missing)}")
-    abi_path = Path(settings.prediction_market_abi_path)
-    decoder = JsonAbiLogDecoder(abi_path)
     rpc = EthereumJsonRpcClient(
         settings.sepolia_rpc_url,
         timeout_seconds=settings.indexer_rpc_timeout_seconds,
         max_attempts=settings.indexer_rpc_max_attempts,
         backoff_seconds=settings.indexer_rpc_backoff_seconds,
     )
+    try:
+        actual_chain_id = rpc.chain_id()
+        if actual_chain_id != settings.indexer_chain_id:
+            raise ValueError(
+                "RPC chain ID mismatch: "
+                f"expected {settings.indexer_chain_id}, received {actual_chain_id}"
+            )
+        abi_path = Path(settings.prediction_market_abi_path)
+        decoder = JsonAbiLogDecoder(abi_path)
+    except Exception:
+        rpc.close()
+        raise
     provider = DecodingEthereumLogProvider(rpc, decoder, settings.indexer_chain_id)
     indexer = EventIndexer(
         provider,
@@ -98,8 +108,8 @@ def main() -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
     try:
         worker, rpc = build_worker()
-    except (ValueError, OSError) as exc:
-        logger.error("indexer configuration error: %s", exc)
+    except (ValueError, OSError, RpcError) as exc:
+        logger.error("indexer startup error: %s", exc)
         return 2
     signal.signal(signal.SIGINT, worker.stop)
     signal.signal(signal.SIGTERM, worker.stop)

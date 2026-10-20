@@ -70,6 +70,9 @@ class EthereumJsonRpcClient:
     def latest_block(self) -> int:
         return self._quantity(self._request("eth_blockNumber", []), "block number")
 
+    def chain_id(self) -> int:
+        return self._quantity(self._request("eth_chainId", []), "chain ID")
+
     def block_hash(self, block_number: int) -> str:
         result = self._request("eth_getBlockByNumber", [hex(block_number), False])
         if not isinstance(result, dict) or not self._hash(result.get("hash")):

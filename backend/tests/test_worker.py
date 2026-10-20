@@ -61,3 +61,37 @@ def test_worker_fails_closed_when_live_configuration_is_missing(monkeypatch) -> 
 
     with pytest.raises(ValueError, match="SEPOLIA_RPC_URL.*PREDICTION_MARKET_ADDRESS.*ABI_PATH"):
         worker_module.build_worker()
+
+
+def test_worker_rejects_wrong_rpc_chain_before_database_use(monkeypatch) -> None:
+    settings = SimpleNamespace(
+        sepolia_rpc_url="https://rpc.example",
+        prediction_market_address="0x" + "11" * 20,
+        prediction_market_abi_path="unused.json",
+        indexer_chain_id=11155111,
+        indexer_rpc_timeout_seconds=10,
+        indexer_rpc_max_attempts=3,
+        indexer_rpc_backoff_seconds=0.5,
+    )
+
+    class WrongChainRpc:
+        instance = None
+
+        def __init__(self, *_args, **_kwargs) -> None:
+            self.closed = False
+            WrongChainRpc.instance = self
+
+        def chain_id(self) -> int:
+            return 1
+
+        def close(self) -> None:
+            self.closed = True
+
+    monkeypatch.setattr(worker_module, "get_settings", lambda: settings)
+    monkeypatch.setattr(worker_module, "EthereumJsonRpcClient", WrongChainRpc)
+
+    with pytest.raises(ValueError, match="expected 11155111, received 1"):
+        worker_module.build_worker()
+
+    assert WrongChainRpc.instance is not None
+    assert WrongChainRpc.instance.closed is True

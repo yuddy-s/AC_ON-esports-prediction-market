@@ -26,7 +26,7 @@ Configure `DATABASE_URL`, `FRONTEND_ORIGIN`, `SEPOLIA_RPC_URL`, `PREDICTION_MARK
 ## Verification and recovery
 
 1. Check `/health` and `/api/indexer/status` before enabling frontend traffic.
-2. Run `python -m app.indexer.worker --once` and verify observed head, safe checkpoint, and lag.
+2. Run `python -m app.indexer.worker --once`; startup must confirm the RPC chain ID before any checkpoint work. Then verify observed head, safe checkpoint, and lag.
 3. Compare one indexed market/trade with its Sepolia transaction and event log.
 4. Restart the worker and verify it resumes from the stored checkpoint without duplicates.
 5. Use `python -m app.indexer.worker --rebuild` only during a maintenance window. It deletes derived projections for the configured contract and replays canonical events; it never writes to Ethereum.
