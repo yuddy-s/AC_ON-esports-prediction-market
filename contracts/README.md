@@ -4,6 +4,8 @@ The Milestone 2 Foundry project is under `contracts/`. The local Solidity source
 
 The already-deployed Ethereum Sepolia address was deployed from an earlier source version that included virtual-credit paper trading. Deployed contracts are immutable; the frontend only reads the market. A fresh deployment of the current source would be needed to have a read-only contract address on-chain.
 
+Milestone 3 trading is not implemented on this branch. The proposed payment token, LMSR library boundary, public buy ABI, events, revert behavior, validation gates, and deployment handoff are documented in [`../docs/agent/interfaces/M3_TRADING_INTERFACE.md`](../docs/agent/interfaces/M3_TRADING_INTERFACE.md). Treat that file as a proposal until its decision PR is approved; do not infer those interfaces from this Milestone 2 prototype.
+
 ## Local checks
 
 Requires Foundry.

@@ -65,6 +65,8 @@ Status: prototype.
 
 The Foundry project under `contracts/` implements `createMarket`, `getMarket`, `marketCount`, and `MarketCreated`. A prototype is deployed on Ethereum Sepolia and read by the frontend. The checked-in source does not accept funds or implement trading, LMSR pricing, challenges, resolver voting, settlement, or payouts. The deployed prototype came from an earlier source version, so Milestone 3 requires a fresh deployment after the ABI is frozen.
 
+The proposed Milestone 3 trading boundary uses a custom 18-decimal `ACON` test ERC-20, an internal pure `LMSR.sol` library, creator-funded LMSR subsidy, guarded buys with `maxCost`, and a deterministic post-trade `TradeExecuted` event. These are design proposals, not implemented behavior. See [`interfaces/M3_TRADING_INTERFACE.md`](interfaces/M3_TRADING_INTERFACE.md) for the reviewable decision record.
+
 ## Backend
 
 Status: scaffolded.
@@ -163,7 +165,7 @@ Important invariants:
 | Contract -> indexer | `TradeExecuted` with complete post-trade projection fields | Milestone 3 proposed |
 | Backend -> frontend | indexed market, trade, and indexer-status reads | Milestone 3 proposed |
 
-See `milestones/MILESTONE_3.md` for the proposed interface freeze, recovery model, and acceptance criteria.
+See `interfaces/M3_TRADING_INTERFACE.md` for the proposed trading-interface freeze and `milestones/MILESTONE_3.md` for the recovery model and acceptance criteria.
 
 ## Setup Notes
 
