@@ -1,8 +1,8 @@
 # Milestone 3 Trading Interface Decision Record
 
-Status: proposed for team review
+Status: approved in PR #12 on 2026-10-20
 
-This document is the proposed cross-layer contract for the Milestone 3 guarded-buy vertical slice. It becomes the implementation baseline when this decision PR is approved and merged. Code and tests remain the source of truth for implemented behavior; this document must be updated if validation forces a different bound, tolerance, or dependency version.
+This document is the approved cross-layer contract for the Milestone 3 guarded-buy vertical slice. Code and tests remain the source of truth for implemented behavior; this document must be updated through team review if validation forces a different bound, tolerance, or dependency version.
 
 ## Scope
 
@@ -66,7 +66,7 @@ A market creation transaction must collect the full subsidy atomically and creat
 
 `LMSR.sol` is an internal, pure Solidity library. It contains no storage, ERC-20 transfers, user balances, deadlines, events, authorization, or lifecycle transitions. Tests call it through a small harness.
 
-The proposed internal interface is:
+The approved internal interface is:
 
 ```solidity
 function cost(uint256 qYes, uint256 qNo) internal pure returns (uint256);
@@ -130,7 +130,7 @@ The PRBMath value for `C(0, 0)` is `34_657_359_027_997_265_450`, leaving the app
 
 ## Public Contract Interface
 
-The proposed public trading interface is:
+The approved public trading interface is:
 
 ```solidity
 function quoteBuy(
@@ -202,7 +202,7 @@ Frontend and integration tests must map these cases to user-facing states withou
 
 ## Indexer And Deployment Handoff
 
-- Confirmation depth is configurable; the proposed Sepolia demo default is two confirmations.
+- Confirmation depth is configurable; the approved Sepolia demo default is two confirmations.
 - RPC URLs and provider credentials are environment secrets. Code and documentation use `SEPOLIA_RPC_URL` and do not require a provider-specific implementation.
 - A deployment handoff includes chain ID, market-contract address, token address, deployment/start block, ABI or commit SHA, enum order, confirmation depth, and demo market ID.
 - The frontend distinguishes wallet submission, mining/revert, and indexer completion. A mined transaction is not yet indexed state.
