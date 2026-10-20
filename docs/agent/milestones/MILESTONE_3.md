@@ -52,6 +52,8 @@ Benny owns the authoritative on-chain resolver registry, selection, conflict che
 
 Names below are proposed integration contracts, not implemented interfaces. The team may rename them, but must freeze equivalent inputs, outputs, event fields, enum order, units, and revert behavior before parallel work begins.
 
+The detailed proposal for team review is recorded in [`../interfaces/M3_TRADING_INTERFACE.md`](../interfaces/M3_TRADING_INTERFACE.md). That document defines the proposed payment asset, enum order, LMSR boundary, funding flow, ABI/events, revert contract, confirmation policy, validated numeric limits, and deployment handoff. Merge approval freezes those decisions; implementation PR [#13](https://github.com/yuddy-s/AC_ON-esports-prediction-market/pull/13) supplies the pinned dependency and validation evidence for the numeric policy.
+
 ### Contract reads and writes
 
 | Interface | Minimum behavior |
@@ -247,7 +249,8 @@ PostgreSQL deletion or corruption must not affect authoritative contract state.
 
 ## Open Team Decisions
 
-- value/payment asset for testnet trading
-- confirmation depth and RPC provider
+- approve or revise the proposed Milestone 3 trading interface decision record
+- approve or revise the PRBMath v4.2.2 pin and validated numeric policy supplied by LMSR implementation PR [#13](https://github.com/yuddy-s/AC_ON-esports-prediction-market/pull/13)
+- select the operational Sepolia RPC provider while retaining the provider-neutral `SEPOLIA_RPC_URL` interface
 - resolver randomness and liveness rules
 - approved esports API and evidence format
