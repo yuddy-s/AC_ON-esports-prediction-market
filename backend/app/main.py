@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.database import Base, engine, get_session
+from app.indexed_api import router as indexed_router
 from app.models import SampleMatch
 from app.schemas import HealthResponse, SampleMatchRead
 
@@ -12,8 +13,8 @@ settings = get_settings()
 
 app = FastAPI(
     title="AC_ON Backend",
-    description="Milestone 2 FastAPI backend for non-authoritative sample match data.",
-    version="0.1.0",
+    description="FastAPI reads for non-authoritative indexed Ethereum projections.",
+    version="0.2.0",
 )
 
 app.add_middleware(
@@ -23,6 +24,8 @@ app.add_middleware(
     allow_methods=["GET"],
     allow_headers=["*"],
 )
+
+app.include_router(indexed_router)
 
 
 @app.get("/health", response_model=HealthResponse)
@@ -43,13 +46,23 @@ def health(session: Session = Depends(get_session)) -> HealthResponse:
     )
 
 
-@app.get("/api/sample-matches", response_model=list[SampleMatchRead])
+@app.get(
+    "/api/sample-matches",
+    response_model=list[SampleMatchRead],
+    deprecated=True,
+    description="Milestone 2 fake fallback data. Use /api/markets for indexed on-chain projections.",
+)
 def list_sample_matches(session: Session = Depends(get_session)) -> list[SampleMatch]:
     statement = select(SampleMatch).order_by(SampleMatch.start_time)
     return list(session.scalars(statement).all())
 
 
-@app.get("/api/sample-matches/{slug}", response_model=SampleMatchRead)
+@app.get(
+    "/api/sample-matches/{slug}",
+    response_model=SampleMatchRead,
+    deprecated=True,
+    description="Milestone 2 fake fallback data. Use /api/markets/{market_id} for indexed projections.",
+)
 def get_sample_match(slug: str, session: Session = Depends(get_session)) -> SampleMatch:
     match = session.get(SampleMatch, slug)
     if match is None:

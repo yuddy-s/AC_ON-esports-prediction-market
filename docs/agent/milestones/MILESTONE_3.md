@@ -14,7 +14,7 @@ The latest `dev` branch contains three working but mostly independent pieces:
 - a minimal `PredictionMarket` contract that creates and reads placeholder markets
 - a FastAPI backend with fake sample-match rows stored in SQLite or Supabase PostgreSQL
 
-The contract currently has no trading, funds, LMSR, oracle proposal, challenge, resolver voting, settlement, or payout behavior. The backend does not read Ethereum events, and its sample rows are not connected to the deployed contract. The current Sepolia deployment was built from an earlier source version, so a new deployment will be required after the Milestone 3 contract interface is finalized.
+The market contract currently has no trading, funds, oracle proposal, challenge, resolver voting, settlement, or payout behavior. A standalone bounded LMSR library is implemented and tested but is not yet integrated into the market. The backend does not yet read live Ethereum events, and its sample rows are not connected to the deployed contract. The current Sepolia deployment was built from an earlier source version, so a new deployment will be required after contract integration.
 
 Ethereum Sepolia (chain ID `11155111`) is the selected testnet for Milestone 3. Do not plan a Base Sepolia migration during MVP integration.
 
