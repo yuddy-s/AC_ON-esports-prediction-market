@@ -29,12 +29,12 @@ INDEXER_CHAIN_ID=11155111
 SEPOLIA_RPC_URL=https://your-sepolia-rpc.example
 PREDICTION_MARKET_ADDRESS=0x...
 PREDICTION_MARKET_DEPLOYMENT_BLOCK=0
-INDEXER_CONFIRMATION_DEPTH=3
+INDEXER_CONFIRMATION_DEPTH=2
 INDEXER_POLL_INTERVAL_SECONDS=5
 INDEXER_BLOCK_BATCH_SIZE=500
 ```
 
-The provider/decoder runner will be connected after the Milestone 3 trade ABI freezes. The current service and tests consume normalized chain logs through a provider interface.
+Two confirmations are the approved Sepolia demo default; deployments may override the value. The provider/decoder runner will be connected after the approved Milestone 3 trade ABI is implemented. The current service and tests consume normalized chain logs through a provider interface.
 
 ## Seed Sample Data
 

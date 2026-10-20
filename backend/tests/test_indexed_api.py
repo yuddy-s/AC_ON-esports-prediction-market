@@ -66,7 +66,7 @@ def add_projection(SessionLocal: sessionmaker[Session]) -> None:
                     market_id=market_id,
                     question=f"Market {market_id}?",
                     trading_deadline=datetime.fromtimestamp(1_900_000_000 + market_id, UTC),
-                    state="CREATED",
+                    state="OPEN",
                     creator="0x2222222222222222222222222222222222222222",
                     yes_quantity=0,
                     no_quantity=0,
@@ -142,6 +142,7 @@ def test_market_detail_trade_history_and_indexer_lag(
     assert trades.status_code == 200
     assert trades.json()["total"] == 1
     assert trades.json()["items"][0]["shares"] == "1000000000000000000"
+    assert trades.json()["items"][0]["authoritative"] is False
     assert status.json()["configured"] is True
     assert status.json()["lag_blocks"] == 3
     assert status.json()["next_block"] == 121

@@ -4,7 +4,7 @@ This is the canonical implementation checklist for coding agents and team member
 
 Last reviewed: 2026-10-19 on `feature/backend-indexer-foundation`.
 
-Pull-request review refreshed: 2026-10-19. PR #12 proposes the M3 trading-interface freeze, PR #13 implements the bounded LMSR library, and PR #10 contains the backend/indexer foundation. All three target `dev`, have green CI, and still require review at the time of this update.
+Pull-request review refreshed: 2026-10-20. PR #12 approved the M3 trading-interface freeze and PR #13 implemented the bounded LMSR library; both are merged into `dev`. PR #10 contains the repaired backend/indexer foundation and awaits refreshed CI and review.
 
 ## Status Key
 
@@ -30,7 +30,7 @@ The Solidity source is written for people and the compiler. The ABI is the machi
 | Area | Current state | Integration status |
 |---|---|---|
 | Frontend | Wallet connection, Sepolia balance, and a read of prototype market `0`. | On `dev`; no trading write or indexed API integration. |
-| Contracts | Prototype `PredictionMarket` supports `createMarket`, `getMarket`, and `MarketCreated`. | On `dev`; no LMSR, collateral, buy, resolution, or payout. |
+| Contracts | Prototype `PredictionMarket` supports `createMarket`, `getMarket`, and `MarketCreated`; the bounded `LMSR.sol` library is implemented and tested. | On `dev`; LMSR is not yet integrated with collateral, buy, resolution, or payout. |
 | Backend API | Health, deprecated sample data, and indexed market/trade/status endpoints. | Indexer endpoints are on the feature branch pending review. |
 | Database | Alembic models for indexed contracts, checkpoints, processed logs, markets, and trades. | On the feature branch pending review; not yet applied to shared Supabase. |
 | Indexer | Normalized log boundary, confirmations, atomic checkpoints, idempotency, restart, and deterministic rebuild/reorg recovery. | On the feature branch pending review; no live JSON-RPC decoder/worker. |
@@ -38,29 +38,29 @@ The Solidity source is written for people and the compiler. The ABI is the machi
 | Resolver | Design and ownership boundary only. | Not implemented; Milestone 4 scope. |
 | CI | Frontend build, backend migrations/tests, and Foundry format/build/tests. | Implemented; no cross-layer end-to-end job. |
 
-## Open Pull Request Review
+## Pull Request Integration Review
 
 ### PR #10: backend indexer foundation
 
 - Contains the database/indexer/API foundation described in this roadmap.
-- CI is green, but the branch still requires review and merge into `dev`.
-- Must be refreshed after PRs #12 and #13 and must resolve four review findings before approval: mid-batch reorganization consistency, direct-to-`OPEN` projection, the two-confirmation default, and an explicit derived-state marker on trade responses.
+- The branch is refreshed after PRs #12 and #13.
+- The four review findings are resolved: mid-batch reorganization consistency, direct-to-`OPEN` projection, the two-confirmation default, and an explicit derived-state marker on trade responses. Refreshed CI and review remain.
 
-### PR #12: Milestone 3 trading-interface proposal
+### PR #12: Milestone 3 trading-interface decision
 
-- Proposes an 18-decimal mintable `ACON` test ERC-20 as collateral; Sepolia ETH is gas only.
-- Freezes the proposed outcome order as `YES = 0`, `NO = 1` and retains the existing market-state numeric order.
-- Proposes creation directly into `OPEN`, atomic creator-subsidy collection, guarded `buy(..., maxCost)`, and the `MarketCreated`/`TradeExecuted` events already anticipated by the indexer foundation.
-- Proposes maximum quantity `2_000e18`, maximum trade `100e18`, no fees, and a two-confirmation Sepolia default.
+- Approved an 18-decimal mintable `ACON` test ERC-20 as collateral; Sepolia ETH is gas only.
+- Froze the outcome order as `YES = 0`, `NO = 1` and retained the existing market-state numeric order.
+- Approved creation directly into `OPEN`, atomic creator-subsidy collection, guarded `buy(..., maxCost)`, and the `MarketCreated`/`TradeExecuted` events anticipated by the indexer foundation.
+- Approved maximum quantity `2_000e18`, maximum trade `100e18`, no fees, and a two-confirmation Sepolia default.
 - Correctly keeps sells, settlement, payouts, complete VOID behavior, oracle execution, and resolver execution outside M3.
-- The proposal is detailed enough to guide parallel scaffolding, but it is not authoritative until team approval and merge.
+- PR #12 is approved and merged; its decision record is the cross-layer baseline.
 
-Required reconciliation before or immediately after merge:
+Resolved backend reconciliation:
 
 - PR #12 was authored against `dev` before PR #10, so its `TASKS.md` backend statuses describe the older scaffold. When PR #10 is refreshed after PRs #12 and #13, retain PR #10's implemented foundation statuses.
-- The indexer currently defaults a `MarketCreated` projection to `CREATED`, while PR #12 says creation begins directly in `OPEN`. The final decoder must explicitly project `OPEN`, or the event/contract must expose the initial state.
-- Backend configuration currently defaults to three confirmations, while PR #12 proposes two. Choose one team default and update code, examples, tests, and docs together; the setting should remain configurable.
-- The contract can remain stored as `OPEN` after its deadline unless a close transition is implemented. Specify whether clients derive effective closure from `tradingDeadline`, `getMarket` returns an effective state, or a transaction/event changes it to `CLOSED`.
+- The indexer projects a state-less `MarketCreated` event as `OPEN`.
+- Backend configuration defaults to two confirmations and remains configurable.
+- The approved decision record states that clients treat an `OPEN` market at or after its deadline as not tradable; an explicit close transition is deferred.
 - The test-token mint/faucet authorization and demo distribution procedure still need to be specified before deployment.
 
 ### PR #13: bounded LMSR library
@@ -70,13 +70,14 @@ Required reconciliation before or immediately after merge:
 - Implements the approved subsidy constant, quantity/trade bounds, deterministic vectors, fuzz tests, and stateful bounded-loss/telescoping invariants.
 - Leaves token movement and `PredictionMarket` integration to Benny, which preserves the documented ownership boundary.
 - All configured checks pass. No blocking math or dependency issue was identified during this review.
+- PR #13 is approved and merged into `dev`.
 
-Before merge, reviewers should still confirm that the Foundry output shows the invariant call count claimed by the PR and that the team accepts the `2_000e18` quantity and `100e18` per-trade product limits. PR #13 and PR #12 both edit `contracts/README.md`, so the second branch merged must be refreshed and must preserve both the interface decision link and the implemented LMSR instructions.
+Verification confirmed that the Foundry invariant executed 256 runs and 128,000 calls with zero reverts. The refreshed branch preserved both the approved interface decision link and the implemented LMSR/submodule instructions.
 
 ### Recommended merge order
 
-1. Approve and merge PR #12 so its product and interface decisions become the integration baseline.
-2. Refresh PR #13 from the new `dev`, preserve both documentation sets, rerun CI with submodules, and merge it.
+1. **Done:** approve and merge PR #12 so its product and interface decisions become the integration baseline.
+2. **Done:** refresh PR #13 from the new `dev`, preserve both documentation sets, rerun CI with submodules, and merge it.
 3. Refresh PR #10 from the new `dev`, retain its implemented backend statuses, fix all four review findings, rerun CI, and merge it.
 4. Branch Yudhveer's live RPC worker from the resulting `dev`.
 5. Benny integrates the reviewed LMSR library and approved interface, then publishes the compiled ABI and Sepolia deployment handoff.
@@ -101,9 +102,9 @@ The full resolver committee, production esports provider, selling, settlement, p
 
 | Order | Owner | Work | Status | Dependency or acceptance condition |
 |---:|---|---|---|---|
-| 1 | Team, coordinated by Yudhveer | Review and merge PR #12 to freeze the M3 cross-layer interface. | Partial | The proposal selects ACON, IDs/enums, functions, events, units, errors, limits, and slippage behavior; it still needs team approval. |
-| 2 | Matthew | Refresh, review, and merge PR #13 implementing binary LMSR math. | Partial | Implementation and tests are complete with green CI; preserve PR #12 documentation during integration. |
-| 3 | Yudhveer/team | Refresh and repair PR #10, then merge the indexer foundation into `dev`. | Partial | Fix the four recorded review findings, obtain human approval, and rerun CI. |
+| 1 | Team, coordinated by Yudhveer | Review and merge PR #12 to freeze the M3 cross-layer interface. | Done | Approved and merged. |
+| 2 | Matthew | Refresh, review, and merge PR #13 implementing binary LMSR math. | Done | Approved, verified, and merged. |
+| 3 | Yudhveer/team | Refresh and repair PR #10, then merge the indexer foundation into `dev`. | Partial | Four findings fixed; refreshed CI, human approval, and merge remain. |
 | 4 | Benny | Integrate market creation, creator subsidy, quote, guarded buy, balances, and complete events. | Partial | Can design now; final Solidity/API freeze is shared. |
 | 5 | Yudhveer | Implement JSON-RPC transport, polling worker, backfill, retries, range splitting, and operational logging. | Ready | Must initially keep raw retrieval separate from ABI-specific decoding. |
 | 6 | Yudhveer | Implement final ABI decoder and live market/trade projections. | Blocked | Needs compiled ABI, deployed address, deployment block, and event/unit freeze from Benny. |
@@ -143,10 +144,7 @@ The full resolver committee, production esports provider, selling, settlement, p
 
 - [ ] Compiled ABI from the exact Solidity commit deployed to Sepolia.
 - [ ] Final Sepolia contract address and deployment transaction/block.
-- [ ] Team approval and merge of PR #12's proposed 18-decimal ACON token, market identifier, outcome/state enums, event fields, base units, and product limits.
 - [ ] Contract behavior for creation subsidy, guarded buy, deadline, invalid outcome, insufficient balance/allowance, and slippage reverts.
-- [ ] Reconciliation of direct-to-`OPEN` creation with the backend projection default and of the proposed two-confirmation default with the current three-confirmation backend default.
-- [ ] Decision on how an expired stored-`OPEN` market is represented as effectively closed.
 - [ ] ACON mint/faucet authorization and demo-token distribution procedure.
 - [ ] Permission to use the shared Supabase and Render projects and their secret values.
 
@@ -228,11 +226,11 @@ These declarations now match PR #12's proposal, but remain proposals until that 
 
 ### Matthew: LMSR economics
 
-- [ ] Implement `LMSR.sol` using 1e18 fixed-point arithmetic and `b = 50e18`.
-- [ ] Enforce minimum creator subsidy `ceil(b * ln(2)) = 34,657,359,027,997,265,471` base units.
-- [ ] Implement consistent quote/execution rounding for binary YES/NO buys.
-- [ ] Prove or test bounded-loss, monotonic-price, conservation/accounting, and extreme-input behavior.
-- [ ] Add unit, fuzz, and invariant tests for math and accounting.
+- [x] Implement `LMSR.sol` using 1e18 fixed-point arithmetic and `b = 50e18`.
+- [x] Enforce minimum creator subsidy `ceil(b * ln(2)) = 34,657,359,027,997,265,471` base units.
+- [x] Implement consistent quote/execution rounding for binary YES/NO buys.
+- [x] Prove or test bounded-loss, monotonic-price, conservation/accounting, and extreme-input behavior.
+- [x] Add unit, fuzz, and invariant tests for math and accounting.
 - [ ] Define sell behavior only when the team begins the deferred sell scope.
 - [ ] Define resolution, VOID, and payout accounting with Benny for M4.
 - [ ] Keep trading and platform fees out of scope.
@@ -250,7 +248,7 @@ These declarations now match PR #12's proposal, but remain proposals until that 
 
 ### Shared integration, release, and course artifacts
 
-- [ ] Decide and document the testnet payment asset.
+- [x] Decide and document the 18-decimal ACON testnet payment asset.
 - [ ] Freeze every cross-layer ABI/version before dependent releases.
 - [ ] Create a reproducible local or CI cross-layer integration harness.
 - [ ] Establish test wallets and a test-token/faucet procedure without sharing private keys.

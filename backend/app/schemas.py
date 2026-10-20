@@ -59,6 +59,7 @@ class IndexedTradeRead(BaseModel):
     block_hash: str
     transaction_hash: str
     log_index: int
+    authoritative: bool = False
 
 
 class MarketListResponse(BaseModel):

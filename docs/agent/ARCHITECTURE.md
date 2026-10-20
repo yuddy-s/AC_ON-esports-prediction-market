@@ -11,7 +11,7 @@ This document describes the repository as currently inspected. Do not treat plan
 | Frontend | implemented | React + Vite + TypeScript app under `frontend/`. |
 | Wallet | implemented | Coinbase Smart Wallet and injected wallet fallback through wagmi. |
 | Chain config | implemented | Frontend and Milestone 2 deployment use Ethereum Sepolia (chain ID `11155111`), selected for Milestone 3. |
-| Contracts | prototype | Foundry project includes market creation/read, a Sepolia deployment, and basic tests; no trading or resolution logic. |
+| Contracts | partial | Foundry includes market creation/read plus a tested bounded `LMSR.sol`; the library is not yet integrated into trading or resolution. |
 | Backend | foundation | FastAPI app has health, deprecated sample-match endpoints, and paginated indexed market/trade/status reads. |
 | Oracle | planned | No oracle service found. |
 | Indexer | foundation | Normalized provider boundary, atomic checkpoints, idempotent projections, rebuild/reorg recovery, and tests exist; live RPC/ABI decoding is deferred. |
@@ -85,7 +85,7 @@ No oracle service exists yet. Intended behavior: compare approved esports API re
 
 Status: foundation.
 
-The backend contains a provider-independent event indexer with normalized `MarketCreated` and proposed `TradeExecuted` handlers. It persists a unique `(chain_id, transaction_hash, log_index)` event identity, advances each bounded block range atomically with its checkpoint, waits for configurable confirmations, and rebuilds derived projections when the checkpoint block hash no longer matches the canonical chain. A live Ethereum RPC client and final ABI decoder are intentionally deferred until the trade ABI freezes.
+The backend contains a provider-independent event indexer with normalized `MarketCreated` and approved `TradeExecuted` handlers. It persists a unique `(chain_id, transaction_hash, log_index)` event identity, checks range-end hashes before and after applying each batch, advances each bounded block range atomically with its checkpoint, waits for configurable confirmations, and rebuilds derived projections when the checkpoint block hash no longer matches the canonical chain. A live Ethereum RPC client and final ABI decoder are deferred until the approved trade ABI is implemented in the contract.
 
 ## Database
 

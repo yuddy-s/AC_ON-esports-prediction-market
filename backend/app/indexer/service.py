@@ -13,12 +13,16 @@ class IndexerProjectionError(RuntimeError):
     pass
 
 
+class IndexerReorganizationError(IndexerProjectionError):
+    """Raised when the canonical chain changes while a block range is processed."""
+
+
 @dataclass(frozen=True, slots=True)
 class IndexerConfig:
     chain_id: int
     contract_address: str
     deployment_block: int
-    confirmation_depth: int = 3
+    confirmation_depth: int = 2
     block_batch_size: int = 500
     abi_version: str = "milestone-3-foundation"
 
@@ -63,10 +67,10 @@ class EventIndexer:
         while checkpoint.next_block <= safe_head:
             from_block = checkpoint.next_block
             to_block = min(from_block + self.config.block_batch_size - 1, safe_head)
-            logs = self.provider.get_logs(self.address, from_block, to_block)
-            end_block_hash = self.provider.block_hash(to_block)
 
             try:
+                end_block_hash_before = self.provider.block_hash(to_block)
+                logs = self.provider.get_logs(self.address, from_block, to_block)
                 for chain_log in sorted(logs, key=lambda item: (item.block_number, item.log_index)):
                     self._validate_log(chain_log, from_block, to_block)
                     if self._already_processed(session, chain_log):
@@ -78,9 +82,16 @@ class EventIndexer:
                     session.flush()
                     processed_count += 1
 
+                end_block_hash_after = self.provider.block_hash(to_block)
+                if end_block_hash_before.lower() != end_block_hash_after.lower():
+                    raise IndexerReorganizationError(
+                        f"canonical block {to_block} changed while processing range "
+                        f"{from_block}-{to_block}"
+                    )
+
                 checkpoint.next_block = to_block + 1
                 checkpoint.last_safe_block = to_block
-                checkpoint.last_safe_block_hash = end_block_hash
+                checkpoint.last_safe_block_hash = end_block_hash_after
                 checkpoint.latest_observed_block = latest_block
                 checkpoint.updated_at = datetime.now(UTC)
                 session.commit()
@@ -207,7 +218,7 @@ class EventIndexer:
         values = {
             "question": str(payload["question"]),
             "trading_deadline": datetime.fromtimestamp(int(payload["trading_deadline"]), UTC),
-            "state": str(payload.get("state", "CREATED")),
+            "state": "OPEN",
             "creator": str(payload["creator"]).lower(),
             "source_block_number": chain_log.block_number,
             "source_block_hash": chain_log.block_hash.lower(),

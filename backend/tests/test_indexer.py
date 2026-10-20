@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.database import Base
 from app.indexer.provider import ChainLog
-from app.indexer.service import EventIndexer, IndexerConfig
+from app.indexer.service import EventIndexer, IndexerConfig, IndexerReorganizationError
 from app.models import IndexedMarket, IndexedTrade, IndexerCheckpoint, ProcessedLog
 
 
@@ -33,7 +33,6 @@ def market_created(block: int, market_id: int = 0, *, suffix: int = 1) -> ChainL
             "creator": "0x2222222222222222222222222222222222222222",
             "question": f"Market {market_id}?",
             "trading_deadline": 1_900_000_000 + market_id,
-            "state": "CREATED",
         },
     )
 
@@ -80,6 +79,19 @@ class FakeProvider:
         return [log for log in self.logs if from_block <= log.block_number <= to_block]
 
 
+class MidBatchReorgProvider(FakeProvider):
+    def __init__(self, latest: int, logs: Sequence[ChainLog] = ()) -> None:
+        super().__init__(latest, logs)
+        self.reorganize_on_next_log_request = True
+
+    def get_logs(self, contract_address: str, from_block: int, to_block: int) -> Sequence[ChainLog]:
+        logs = super().get_logs(contract_address, from_block, to_block)
+        if self.reorganize_on_next_log_request:
+            self.hashes[to_block] = _hash(999)
+            self.reorganize_on_next_log_request = False
+        return logs
+
+
 @pytest.fixture()
 def session(tmp_path: Path) -> Session:
     engine = create_engine(
@@ -114,6 +126,16 @@ def test_duplicate_log_delivery_is_applied_once(session: Session) -> None:
     assert result.processed_logs == 1
     assert session.scalar(select(func.count()).select_from(ProcessedLog)) == 1
     assert session.scalar(select(func.count()).select_from(IndexedMarket)) == 1
+
+
+def test_market_created_without_state_is_projected_open(session: Session) -> None:
+    provider = FakeProvider(1, [market_created(1)])
+
+    indexer(provider).sync_once(session)
+
+    market = session.scalar(select(IndexedMarket))
+    assert market is not None
+    assert market.state == "OPEN"
 
 
 def test_restart_resumes_after_last_checkpoint(session: Session) -> None:
@@ -190,6 +212,44 @@ def test_projection_and_checkpoint_are_atomic_per_batch(session: Session) -> Non
     assert checkpoint.next_block == 1
     assert session.scalar(select(func.count()).select_from(ProcessedLog)) == 0
     assert session.scalar(select(func.count()).select_from(IndexedMarket)) == 0
+
+
+def test_mid_batch_reorganization_rolls_back_and_retries_canonical_logs(session: Session) -> None:
+    stale_market = market_created(1)
+    provider = MidBatchReorgProvider(1, [stale_market])
+
+    with pytest.raises(IndexerReorganizationError, match="changed while processing range 1-1"):
+        indexer(provider).sync_once(session)
+
+    checkpoint = session.scalar(select(IndexerCheckpoint))
+    assert checkpoint is not None
+    assert checkpoint.next_block == 1
+    assert checkpoint.last_safe_block is None
+    assert session.scalar(select(func.count()).select_from(ProcessedLog)) == 0
+    assert session.scalar(select(func.count()).select_from(IndexedMarket)) == 0
+
+    canonical_market = market_created(1, suffix=9)
+    canonical_market = ChainLog(
+        chain_id=canonical_market.chain_id,
+        contract_address=canonical_market.contract_address,
+        block_number=canonical_market.block_number,
+        block_hash=_hash(999),
+        transaction_hash=canonical_market.transaction_hash,
+        log_index=canonical_market.log_index,
+        event_name=canonical_market.event_name,
+        payload=canonical_market.payload,
+    )
+    provider.logs = [canonical_market]
+
+    result = indexer(provider).sync_once(session)
+
+    assert result.processed_logs == 1
+    assert session.scalar(select(func.count()).select_from(ProcessedLog)) == 1
+    assert session.scalar(select(func.count()).select_from(IndexedMarket)) == 1
+    checkpoint = session.scalar(select(IndexerCheckpoint))
+    assert checkpoint is not None
+    assert checkpoint.next_block == 2
+    assert checkpoint.last_safe_block_hash == _hash(999)
 
 
 def test_checkpoint_hash_mismatch_rebuilds_canonical_projection(session: Session) -> None:

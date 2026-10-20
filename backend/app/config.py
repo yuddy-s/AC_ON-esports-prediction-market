@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     sepolia_rpc_url: str | None = None
     prediction_market_address: str | None = None
     prediction_market_deployment_block: int = Field(default=0, ge=0)
-    indexer_confirmation_depth: int = Field(default=3, ge=0)
+    indexer_confirmation_depth: int = Field(default=2, ge=0)
     indexer_poll_interval_seconds: float = Field(default=5.0, gt=0)
     indexer_block_batch_size: int = Field(default=500, ge=1, le=10_000)
 
