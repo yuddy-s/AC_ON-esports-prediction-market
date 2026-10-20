@@ -49,10 +49,12 @@ These ownership areas remain stable through the final product so later milestone
 
 The shared priority is one end-to-end guarded buy on Ethereum Sepolia. Full resolver committee implementation is deferred until that slice works and the protocol rules are approved.
 
+The approved cross-layer freeze is documented in [`interfaces/M3_TRADING_INTERFACE.md`](interfaces/M3_TRADING_INTERFACE.md). Dependent contract, indexer, and frontend work must implement that interface or update the decision record through team review.
+
 | Priority | Owner | Subsystem | Task | Dependencies | Status |
 |---|---|---|---|---|---|
-| P0 | team | interfaces | Freeze market/trade ABI, enum order, event fields, numeric units, and deployment handoff. | LMSR and payment decisions | blocked on team decisions |
-| P0 | Matthew | LMSR/contracts | Implement `LMSR.sol` with 1e18 precision, `b = 50`, creator subsidy `ceil(b * ln(2))`, quote/cost math, and economic invariants. | team review | ready |
+| P0 | team | interfaces | Freeze the payment asset, market/trade ABI, enum order, event fields, numeric units, and deployment handoff. | Team approval of the decision record | approved in PR #12 |
+| P0 | Matthew | LMSR/contracts | Implement `LMSR.sol` with 1e18 precision, `b = 50`, creator subsidy `ceil(b * ln(2))`, quote/cost math, and economic invariants. | team review | PR #13 in review |
 | P0 | Benny | contracts | Integrate LMSR into the market contract, implement guarded YES/NO buy, and emit `TradeExecuted`. | interface freeze and LMSR library | blocked |
 | P0 | Yudhveer | indexer/database | Implement migrations, unique event identity, atomic checkpoints, confirmation handling, deterministic rebuild, and reorg recovery. | final event decoder waits on ABI | implemented on feature branch; review pending |
 | P0 | Yudhveer | backend | Implement paginated indexed market/trade/status read APIs with derived-state metadata. | indexed schema | implemented on feature branch; review pending |
