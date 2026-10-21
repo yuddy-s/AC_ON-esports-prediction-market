@@ -1,6 +1,6 @@
 # Milestone 3: MVP
 
-Status: planning
+Status: in progress
 
 ## Course Goal
 
@@ -8,13 +8,13 @@ Deliver a live minimum viable product that implements the core feature end to en
 
 ## Repository Assessment
 
-The latest `dev` branch contains three working but mostly independent pieces:
+The guarded-buy branch now contains these components:
 
 - a React frontend with Coinbase Wallet support and an Ethereum Sepolia contract read
-- a minimal `PredictionMarket` contract that creates and reads placeholder markets
-- a FastAPI backend with fake sample-match rows stored in SQLite or Supabase PostgreSQL
+- `ACONTestToken` plus a `PredictionMarket` contract integrating the bounded LMSR library for subsidy-funded market creation, quotes, guarded buys, positions, and events
+- a FastAPI backend with indexed market/trade/status APIs, database migrations, and an RPC/ABI indexer worker; sample-match rows remain fallback data
 
-The market contract currently has no trading, funds, oracle proposal, challenge, resolver voting, settlement, or payout behavior. A standalone bounded LMSR library is implemented and tested but is not yet integrated into the market. The backend does not yet read live Ethereum events, and its sample rows are not connected to the deployed contract. The current Sepolia deployment was built from an earlier source version, so a new deployment will be required after contract integration.
+Contract implementation commit `4c57dc0` is available for review. Foundry unit tests cover the ACON faucet/transfers, market funding, quote/buy behavior, slippage rejection, and deadlines; the existing pure LMSR fuzz/invariant suite also passes locally. The current Sepolia deployment is an earlier M2 prototype. A new ACON/market deployment, compiled-ABI handoff, and live buy-to-indexer-to-frontend validation are still required. No sell, oracle proposal, challenge, resolver voting, settlement, or payout behavior is implemented by this contract change.
 
 Ethereum Sepolia (chain ID `11155111`) is the selected testnet for Milestone 3. Do not plan a Base Sepolia migration during MVP integration.
 
@@ -50,7 +50,7 @@ Benny owns the authoritative on-chain resolver registry, selection, conflict che
 
 ## Interface Freeze Required Before Implementation
 
-Names below are approved integration contracts, not claims of implemented behavior. Changes require team review and corresponding updates to inputs, outputs, event fields, enum order, units, and revert behavior across every consumer.
+Names below are approved integration requirements. The guarded-buy functions/events are now implemented on this branch; the [contracts README](../../../contracts/README.md) records their exact ABI and error behavior. Changes still require team review and corresponding updates across every consumer.
 
 The approved decision record is [`../interfaces/M3_TRADING_INTERFACE.md`](../interfaces/M3_TRADING_INTERFACE.md). It defines the payment asset, enum order, LMSR boundary, funding flow, ABI/events, revert contract, confirmation policy, validated numeric limits, and deployment handoff. Implementation PR [#13](https://github.com/yuddy-s/AC_ON-esports-prediction-market/pull/13) supplies the pinned dependency and validation evidence for the numeric policy.
 
@@ -64,6 +64,8 @@ The approved decision record is [`../interfaces/M3_TRADING_INTERFACE.md`](../int
 | `balanceOf(marketId, account, outcome)` | Returns the authoritative on-chain YES or NO position. |
 
 The write must contain an explicit slippage guard. A frontend-only quote is not sufficient because the price can change before mining.
+
+Implementation handoff note: `getMarket` currently returns six values: question, deadline, state, creator, YES quantity, and NO quantity. The stable market ID is supplied as its argument and emitted in events, rather than returned. Confirm this representation of the identifier requirement with the frontend/backend reviewers before integration; the approved decision record is unchanged.
 
 ### Events required by the Milestone 3 indexer
 
@@ -208,6 +210,8 @@ PostgreSQL deletion or corruption must not affect authoritative contract state.
 - stale quote exceeding `maxCost` reverts
 - event values match post-trade contract state
 - no negative balances and bounded market-maker loss
+
+Current validation: 39 tests passed in the last local Foundry run, including the pure LMSR invariant suite. The market slippage test supplies a maximum below the current quote; an intervening-trade stale-quote scenario, callback/reentrancy tests, failed-token-transfer rollback tests, and multi-market accounting tests remain coverage follow-ups. A successful local deployment simulation is not evidence of a live Sepolia or cross-layer demo.
 
 ### Backend, indexer, and oracle / Pytest
 

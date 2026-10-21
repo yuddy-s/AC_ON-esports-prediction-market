@@ -2,15 +2,16 @@
 
 This is the canonical implementation checklist for coding agents and team members. It records what exists, what remains, who owns each area, and whether work can proceed without another team decision. Detailed milestone scope remains in `milestones/` and current assignments remain in `TASKS.md`.
 
-Last reviewed: 2026-10-20 on `feature/indexer-sepolia-rpc-worker`.
+Last reviewed: 2026-10-21 on `feature/guarded-buy`, covering contract implementation `4c57dc0`.
 
-PRs #10, #12, #13, and #14 are merged. The shared `dev` baseline contains the repaired database/indexer/API foundation, approved M3 trading interface, bounded LMSR library, and their documentation integration. The current feature branch adds the live Sepolia RPC worker while preserving ABI-specific decoding as an explicit boundary.
+PRs #10, #12, #13, #14, and #15 are in this branch's baseline. It includes the database/indexer/API foundation, approved M3 trading interface, bounded LMSR library, and RPC/ABI worker. Commit `4c57dc0` adds the ACON token and guarded-buy market integration on this feature branch. Contract review, fresh Sepolia deployment, and live cross-layer validation are still pending.
 
 ## Status Key
 
 - **Done**: implemented in the repository. A feature-branch item is not integrated until its pull request merges.
 - **Ready**: can be implemented now with repository information already available.
 - **Partial**: useful generic work can proceed, but final integration needs the listed handoff.
+- **Pending**: implementation/preparation exists, but execution or verification has not happened yet.
 - **Blocked**: implementation would guess an authoritative interface, secret, deployment, or protocol decision.
 - **Deferred**: intentionally outside Milestone 3 unless the trading MVP finishes early.
 
@@ -30,10 +31,10 @@ The Solidity source is written for people and the compiler. The ABI is the machi
 | Area | Current state | Integration status |
 |---|---|---|
 | Frontend | Wallet connection, Sepolia balance, and a read of prototype market `0`. | On `dev`; no trading write or indexed API integration. |
-| Contracts | Prototype `PredictionMarket` supports `createMarket`, `getMarket`, and `MarketCreated`; the bounded `LMSR.sol` library is implemented and tested. | On `dev`; LMSR is not yet integrated with collateral, buy, resolution, or payout. |
+| Contracts | ACON faucet/token, atomic creator subsidy, LMSR quotes, guarded buys, share balances, and complete trade events. | Implemented in 4c57dc0 on this feature branch; not yet a fresh Sepolia deployment. Sells/resolution/payouts remain deferred. |
 | Backend API | Health, deprecated sample data, and indexed market/trade/status endpoints. | Merged into `dev`; not yet deployed with live indexed data. |
 | Database | Alembic models for indexed contracts, checkpoints, processed logs, markets, and trades. | Merged into `dev`; not yet applied to shared Supabase. |
-| Indexer | Confirmed-log projections, atomic checkpoints, idempotency, restart/reorg recovery, JSON-RPC transport, polling worker, and strict ABI decoder. | Foundation merged; RPC worker implemented on the current feature branch; live validation awaits the contract handoff. |
+| Indexer | Confirmed-log projections, atomic checkpoints, idempotency, restart/reorg recovery, JSON-RPC transport, polling worker, and strict ABI decoder. | Foundation and RPC worker merged; live validation awaits the M3 contract handoff. |
 | Oracle | Design boundary only. | Not implemented. |
 | Resolver | Design and ownership boundary only. | Not implemented; Milestone 4 scope. |
 | CI | Frontend build, backend migrations/tests, and Foundry format/build/tests. | Implemented; no cross-layer end-to-end job. |
@@ -61,7 +62,7 @@ Resolved backend reconciliation:
 - The indexer projects a state-less `MarketCreated` event as `OPEN`.
 - Backend configuration defaults to two confirmations and remains configurable.
 - The approved decision record states that clients treat an `OPEN` market at or after its deadline as not tradable; an explicit close transition is deferred.
-- The test-token mint/faucet authorization and demo distribution procedure still need to be specified before deployment.
+- Commit 4c57dc0 implements a permissionless, one-time-per-address faucet for 1,000 ACON on the test token. Demo wallets approve the market to spend ACON; see the contract README for the deployment and buyer procedure.
 
 ### PR #13: bounded LMSR library
 
@@ -79,8 +80,8 @@ Verification confirmed that the Foundry invariant executed 256 runs and 128,000 
 1. **Done:** approve and merge PR #12 so its product and interface decisions become the integration baseline.
 2. **Done:** refresh PR #13 from the new `dev`, preserve both documentation sets, rerun CI with submodules, and merge it.
 3. **Done:** refresh PR #10 from the new `dev`, retain its implemented backend statuses, fix all four review findings, rerun CI, and merge it.
-4. **In review:** branch Yudhveer's live RPC worker from the resulting `dev`, implement and validate it, then merge it through a reviewed PR.
-5. Benny integrates the reviewed LMSR library and approved interface, then publishes the compiled ABI and Sepolia deployment handoff.
+4. **Done:** Yudhveer's RPC/ABI worker was merged in PR #15.
+5. **In review:** Benny's ACON/LMSR integration is implemented in 4c57dc0 on `feature/guarded-buy`; confirm the actual ABI with consumers, then deploy and publish the handoff.
 
 ## Milestone 3 Definition Of Done
 
@@ -105,10 +106,10 @@ The full resolver committee, production esports provider, selling, settlement, p
 | 1 | Team, coordinated by Yudhveer | Review and merge PR #12 to freeze the M3 cross-layer interface. | Done | Approved and merged. |
 | 2 | Matthew | Refresh, review, and merge PR #13 implementing binary LMSR math. | Done | Approved, verified, and merged. |
 | 3 | Yudhveer/team | Refresh and repair PR #10, then merge the indexer foundation into `dev`. | Done | Merged and included in the PR #14 integration baseline. |
-| 4 | Benny | Integrate market creation, creator subsidy, quote, guarded buy, balances, and complete events. | Partial | Can design now; final Solidity/API freeze is shared. |
-| 5 | Yudhveer | Implement JSON-RPC transport, polling worker, backfill, retries, range splitting, and operational logging. | Partial | Implemented on the feature branch; review and live deployment validation remain. |
-| 6 | Yudhveer | Implement final ABI decoder and live market/trade projections. | Blocked | Needs compiled ABI, deployed address, deployment block, and event/unit freeze from Benny. |
-| 7 | Benny | Deploy the integrated contract to Sepolia and publish its handoff record. | Blocked | Requires completed/tested LMSR and market contract. |
+| 4 | Benny | Integrate market creation, creator subsidy, quote, guarded buy, balances, and complete events. | Done on feature branch | Implemented in 4c57dc0; review/ABI handoff and additional security coverage remain. |
+| 5 | Yudhveer | Implement JSON-RPC transport, polling worker, backfill, retries, range splitting, and operational logging. | Done | Merged in PR #15; live deployment validation remains. |
+| 6 | Yudhveer | Validate the ABI decoder and live market/trade projections. | Partial | Decoder exists; live validation needs compiled ABI, new address, and deployment block from Benny. |
+| 7 | Benny | Deploy the integrated contract to Sepolia and publish its handoff record. | Pending | Deployment script implemented and simulated locally; needs review, funded wallet, and fresh deployment. |
 | 8 | Yudhveer | Apply migrations and deploy API/worker using Render and Supabase. | Partial | Deployment preparation is ready; execution needs hosted credentials and the final contract handoff. |
 | 9 | Adriel | Implement quote/buy UI and submitted/mined/indexed states. | Partial | UI state work can start; live calls need the frozen ABI and deployed contract. |
 | 10 | Team | Run and document the end-to-end buy demonstration. | Blocked | Requires steps 1-9 and funded Sepolia wallets/test tokens. |
@@ -144,8 +145,8 @@ The full resolver committee, production esports provider, selling, settlement, p
 
 - [ ] Compiled ABI from the exact Solidity commit deployed to Sepolia.
 - [ ] Final Sepolia contract address and deployment transaction/block.
-- [ ] Contract behavior for creation subsidy, guarded buy, deadline, invalid outcome, insufficient balance/allowance, and slippage reverts.
-- [ ] ACON mint/faucet authorization and demo-token distribution procedure.
+- [x] Contract behavior documented for creation subsidy, guarded buy, deadline, enum-decoder rejection, balance/allowance, and slippage reverts; consumer review remains.
+- [x] ACON faucet authorization and demo-token distribution procedure documented in `contracts/README.md`; live accounts still need funding.
 - [ ] Permission to use the shared Supabase and Render projects and their secret values.
 
 ### Yudhveer M3 completion criteria
@@ -198,7 +199,9 @@ event TradeExecuted(
 );
 ```
 
-These declarations match the approved PR #12 decision record but are not yet implemented in the integrated Solidity contract. All share, cost, and LMSR quantity fields use 1e18 base units. The decoder projects a newly created market as `OPEN` under the approved direct-to-`OPEN` rule and fails startup if the supplied ABI does not contain these exact event shapes.
+These declarations match the approved PR #12 decision record and are implemented in contract commit 4c57dc0. All share, cost, and LMSR quantity fields use 1e18 base units. The decoder projects a newly created market as `OPEN` and fails startup if the supplied ABI does not contain these exact event shapes. A compiled ABI and deployment-specific handoff are still needed before live validation.
+
+The implemented `getMarket` returns six fields, with the market ID supplied by its argument/event rather than included in the return tuple. Confirm this representation with Adriel and Yudhveer against the approved identifier requirement. Exact signatures, units, errors, and current test coverage are in [`../../contracts/README.md`](../../contracts/README.md).
 
 ## Remaining Application Work By Owner
 
@@ -215,14 +218,16 @@ These declarations match the approved PR #12 decision record but are not yet imp
 
 ### Benny: lifecycle and resolver contracts
 
-- [ ] Freeze and implement the M3 ABI with team review.
-- [ ] Implement market creation, subsidy enforcement, deadline/state rules, quote integration, guarded buy, balances, and events.
-- [ ] Add authorization, custom errors, reentrancy protection where value moves, and checks-effects-interactions discipline.
+- [ ] Complete consumer review of the implemented M3 ABI and publish the exact-build ABI handoff.
+- [x] Implement market creation, subsidy enforcement, deadline/state rules, quote integration, guarded buy, balances, and events (4c57dc0 on feature/guarded-buy).
+- [x] Use caller-only token payments/positions, balance/allowance checks, custom errors, and a shared reentrancy guard across token transfers. State updates follow successful transfers under the guard; callback/failure coverage remains to be extended.
 - [ ] Deploy the tested M3 contract to Sepolia and publish the complete handoff.
 - [ ] In M4, implement oracle proposal/challenge state transitions.
 - [ ] In M4, implement resolver eligibility, conflict exclusions, selection/randomness, voting, quorum, timeouts, and finalization.
 - [ ] In M4, implement settlement, VOID behavior, and single-claim payout protection.
 - [ ] Maintain unit/security tests, deployment tests, static checks, and contract CI.
+
+Local checks for 4c57dc0 passed: Foundry format/build/script build and 39 tests, plus a local deployment simulation. The existing stateful invariants exercise LMSR math, not the integrated token/market. Additional validation should cover an intervening-trade stale quote, token callbacks/failure rollback, and multi-account/multi-market accounting. Live Sepolia and frontend/indexer acceptance have not been demonstrated for this revision.
 
 ### Matthew: LMSR economics
 
@@ -274,4 +279,3 @@ Agents must stop and obtain a team decision before committing any of these as au
 - which esports source is authoritative and what evidence/finality means;
 - private-key custody, signer permissions, or production secret placement;
 - a production migration or deployment requiring shared credentials.
-
