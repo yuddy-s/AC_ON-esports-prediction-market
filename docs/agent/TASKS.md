@@ -59,6 +59,7 @@ The approved cross-layer freeze is documented in [`interfaces/M3_TRADING_INTERFA
 | P0 | Yudhveer | indexer/database | Implement migrations, unique event identity, atomic checkpoints, confirmation handling, deterministic rebuild, and reorg recovery. | final live validation waits on deployment | merged in PR #10 |
 | P0 | Yudhveer | backend | Implement paginated indexed market/trade/status read APIs with derived-state metadata. | indexed schema | merged in PR #10 |
 | P0 | Yudhveer | RPC worker | Implement validated JSON-RPC retrieval, bounded polling/retries/range splitting, ABI decoder boundary, clean shutdown, and deployment runbook. | live validation waits on exact ABI and deployment record | merged in PR #15; live M3 validation pending |
+| P1 | Yudhveer | deployment prep | Version the exact-build ABI, validate a public deployment manifest, verify API edge cases, and prepare a Sepolia smoke test. | exact handoff needed to run live checks | PR #18 targets `dev` for review; live validation pending |
 | P0 | Adriel | frontend | Implement quote/buy and submitted/mined/indexed UI states. | ABI and backend endpoints | source interface reviewed; transaction-hash lookup and indexer freshness timestamp implemented; generated ABI, new addresses, and live integration pending |
 | P1 | team | integration | Deploy fresh Sepolia contract and run contract-to-indexer-to-API-to-frontend demo. | P0 slice | blocked |
 | P1 | Yudhveer | oracle | Add provider and least-privilege signer boundaries with deterministic mock tests. | proposal/challenge ABI | blocked |

@@ -152,6 +152,14 @@ class EventIndexer:
             )
             session.add(contract)
             session.flush()
+        elif (
+            contract.deployment_block != self.config.deployment_block
+            or contract.abi_version != self.config.abi_version
+            or not contract.active
+        ):
+            raise IndexerProjectionError(
+                "registered deployment block, ABI version, or active state differs from indexer configuration"
+            )
 
         checkpoint = session.get(IndexerCheckpoint, contract.id)
         if checkpoint is None:

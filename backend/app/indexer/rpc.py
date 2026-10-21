@@ -12,6 +12,8 @@ HEX_QUANTITY = re.compile(r"^0x(?:0|[1-9a-fA-F][0-9a-fA-F]*)$")
 HASH = re.compile(r"^0x[0-9a-fA-F]{64}$")
 ADDRESS = re.compile(r"^0x[0-9a-fA-F]{40}$")
 DATA = re.compile(r"^0x(?:[0-9a-fA-F]{2})*$")
+FUNCTION_SELECTOR = re.compile(r"^0x[0-9a-fA-F]{8}$")
+ABI_ADDRESS = re.compile(r"^0x0{24}[0-9a-fA-F]{40}$")
 logger = logging.getLogger("acon.indexer.rpc")
 
 
@@ -78,6 +80,19 @@ class EthereumJsonRpcClient:
         if not isinstance(result, dict) or not self._hash(result.get("hash")):
             raise RpcResponseError(f"missing block hash for block {block_number}")
         return str(result["hash"]).lower()
+
+    def call_address(self, contract_address: str, function_selector: str) -> str:
+        """Read a zero-argument contract function whose ABI return type is address."""
+        if not ADDRESS.fullmatch(contract_address):
+            raise ValueError("contract address must be a 20-byte hex address")
+        if not FUNCTION_SELECTOR.fullmatch(function_selector):
+            raise ValueError("function selector must be four bytes")
+        result = self._request(
+            "eth_call", [{"to": contract_address, "data": function_selector}, "latest"]
+        )
+        if not isinstance(result, str) or not ABI_ADDRESS.fullmatch(result):
+            raise RpcResponseError("invalid ABI-encoded address from eth_call")
+        return "0x" + result[-40:].lower()
 
     def get_raw_logs(self, address: str, from_block: int, to_block: int) -> Sequence[RawEthereumLog]:
         if not ADDRESS.fullmatch(address):

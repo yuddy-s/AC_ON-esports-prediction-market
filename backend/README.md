@@ -40,6 +40,8 @@ PREDICTION_MARKET_ABI_PATH=path/to/PredictionMarket.json
 
 Two confirmations are the approved Sepolia demo default; deployments may override the value. Before touching indexer state, the worker verifies `eth_chainId` against `INDEXER_CHAIN_ID` and validates the supplied ABI against the approved `MarketCreated` and `TradeExecuted` event contracts. It fails closed for a wrong network or while the final deployed ABI is unavailable.
 
+The [public deployment handoff convention](../deployments/README.md) defines the versioned ABI filenames and manifest. Run `python -m scripts.validate_handoff ../deployments/sepolia-m3.json` after the exact build and receipts are available. The worker records the ABI filename as its version and refuses to resume an existing contract record with a different ABI version or deployment block. The template cannot be used until real deployment values replace its placeholders.
+
 Run one backfill/live synchronization pass, continuous polling, or a deterministic rebuild:
 
 ```bash
@@ -49,6 +51,14 @@ python -m app.indexer.worker --rebuild
 ```
 
 The JSON-RPC transport retries bounded transient failures and splits provider-rejected block ranges. Run only one worker instance for the Milestone 3 deployment.
+
+After a live market creation and guarded buy have been recorded in the completed manifest, run the read-only check against RPC, the single worker, and the API:
+
+```bash
+python -m scripts.smoke_sepolia --manifest ../deployments/sepolia-m3.json --api-base-url https://YOUR_API_HOST
+```
+
+Set `SEPOLIA_RPC_URL` privately in the environment for this command. The smoke test reads `PredictionMarket.paymentToken()` and requires it to match the handoff's ACON token address. It also checks the canonical `MarketCreated`/`TradeExecuted` logs, status freshness and safe checkpoint, market projection, and transaction-hash trade lookup. It submits no transactions.
 
 ## Seed Sample Data
 
@@ -94,10 +104,10 @@ After the wallet reports a successful mined `buy`, poll `GET /api/trades/by-tran
 
 ## Frontend Integration
 
-If the frontend wants to fetch this fallback data, set:
+To fetch the indexed API from the frontend, set:
 
 ```text
 VITE_API_BASE_URL=http://localhost:8000
 ```
 
-Frontend display work is intentionally outside this backend scaffold.
+The frontend should use the indexed endpoints above for M3 market and trade state. The sample-match endpoints remain deprecated M2 fallback data.

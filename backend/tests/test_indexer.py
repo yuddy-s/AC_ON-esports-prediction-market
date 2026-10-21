@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.database import Base
 from app.indexer.provider import ChainLog
-from app.indexer.service import EventIndexer, IndexerConfig, IndexerReorganizationError
+from app.indexer.service import EventIndexer, IndexerConfig, IndexerProjectionError, IndexerReorganizationError
 from app.models import IndexedContract, IndexedMarket, IndexedTrade, IndexerCheckpoint, ProcessedLog
 
 
@@ -324,6 +324,28 @@ def test_fresh_database_full_replay_matches_incremental_database(
 
         assert result.processed_logs == 4
         assert _projection_snapshot(fresh_session) == _projection_snapshot(session)
+
+
+def test_restart_rejects_changed_abi_version_for_registered_contract(session: Session) -> None:
+    provider = FakeProvider(1, [market_created(1)])
+    indexer(provider).sync_once(session)
+    mismatched = EventIndexer(
+        provider,
+        IndexerConfig(
+            chain_id=CHAIN_ID,
+            contract_address=CONTRACT,
+            deployment_block=1,
+            confirmation_depth=0,
+            abi_version="different-build.abi.json",
+        ),
+    )
+
+    with pytest.raises(IndexerProjectionError, match="ABI version"):
+        mismatched.sync_once(session)
+
+    checkpoint = session.scalar(select(IndexerCheckpoint))
+    assert checkpoint is not None
+    assert checkpoint.next_block == 2
 
 
 def _projection_snapshot(session: Session) -> tuple[object, ...]:
