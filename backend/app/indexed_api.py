@@ -1,6 +1,7 @@
+from datetime import UTC
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -14,6 +15,7 @@ from app.schemas import (
     MarketListResponse,
     ProjectionMetadata,
     TradeListResponse,
+    TransactionTradeLookupResponse,
 )
 
 
@@ -76,12 +78,21 @@ def indexer_status(session: Session = Depends(get_session)) -> IndexerStatusResp
             last_safe_block=None,
             next_block=None,
             lag_blocks=None,
+            updated_at=None,
         )
 
     checkpoint = session.get(IndexerCheckpoint, contract.id)
     latest = checkpoint.latest_observed_block if checkpoint else None
     last_safe = checkpoint.last_safe_block if checkpoint else None
     lag = latest - last_safe if latest is not None and last_safe is not None else None
+    updated_at = checkpoint.updated_at if checkpoint and latest is not None else None
+    if updated_at is not None:
+        # SQLite drops timezone information even for DateTime(timezone=True).
+        updated_at = (
+            updated_at.replace(tzinfo=UTC)
+            if updated_at.tzinfo is None
+            else updated_at.astimezone(UTC)
+        )
     return IndexerStatusResponse(
         configured=True,
         chain_id=contract.chain_id,
@@ -91,6 +102,7 @@ def indexer_status(session: Session = Depends(get_session)) -> IndexerStatusResp
         last_safe_block=last_safe,
         next_block=checkpoint.next_block if checkpoint else contract.deployment_block,
         lag_blocks=lag,
+        updated_at=updated_at,
     )
 
 
@@ -178,3 +190,26 @@ def list_market_trades(
     )
     items = [_trade_read(trade) for trade in session.scalars(statement).all()]
     return TradeListResponse(items=items, total=total, limit=limit, offset=offset)
+
+
+@router.get("/trades/by-transaction/{transaction_hash}", response_model=TransactionTradeLookupResponse)
+def trades_by_transaction(
+    transaction_hash: str = Path(pattern=r"^0x[0-9a-fA-F]{64}$"),
+    session: Session = Depends(get_session),
+) -> TransactionTradeLookupResponse:
+    normalized_hash = transaction_hash.lower()
+    contract = _active_contract(session)
+    if contract is None:
+        return TransactionTradeLookupResponse(transaction_hash=normalized_hash, items=[])
+
+    statement = (
+        select(IndexedTrade)
+        .where(
+            IndexedTrade.chain_id == contract.chain_id,
+            IndexedTrade.contract_address == contract.contract_address,
+            IndexedTrade.transaction_hash == normalized_hash,
+        )
+        .order_by(IndexedTrade.block_number, IndexedTrade.log_index)
+    )
+    items = [_trade_read(trade) for trade in session.scalars(statement).all()]
+    return TransactionTradeLookupResponse(transaction_hash=normalized_hash, items=items)

@@ -105,6 +105,7 @@ def test_empty_projection_endpoints(client_and_session: tuple[TestClient, sessio
     assert status.status_code == 200
     assert status.json()["configured"] is False
     assert status.json()["authoritative"] is False
+    assert status.json()["updated_at"] is None
     assert markets.status_code == 200
     assert markets.json() == {"items": [], "total": 0, "limit": 50, "offset": 0}
 
@@ -146,6 +147,7 @@ def test_market_detail_trade_history_and_indexer_lag(
     assert status.json()["configured"] is True
     assert status.json()["lag_blocks"] == 3
     assert status.json()["next_block"] == 121
+    assert status.json()["updated_at"] is not None
 
 
 def test_missing_market_returns_404(client_and_session: tuple[TestClient, sessionmaker[Session]]) -> None:
@@ -161,3 +163,121 @@ def test_pagination_validation(client_and_session: tuple[TestClient, sessionmake
     assert client.get("/api/markets?limit=0").status_code == 422
     assert client.get("/api/markets?limit=101").status_code == 422
     assert client.get("/api/markets?offset=-1").status_code == 422
+
+
+def test_status_exposes_old_observation_even_when_reported_lag_is_zero(
+    client_and_session: tuple[TestClient, sessionmaker[Session]],
+) -> None:
+    client, SessionLocal = client_and_session
+    add_projection(SessionLocal)
+    with SessionLocal() as session:
+        checkpoint = session.query(IndexerCheckpoint).one()
+        checkpoint.latest_observed_block = 120
+        checkpoint.updated_at = datetime(2020, 1, 1, tzinfo=UTC)
+        session.commit()
+
+    status = client.get("/api/indexer/status")
+
+    assert status.status_code == 200
+    assert status.json()["latest_observed_block"] == 120
+    assert status.json()["last_safe_block"] == 120
+    assert status.json()["lag_blocks"] == 0
+    assert status.json()["updated_at"].startswith("2020-01-01T00:00:00")
+    assert status.json()["updated_at"].endswith("Z")
+    assert status.json()["authoritative"] is False
+
+
+def test_transaction_lookup_is_empty_until_indexed_then_returns_all_matching_logs(
+    client_and_session: tuple[TestClient, sessionmaker[Session]],
+) -> None:
+    client, SessionLocal = client_and_session
+    add_projection(SessionLocal)
+    transaction_hash = "0x" + f"{211:064x}"
+
+    pending = client.get(f"/api/trades/by-transaction/{transaction_hash}")
+    assert pending.status_code == 200
+    assert pending.json() == {"transaction_hash": transaction_hash, "items": []}
+
+    with SessionLocal() as session:
+        for log_index in (0, 1):
+            session.add(
+                IndexedTrade(
+                    chain_id=11155111,
+                    contract_address=CONTRACT,
+                    market_id=0,
+                    trader="0x3333333333333333333333333333333333333333",
+                    outcome=0,
+                    shares=2 * 10**18,
+                    cost=10**18,
+                    yes_quantity=2 * 10**18,
+                    no_quantity=0,
+                    block_number=110,
+                    block_hash="0x" + f"{110:064x}",
+                    transaction_hash=transaction_hash,
+                    log_index=log_index,
+                )
+            )
+        session.commit()
+
+    indexed = client.get(f"/api/trades/by-transaction/{transaction_hash.upper().replace('0X', '0x')}")
+    assert indexed.status_code == 200
+    body = indexed.json()
+    assert body["transaction_hash"] == transaction_hash
+    assert [item["log_index"] for item in body["items"]] == [0, 1]
+    assert all(item["transaction_hash"] == transaction_hash for item in body["items"])
+    assert all(item["authoritative"] is False for item in body["items"])
+
+
+def test_transaction_lookup_validates_hash_and_scopes_active_contract(
+    client_and_session: tuple[TestClient, sessionmaker[Session]],
+) -> None:
+    client, SessionLocal = client_and_session
+    add_projection(SessionLocal)
+    transaction_hash = "0x" + f"{210:064x}"
+
+    assert client.get("/api/trades/by-transaction/0x1234").status_code == 422
+
+    with SessionLocal() as session:
+        session.add(
+            IndexedContract(
+                chain_id=11155111,
+                contract_address="0x4444444444444444444444444444444444444444",
+                deployment_block=200,
+                abi_version="other",
+                active=True,
+            )
+        )
+        session.commit()
+
+    response = client.get(f"/api/trades/by-transaction/{transaction_hash}")
+    assert response.status_code == 200
+    assert response.json()["items"] == []
+
+
+def test_database_failure_reports_degraded_health_and_fails_indexed_reads() -> None:
+    class BrokenSession:
+        def execute(self, *_args: object, **_kwargs: object) -> None:
+            raise RuntimeError("simulated database outage")
+
+        def scalar(self, *_args: object, **_kwargs: object) -> None:
+            raise RuntimeError("simulated database outage")
+
+    def broken_session() -> Generator[BrokenSession, None, None]:
+        yield BrokenSession()
+
+    app.dependency_overrides[get_session] = broken_session
+    try:
+        with TestClient(app, raise_server_exceptions=False) as client:
+            health = client.get("/health")
+            markets = client.get("/api/markets")
+            status = client.get("/api/indexer/status")
+            trades = client.get("/api/trades/by-transaction/0x" + "2" * 64)
+    finally:
+        app.dependency_overrides.clear()
+
+    assert health.status_code == 200
+    assert health.json()["status"] == "degraded"
+    assert health.json()["database"] == "unavailable"
+    assert markets.status_code == 500
+    assert status.status_code == 500
+    assert trades.status_code == 500

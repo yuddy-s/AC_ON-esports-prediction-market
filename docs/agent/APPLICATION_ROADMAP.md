@@ -2,9 +2,9 @@
 
 This is the canonical implementation checklist for coding agents and team members. It records what exists, what remains, who owns each area, and whether work can proceed without another team decision. Detailed milestone scope remains in `milestones/` and current assignments remain in `TASKS.md`.
 
-Last reviewed: 2026-10-21 on `feature/guarded-buy`, covering contract implementation `4c57dc0`.
+Last reviewed: 2026-10-21 on `dev` at merge commit `6e30d51`.
 
-PRs #10, #12, #13, #14, and #15 are in this branch's baseline. It includes the database/indexer/API foundation, approved M3 trading interface, bounded LMSR library, and RPC/ABI worker. Commit `4c57dc0` adds the ACON token and guarded-buy market integration on this feature branch. Contract review, fresh Sepolia deployment, and live cross-layer validation are still pending.
+PRs #10, #12, #13, #14, #15, and #16 are merged into `dev`. This includes the database/indexer/API foundation, approved M3 trading interface, bounded LMSR library, RPC/ABI worker, ACON token, and guarded-buy market integration. Fresh Sepolia deployment and live cross-layer validation are still pending.
 
 ## Status Key
 
@@ -31,7 +31,7 @@ The Solidity source is written for people and the compiler. The ABI is the machi
 | Area | Current state | Integration status |
 |---|---|---|
 | Frontend | Wallet connection, Sepolia balance, and a read of prototype market `0`. | On `dev`; no trading write or indexed API integration. |
-| Contracts | ACON faucet/token, atomic creator subsidy, LMSR quotes, guarded buys, share balances, and complete trade events. | Implemented in 4c57dc0 on this feature branch; not yet a fresh Sepolia deployment. Sells/resolution/payouts remain deferred. |
+| Contracts | ACON faucet/token, atomic creator subsidy, LMSR quotes, guarded buys, share balances, and complete trade events. | Merged into `dev` in PR #16; not yet a fresh Sepolia deployment. Sells/resolution/payouts remain deferred. |
 | Backend API | Health, deprecated sample data, and indexed market/trade/status endpoints. | Merged into `dev`; not yet deployed with live indexed data. |
 | Database | Alembic models for indexed contracts, checkpoints, processed logs, markets, and trades. | Merged into `dev`; not yet applied to shared Supabase. |
 | Indexer | Confirmed-log projections, atomic checkpoints, idempotency, restart/reorg recovery, JSON-RPC transport, polling worker, and strict ABI decoder. | Foundation and RPC worker merged; live validation awaits the M3 contract handoff. |
@@ -81,7 +81,19 @@ Verification confirmed that the Foundry invariant executed 256 runs and 128,000 
 2. **Done:** refresh PR #13 from the new `dev`, preserve both documentation sets, rerun CI with submodules, and merge it.
 3. **Done:** refresh PR #10 from the new `dev`, retain its implemented backend statuses, fix all four review findings, rerun CI, and merge it.
 4. **Done:** Yudhveer's RPC/ABI worker was merged in PR #15.
-5. **In review:** Benny's ACON/LMSR integration is implemented in 4c57dc0 on `feature/guarded-buy`; confirm the actual ABI with consumers, then deploy and publish the handoff.
+5. **Done:** Benny's ACON/LMSR integration merged in PR #16. Confirm the generated ABI with consumers, then deploy and publish the handoff.
+
+### PR #16 source-interface consumer check
+
+The merged Solidity `MarketCreated` and `TradeExecuted` declarations match the backend decoder's required field names, types, order, and indexed positions. The backend's current fixtures exercise those event shapes, but they are hand-built; the exact compiler-generated ABI and deployed log fixtures remain a handoff item. The frontend still has the M2 address and four-output `getMarket` ABI. The M3 contract returns six values in the order question, deadline, state, creator, YES quantity, NO quantity; the market ID comes from the call argument or event rather than a return value. No contract interface change is made in this check.
+
+The indexer status API reports block lag against its last observed head and now exposes `updated_at` for detecting a stopped worker. Frontend freshness work must consider both: a stopped worker with a once-current checkpoint can still report zero lag. Backend tests on `backend/m3-indexer-integration-tests` compare incremental indexing with a full replay into a separate empty database and exercise database-outage responses, transaction lookup, and stale status timestamps.
+
+### Frontend backend-API handoff
+
+After a wallet buy is mined successfully, use `GET /api/trades/by-transaction/{transaction_hash}` to check for its confirmed `TradeExecuted` projection. The path requires a `0x`-prefixed 32-byte hash; hex case is accepted and the response hash is lowercase. The response contains `transaction_hash` and an `items` array of trade objects, ordered by block and log index. An empty array with HTTP 200 means no matching trade is indexed yet; it does not prove the wallet transaction failed. Invalid hashes return HTTP 422. Database read failures return a server error, not an empty array.
+
+Read `/api/indexer/status` alongside the lookup. Its `updated_at` is a UTC ISO 8601 timestamp for the checkpoint's last update, or `null` before the worker observes a head; successful head observations refresh it. Confirm `configured`, chain ID, and contract address match the wallet's deployed market. While waiting, check that the update is recent and `last_safe_block` has reached the mined receipt's block. The default two-confirmation worker normally has nonzero `lag_blocks`; a zero value alone does not establish freshness. If the safe checkpoint has passed the receipt block and the lookup is still empty, inspect the receipt and its logs for `TradeExecuted` or a deployment mismatch. The backend never submits buys. See [backend/README.md](../../backend/README.md#frontend-indexing-synchronization) for the endpoint details.
 
 ## Milestone 3 Definition Of Done
 
@@ -106,7 +118,7 @@ The full resolver committee, production esports provider, selling, settlement, p
 | 1 | Team, coordinated by Yudhveer | Review and merge PR #12 to freeze the M3 cross-layer interface. | Done | Approved and merged. |
 | 2 | Matthew | Refresh, review, and merge PR #13 implementing binary LMSR math. | Done | Approved, verified, and merged. |
 | 3 | Yudhveer/team | Refresh and repair PR #10, then merge the indexer foundation into `dev`. | Done | Merged and included in the PR #14 integration baseline. |
-| 4 | Benny | Integrate market creation, creator subsidy, quote, guarded buy, balances, and complete events. | Done on feature branch | Implemented in 4c57dc0; review/ABI handoff and additional security coverage remain. |
+| 4 | Benny | Integrate market creation, creator subsidy, quote, guarded buy, balances, and complete events. | Done | Merged in PR #16; generated ABI handoff and additional security coverage remain. |
 | 5 | Yudhveer | Implement JSON-RPC transport, polling worker, backfill, retries, range splitting, and operational logging. | Done | Merged in PR #15; live deployment validation remains. |
 | 6 | Yudhveer | Validate the ABI decoder and live market/trade projections. | Partial | Decoder exists; live validation needs compiled ABI, new address, and deployment block from Benny. |
 | 7 | Benny | Deploy the integrated contract to Sepolia and publish its handoff record. | Pending | Deployment script implemented and simulated locally; needs review, funded wallet, and fresh deployment. |
@@ -135,7 +147,7 @@ The full resolver committee, production esports provider, selling, settlement, p
 ### Can be scaffolded now but needs a final handoff
 
 - [x] Build ABI-driven decoder dispatch that maps known event topics to normalized `ChainLog` values and rejects ABIs missing the approved events.
-- [x] Prepare a generated `MarketCreated` decoder fixture; add exact Foundry-generated fixtures for both events after the deployed ABI freezes.
+- [x] Prepare hand-built decoder fixtures for the approved events; add exact Foundry-generated fixtures after the deployed ABI freezes.
 - [ ] Prepare Supabase migrations and a staging verification query; running them requires authorized database credentials.
 - [ ] Prepare Render service/worker settings; live deployment requires RPC/database secrets and the contract deployment record.
 - [ ] Prepare a Sepolia smoke test; its assertions require the final contract address and known transactions.
@@ -219,7 +231,7 @@ The implemented `getMarket` returns six fields, with the market ID supplied by i
 ### Benny: lifecycle and resolver contracts
 
 - [ ] Complete consumer review of the implemented M3 ABI and publish the exact-build ABI handoff.
-- [x] Implement market creation, subsidy enforcement, deadline/state rules, quote integration, guarded buy, balances, and events (4c57dc0 on feature/guarded-buy).
+- [x] Implement market creation, subsidy enforcement, deadline/state rules, quote integration, guarded buy, balances, and events (merged in PR #16).
 - [x] Use caller-only token payments/positions, balance/allowance checks, custom errors, and a shared reentrancy guard across token transfers. State updates follow successful transfers under the guard; callback/failure coverage remains to be extended.
 - [ ] Deploy the tested M3 contract to Sepolia and publish the complete handoff.
 - [ ] In M4, implement oracle proposal/challenge state transitions.
