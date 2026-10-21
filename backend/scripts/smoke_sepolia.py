@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
+from eth_utils import keccak
 
 from app.config import get_settings
 from app.indexer.decoder import DecodingEthereumLogProvider, JsonAbiLogDecoder
@@ -60,6 +61,13 @@ def verify_live_slice(
 ) -> None:
     """Check public chain events against the confirmed API projection."""
     _require(rpc.chain_id() == handoff.chain_id, "RPC chain ID does not match the handoff")
+    payment_token = rpc.call_address(
+        handoff.market.address, "0x" + keccak(text="paymentToken()")[:4].hex()
+    )
+    _require(
+        payment_token == handoff.token.address.lower(),
+        "PredictionMarket.paymentToken() differs from the handoff ACON token address",
+    )
     provider = DecodingEthereumLogProvider(rpc, JsonAbiLogDecoder(handoff.market.abi_path), handoff.chain_id)
     creation = _event(provider, rpc, handoff.market.address, handoff.creation, "MarketCreated", handoff.demo_market_id)
     trade = _event(provider, rpc, handoff.market.address, handoff.trade, "TradeExecuted", handoff.demo_market_id)

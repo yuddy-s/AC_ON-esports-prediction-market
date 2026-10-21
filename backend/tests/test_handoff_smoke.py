@@ -170,6 +170,11 @@ class FakeRpc:
     def chain_id(self) -> int:
         return 11155111
 
+    def call_address(self, contract_address: str, function_selector: str) -> str:
+        assert contract_address == MARKET_ADDRESS
+        assert function_selector == "0x" + keccak(text="paymentToken()")[:4].hex()
+        return TOKEN_ADDRESS.lower()
+
     def block_hash(self, block_number: int) -> str:
         return _hash(block_number)
 
@@ -235,6 +240,17 @@ def test_smoke_test_compares_chain_events_with_api_projection(tmp_path: Path) ->
     handoff = load_deployment_handoff(path, repo_root=tmp_path)
     with httpx.Client(transport=httpx.MockTransport(_api_handler)) as api:
         verify_live_slice(handoff, FakeRpc(), api, "https://api.example", now=NOW)
+
+
+def test_smoke_test_rejects_manifest_token_that_market_does_not_use(tmp_path: Path) -> None:
+    path, document = _manifest(tmp_path)
+    wrong_token = to_checksum_address("0x" + "e5" * 20)
+    document["token"]["address"] = wrong_token
+    path.write_text(json.dumps(document), encoding="utf-8")
+    handoff = load_deployment_handoff(path, repo_root=tmp_path)
+    with httpx.Client(transport=httpx.MockTransport(_api_handler)) as api:
+        with pytest.raises(ValueError, match=r"PredictionMarket\.paymentToken\(\) differs"):
+            verify_live_slice(handoff, FakeRpc(), api, "https://api.example", now=NOW)
 
 
 def test_smoke_test_rejects_stale_worker_status(tmp_path: Path) -> None:

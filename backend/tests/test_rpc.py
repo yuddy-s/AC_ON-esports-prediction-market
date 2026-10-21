@@ -91,6 +91,27 @@ def test_chain_id_uses_eth_chain_id() -> None:
     assert methods == ["eth_chainId"]
 
 
+def test_call_address_reads_strict_abi_encoded_eth_call_result() -> None:
+    selector = "0x" + keccak(text="paymentToken()")[:4].hex()
+    token_address = "0x" + "ab" * 20
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content)
+        assert body["method"] == "eth_call"
+        assert body["params"] == [{"to": ADDRESS, "data": selector}, "latest"]
+        return response(request, "0x" + "0" * 24 + token_address[2:])
+
+    assert rpc_client(handler).call_address(ADDRESS, selector) == token_address
+
+
+def test_call_address_rejects_malformed_abi_result() -> None:
+    selector = "0x" + keccak(text="paymentToken()")[:4].hex()
+    client = rpc_client(lambda request: response(request, "0x1234"))
+
+    with pytest.raises(RpcResponseError, match="invalid ABI-encoded address"):
+        client.call_address(ADDRESS, selector)
+
+
 def test_log_range_is_split_when_provider_rejects_large_ranges() -> None:
     requested: list[tuple[int, int]] = []
 

@@ -58,7 +58,7 @@ After a live market creation and guarded buy have been recorded in the completed
 python -m scripts.smoke_sepolia --manifest ../deployments/sepolia-m3.json --api-base-url https://YOUR_API_HOST
 ```
 
-Set `SEPOLIA_RPC_URL` privately in the environment for this command. The smoke test checks the canonical `MarketCreated`/`TradeExecuted` logs, status freshness and safe checkpoint, market projection, and transaction-hash trade lookup. It submits no transactions.
+Set `SEPOLIA_RPC_URL` privately in the environment for this command. The smoke test reads `PredictionMarket.paymentToken()` and requires it to match the handoff's ACON token address. It also checks the canonical `MarketCreated`/`TradeExecuted` logs, status freshness and safe checkpoint, market projection, and transaction-hash trade lookup. It submits no transactions.
 
 ## Seed Sample Data
 

@@ -49,7 +49,7 @@ Set `DATABASE_URL` and `FRONTEND_ORIGIN` on the web service. Set `DATABASE_URL`,
 1. Check `/health` and `/api/indexer/status` before enabling frontend traffic. The status `updated_at` timestamp should advance with worker polls; a small `lag_blocks` value with an old timestamp indicates a stalled worker.
 2. Run `python -m app.indexer.worker --once`; startup must confirm the RPC chain ID before any checkpoint work. Then verify observed head, safe checkpoint, and lag.
 3. Compare one indexed market/trade with its Sepolia transaction and event log. Query `/api/trades/by-transaction/{transaction_hash}` for the successful buy and verify the indexed trade appears after the safe checkpoint reaches the receipt block.
-   From `backend/`, run `python -m scripts.smoke_sepolia --manifest ../deployments/sepolia-m3.json --api-base-url <API_URL>` with `SEPOLIA_RPC_URL` set privately. This performs the same comparison without writing to Ethereum.
+   From `backend/`, run `python -m scripts.smoke_sepolia --manifest ../deployments/sepolia-m3.json --api-base-url <API_URL>` with `SEPOLIA_RPC_URL` set privately. It also verifies that `PredictionMarket.paymentToken()` equals the manifest's ACON token address, without writing to Ethereum.
 4. Restart the worker and verify it resumes from the stored checkpoint without duplicates.
 5. Use `python -m app.indexer.worker --rebuild` only during a maintenance window. It deletes derived projections for the configured contract and replays canonical events; it never writes to Ethereum.
 6. If RPC or database connectivity fails, stop the worker, preserve PostgreSQL, correct configuration, and resume. Do not manually advance checkpoints.
