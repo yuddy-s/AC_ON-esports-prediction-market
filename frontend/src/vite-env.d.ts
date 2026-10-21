@@ -6,6 +6,7 @@ interface ImportMetaEnv {
   readonly VITE_ACON_TOKEN_ADDRESS?: string;
   readonly VITE_DEMO_MARKET_ID?: string;
   readonly VITE_API_URL?: string;
+  readonly VITE_ANVIL_ACCOUNT?: string;
 }
 
 interface ImportMeta {

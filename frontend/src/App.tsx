@@ -1,5 +1,6 @@
 import { WalletConnect } from "./WalletConnect";
 import { MarketCard } from "./MarketCard";
+import { AconPanel } from "./AconPanel";
 
 export default function App() {
   return (
@@ -9,11 +10,15 @@ export default function App() {
           Esports Prediction Market
         </h1>
         <p className="mt-1 text-sm text-neutral-400">
-          Team AC_ON — Milestone 2 prototype
+          Team AC_ON — Milestone 3 MVP
         </p>
 
         <div className="mt-8">
           <WalletConnect />
+        </div>
+
+        <div className="mt-6">
+          <AconPanel />
         </div>
 
         <div className="mt-6">

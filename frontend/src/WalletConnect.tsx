@@ -1,21 +1,14 @@
 import { useAccount, useConnect, useDisconnect, useBalance } from "wagmi";
-
-// TODO: replace with the deployed test-token address once Benny/Matthew
-// have it on the testnet (leave undefined to just show native testnet ETH for now).
-const TEST_TOKEN_ADDRESS = undefined as `0x${string}` | undefined;
-
-function shortenAddress(address: string) {
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
-}
+import { formatTokenAmount, shortenAddress } from "./format";
 
 export function WalletConnect() {
   const { address, isConnected } = useAccount();
   const { connect, connectors, isPending, error } = useConnect();
   const { disconnect } = useDisconnect();
 
+  // Native ETH balance (pays gas). The ACON trading balance is in AconPanel.
   const { data: balance } = useBalance({
     address,
-    token: TEST_TOKEN_ADDRESS,
     query: { enabled: isConnected },
   });
 
@@ -71,9 +64,9 @@ export function WalletConnect() {
       <p className="text-sm text-neutral-400">Connected wallet</p>
       <p className="font-mono text-lg text-amber-300">{shortenAddress(address!)}</p>
 
-      <p className="mt-2 text-sm text-neutral-400">Balance</p>
+      <p className="mt-2 text-sm text-neutral-400">Gas balance</p>
       <p className="font-mono text-lg">
-        {balance ? `${balance.formatted} ${balance.symbol}` : "Loading..."}
+        {balance ? `${formatTokenAmount(balance.value, balance.decimals, 4)} ${balance.symbol}` : "Loading..."}
       </p>
 
       <button
