@@ -54,7 +54,8 @@ export function WalletConnect() {
                 disabled={isPending}
                 className="text-sm text-amber-300 underline underline-offset-2 hover:text-amber-200 disabled:opacity-50"
               >
-                Connect {connector.name}
+                Connect{" "}
+                {connector.type === "mock" ? "Anvil test wallet (local only)" : connector.name}
               </button>
             ))}
           </div>
