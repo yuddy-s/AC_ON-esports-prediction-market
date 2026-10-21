@@ -2,7 +2,7 @@
 
 AC_ON is a testnet-only decentralized esports prediction market for binary esports match outcomes. Users connect a Coinbase Wallet and eventually trade YES/NO shares on match results.
 
-Milestone 3 is focused on one guarded YES/NO buy end to end. This branch adds ACON-funded LMSR market creation, quotes, buys, positions, and contract events. The frontend still reads the older Milestone 2 deployment; fresh contract deployment and live frontend/indexer integration are pending.
+Milestone 3 is focused on one guarded YES/NO buy end to end. ACON and the LMSR market contract are deployed on Ethereum Sepolia, and a ten-share YES buy passed the live contract smoke test. The [versioned deployment handoff](deployments/README.md) includes addresses, ABIs, and confirmed creation/trade transactions. The frontend still reads the older Milestone 2 deployment; hosted frontend/indexer/API integration is pending.
 
 ## What Works Now
 
@@ -15,6 +15,7 @@ Milestone 3 is focused on one guarded YES/NO buy end to end. This branch adds AC
 - Repeatable seed script for three fake sample matches.
 - `ACONTestToken` with 18 decimals and a one-time 1,000 ACON faucet per address.
 - `PredictionMarket` with creator-subsidy collection, LMSR `quoteBuy`, guarded `buy(..., maxCost)`, position reads, and `TradeExecuted` events. See [contract setup, ABI, and smoke-test instructions](contracts/README.md).
+- A confirmed Sepolia guarded buy with exact payment/position checks and live decoding of both creation and trade events by the backend RPC client and ABI decoder. See the [deployment and smoke-test evidence](contracts/deployments/sepolia-m3-2026-10-21/README.md).
 - CI workflow that builds the frontend, applies backend migrations/tests, and runs Foundry formatting/build/tests.
 
 ## Important Boundaries
@@ -193,11 +194,10 @@ forge test
 ## Not Here Yet
 
 - Sell, settlement, claim, and complete VOID contract paths.
-- A fresh Ethereum Sepolia deployment of ACON and the Milestone 3 market contract.
 - Contract writes and a trading UI in the frontend.
 - A live guarded-buy demonstration connected to indexed API/frontend state.
 - Oracle service implementation.
-- Live validation of the existing RPC/ABI indexer worker against the new contract deployment.
+- Hosted indexer/database/API validation against the confirmed Sepolia creation and trade events.
 - Resolver committee implementation.
 
 ## Notes
