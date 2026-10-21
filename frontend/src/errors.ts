@@ -35,6 +35,12 @@ export function describeContractError(errorName: string, args: readonly unknown[
       return "Max 100 shares per trade.";
     case "QuantityLimitExceeded":
       return "This market has reached its share limit for that outcome.";
+    case "EmptyQuestion":
+      return "A market needs a question.";
+    case "InvalidTradingDeadline":
+      return "The trading deadline must be in the future.";
+    case "InvalidPaymentToken":
+      return "The market was deployed without a valid payment token.";
     case "PaymentTransferFailed":
       return "The ACON payment transfer failed.";
     case "FaucetAlreadyClaimed":

@@ -13,7 +13,8 @@ import { isTradable } from "./lmsr";
 import { aconTokenAbi, OUTCOME, predictionMarketAbi, type Outcome } from "./predictionMarket";
 import { computeMaxCost, parseBaseUnits, parseShares, parseSlippagePercent } from "./tradeMath";
 import { useNowSeconds } from "./useNow";
-import { isBusy, useTradeFlow, type TradeStatus } from "./useTradeFlow";
+import { isBusy, isFailure, statusMessage, stepIndex, TRADE_STEPS, type TradeStatus } from "./tradeStatus";
+import { useTradeFlow } from "./useTradeFlow";
 
 export function TradePanel() {
   const { address, isConnected } = useAccount();
@@ -184,26 +185,6 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-const STEPS = ["Wallet", "Submitted", "Mined", "Indexed"] as const;
-
-function stepIndex(status: TradeStatus): number {
-  switch (status.kind) {
-    case "approve-wallet":
-    case "approve-pending":
-    case "buy-wallet":
-      return 0;
-    case "submitted":
-      return 1;
-    case "mined":
-    case "reverted":
-      return 2;
-    case "indexed":
-      return 3;
-    default:
-      return -1;
-  }
-}
-
 function TxLink({ hash }: { hash: string }) {
   const short = `${hash.slice(0, 10)}…${hash.slice(-6)}`;
   return EXPLORER_URL ? (
@@ -218,13 +199,13 @@ function TxLink({ hash }: { hash: string }) {
 function TradeStatusView({ status, onReset }: { status: TradeStatus; onReset: () => void }) {
   if (status.kind === "idle") return null;
   const current = stepIndex(status);
-  const failed = status.kind === "reverted" || status.kind === "rejected" || status.kind === "error";
+  const failed = isFailure(status);
 
   return (
     <div className="flex flex-col gap-3 rounded-md border border-neutral-800 bg-neutral-950 p-3 text-sm">
       {current >= 0 && (
         <ol className="grid grid-cols-4 gap-1 text-center text-xs">
-          {STEPS.map((step, i) => {
+          {TRADE_STEPS.map((step, i) => {
             const done = i < current || (i === current && (status.kind === "indexed" || (status.kind === "mined" && i === 2)));
             const active = i === current && !done;
             const bad = status.kind === "reverted" && i === 2;
@@ -268,41 +249,4 @@ function TradeStatusView({ status, onReset }: { status: TradeStatus; onReset: ()
       )}
     </div>
   );
-}
-
-function statusMessage(status: TradeStatus): string {
-  switch (status.kind) {
-    case "idle":
-      return "";
-    case "approve-wallet":
-      return "Step 1 of 2: confirm the ACON approval in your wallet…";
-    case "approve-pending":
-      return "Approval submitted, waiting for it to be mined…";
-    case "buy-wallet":
-      return "Confirm the buy in your wallet…";
-    case "submitted":
-      return "Submitted. Waiting for the transaction to be mined…";
-    case "mined":
-      switch (status.indexer.state) {
-        case "waiting":
-          return `Mined in block ${status.blockNumber}. Your shares are on-chain. Waiting for the indexer${
-            status.indexer.lastSafeBlock !== null ? ` (indexed up to block ${status.indexer.lastSafeBlock})` : ""
-          }…`;
-        case "unavailable":
-          return `Mined in block ${status.blockNumber}. Your shares are on-chain, but the indexer API can't be reached yet (${status.indexer.detail}). Retrying…`;
-        case "not-configured":
-          return `Mined in block ${status.blockNumber}. Your shares are on-chain. (No indexer API configured, so the indexed step is skipped.)`;
-        case "timed-out":
-          return `Mined in block ${status.blockNumber}. Your shares are on-chain, but the indexer has not picked up the trade after 3 minutes.`;
-      }
-      return "";
-    case "indexed":
-      return "Indexed: the backend now shows your trade.";
-    case "reverted":
-      return "The transaction was mined but reverted. No ACON was spent on the trade and your position did not change.";
-    case "rejected":
-      return "You rejected the request in your wallet. Nothing was sent.";
-    case "error":
-      return status.message;
-  }
 }

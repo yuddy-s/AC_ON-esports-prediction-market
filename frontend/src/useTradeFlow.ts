@@ -1,32 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import type { Address, Hash } from "viem";
+import type { Address } from "viem";
 import { simulateContract, waitForTransactionReceipt, writeContract } from "wagmi/actions";
 import { API_URL, CHAIN } from "./config";
 import { describeError, isUserRejection } from "./errors";
-import { fetchIndexerStatus, fetchTradesByTransaction, type IndexedTrade } from "./indexerApi";
+import { fetchIndexerStatus, fetchTradesByTransaction } from "./indexerApi";
 import { aconTokenAbi, predictionMarketAbi, type Outcome } from "./predictionMarket";
+import type { IndexerWait, TradeStatus } from "./tradeStatus";
 import { config } from "./wagmi";
-
-// Submitted, mined and indexed are different moments (M2 feedback + M3
-// decision record), so each gets its own state.
-export type IndexerWait =
-  | { state: "waiting"; lastSafeBlock: number | null }
-  | { state: "unavailable"; detail: string }
-  | { state: "not-configured" }
-  | { state: "timed-out" };
-
-export type TradeStatus =
-  | { kind: "idle" }
-  | { kind: "approve-wallet" }
-  | { kind: "approve-pending"; hash: Hash }
-  | { kind: "buy-wallet" }
-  | { kind: "submitted"; hash: Hash }
-  | { kind: "mined"; hash: Hash; blockNumber: bigint; indexer: IndexerWait }
-  | { kind: "indexed"; hash: Hash; blockNumber: bigint; trade: IndexedTrade }
-  | { kind: "reverted"; hash: Hash }
-  | { kind: "rejected" }
-  | { kind: "error"; message: string };
 
 export interface BuyRequest {
   account: Address;
@@ -41,10 +22,6 @@ export interface BuyRequest {
 
 const INDEXER_POLL_MS = 2_000;
 const INDEXER_TIMEOUT_MS = 3 * 60_000;
-
-export function isBusy(status: TradeStatus): boolean {
-  return ["approve-wallet", "approve-pending", "buy-wallet", "submitted"].includes(status.kind);
-}
 
 export function useTradeFlow() {
   const queryClient = useQueryClient();

@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   frontend:
-    name: Install and build frontend
+    name: Install, test and build frontend
     runs-on: ubuntu-latest
 
     defaults:
@@ -39,6 +39,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Run frontend tests
+        run: npm test
 
       - name: Build frontend
         run: npm run build
