@@ -11,10 +11,10 @@ This document describes the repository as currently inspected. Do not treat plan
 | Frontend | implemented | React + Vite + TypeScript app under `frontend/`. |
 | Wallet | implemented | Coinbase Smart Wallet and injected wallet fallback through wagmi. |
 | Chain config | implemented | Frontend and Milestone 2 deployment use Ethereum Sepolia (chain ID `11155111`), selected for Milestone 3. |
-| Contracts | partial | Foundry includes market creation/read plus a tested bounded `LMSR.sol`; the library is not yet integrated into trading or resolution. |
+| Contracts | guarded-buy implementation | Commit `4c57dc0` on `feature/guarded-buy` integrates ACON-funded creation, LMSR quotes, guarded buys, positions, and `TradeExecuted`. Review, fresh Sepolia deployment, and live integration are pending. |
 | Backend | foundation | FastAPI app has health, deprecated sample-match endpoints, and paginated indexed market/trade/status reads. |
 | Oracle | planned | No oracle service found. |
-| Indexer | foundation | Normalized provider boundary, atomic checkpoints, idempotent projections, rebuild/reorg recovery, and tests exist; live RPC/ABI decoding is deferred. |
+| Indexer | foundation + RPC worker | Confirmed projections, checkpoints, rebuild/reorg recovery, RPC polling, and ABI decoding exist; live validation awaits the M3 deployment handoff. |
 | Database | foundation | Alembic manages indexed contract/checkpoint/log/market/trade tables; sample data remains non-authoritative fallback data. |
 | CI | scaffolded | GitHub Actions runs frontend build, backend tests, and contract formatting/build/tests. |
 
@@ -57,15 +57,19 @@ Status: implemented, minimal prototype.
 
 The frontend lives in `frontend/` and uses React, Vite, TypeScript, Tailwind, wagmi, viem, and Coinbase Wallet SDK. It currently supports wallet connection and balance display.
 
-The app reads placeholder market `0` from the deployed Ethereum Sepolia contract. It does not submit contract writes or trades.
+The app reads placeholder market `0` from the earlier Ethereum Sepolia deployment. M3 quote/buy UI and indexed-state transitions remain pending frontend integration.
 
 ## Contracts
 
-Status: prototype.
+Status: M3 guarded-buy implementation, deployment pending.
 
-The Foundry project under `contracts/` implements `createMarket`, `getMarket`, `marketCount`, and `MarketCreated`. A prototype is deployed on Ethereum Sepolia and read by the frontend. The checked-in source does not accept funds or implement trading, LMSR pricing, challenges, resolver voting, settlement, or payouts. The deployed prototype came from an earlier source version, so Milestone 3 requires a fresh deployment after the ABI is frozen.
+`ACONTestToken` is an 18-decimal test ERC-20. Each address can call its permissionless `faucet()` once for 1,000 ACON. The immutable `paymentToken` in `PredictionMarket` is set at construction. Creation and buys pull ACON from `msg.sender` using the caller's token allowance; positions are also credited only to that caller. No native ETH is accepted by these operations.
 
-The approved Milestone 3 trading boundary uses a custom 18-decimal `ACON` test ERC-20, an internal pure `LMSR.sol` library, creator-funded LMSR subsidy, guarded buys with `maxCost`, and a deterministic post-trade `TradeExecuted` event. These are approved design decisions, not claims that the behavior is already implemented. See [`interfaces/M3_TRADING_INTERFACE.md`](interfaces/M3_TRADING_INTERFACE.md) for the decision record.
+Creation atomically collects the exact LMSR subsidy, allocates a sequential market ID, and initializes `OPEN` with zero quantities. Both `quoteBuy` and `buy` call `LMSR.buyCost`. Execution enforces `actualCost <= maxCost`, collects the actual payment, updates the caller's shares plus market quantities/collateral, and emits the frozen event. Both mutators hold a shared reentrancy guard across the token call. The constructor rejects a zero token address but relies on deployment to supply the intended ACON token.
+
+The implementation's unit and existing pure-math fuzz/invariant tests pass locally. The [contracts README](../../contracts/README.md) gives the exact six-output `getMarket` ABI, revert behavior, commands, and remaining coverage follow-ups. This is not a completed live MVP: review, a fresh Ethereum Sepolia deployment, and frontend/indexer integration remain pending. Sells, resolution, settlement, and payouts are deferred.
+
+The implementation follows the approved M3 trading boundary: custom 18-decimal `ACON` test ERC-20, internal pure `LMSR.sol`, creator-funded subsidy, guarded buys with `maxCost`, and deterministic post-trade `TradeExecuted` values. See [`interfaces/M3_TRADING_INTERFACE.md`](interfaces/M3_TRADING_INTERFACE.md) for the frozen parameters and ABI contract.
 
 ## Backend
 
@@ -85,7 +89,7 @@ No oracle service exists yet. Intended behavior: compare approved esports API re
 
 Status: foundation.
 
-The backend contains a provider-independent event indexer with normalized `MarketCreated` and approved `TradeExecuted` handlers. It persists a unique `(chain_id, transaction_hash, log_index)` event identity, checks range-end hashes before and after applying each batch, advances each bounded block range atomically with its checkpoint, waits for configurable confirmations, and rebuilds derived projections when the checkpoint block hash no longer matches the canonical chain. The RPC-worker feature branch adds validated JSON-RPC retrieval, bounded retries and range splitting, continuous polling, and an ABI-driven decoder that fails closed unless both approved events are present. Live Sepolia validation still needs Benny's exact compiled ABI and deployment record.
+The backend contains a provider-independent event indexer with normalized `MarketCreated` and approved `TradeExecuted` handlers. It persists a unique `(chain_id, transaction_hash, log_index)` event identity, checks range-end hashes before and after applying each batch, advances each bounded block range atomically with its checkpoint, waits for configurable confirmations, and rebuilds derived projections when the checkpoint block hash no longer matches the canonical chain. PR #15 added validated JSON-RPC retrieval, bounded retries and range splitting, continuous polling, and an ABI-driven decoder that fails closed unless both approved events are present. Live Sepolia validation still needs Benny's exact compiled ABI and deployment record.
 
 ## Database
 
@@ -97,7 +101,7 @@ Milestone 2 uses Supabase PostgreSQL as a hosted development database so teammat
 
 Status: partial.
 
-Ethereum Sepolia is the selected Milestone 3 network. A deployment script and environment template exist under `contracts/`. RPC URLs and private keys remain local/hosted secrets and must not be exposed to the frontend or committed.
+Ethereum Sepolia is the selected Milestone 3 network. `contracts/script/Deploy.s.sol` now deploys ACON and PredictionMarket, claims the deployer's faucet, approves the exact subsidy, and seeds market #0 with a seven-day deadline. It has been simulated locally, but no fresh M3 Sepolia deployment is recorded. The handoff must include both addresses, deployment transaction/block, exact-build ABI/source revision, demo market ID, and the two-confirmation indexer default. RPC URLs and private keys remain local/hosted secrets and must not be exposed to the frontend or committed.
 
 ## On-Chain vs Off-Chain Boundary
 
@@ -126,6 +130,8 @@ Off-chain planned responsibilities:
 The project should not be described as fully trustless or fully permissionless.
 
 ## Planned Market Lifecycle
+
+M3 currently creates markets directly in `OPEN`. Quotes and buys require `block.timestamp < tradingDeadline`, even if the stored state remains `OPEN`. The fuller lifecycle below is future design, not a set of implemented transitions; the current enum order remains the seven states in the approved M3 interface.
 
 ```text
 CREATED
@@ -158,11 +164,11 @@ Important invariants:
 
 | Boundary | Interface | Status |
 |---|---|---|
-| Frontend -> contract | `getMarket(0)` | implemented |
-| Contract -> indexer | normalized `MarketCreated` projection | foundation merged; RPC/ABI worker implemented on feature branch |
+| Frontend -> contract | `getMarket(0)` | M2 read implemented; M3 returns two additional quantity fields and needs new ABI/address |
+| Contract -> indexer | normalized `MarketCreated` projection | foundation and RPC/ABI worker merged; new deployment handoff pending |
 | Backend -> frontend/dev tools | `GET /health`, sample-match reads | implemented |
-| Frontend -> contract | guarded quote/buy and position read | Milestone 3 proposed |
-| Contract -> indexer | `TradeExecuted` with complete post-trade projection fields | Milestone 3 proposed |
+| Frontend -> contract | guarded quote/buy and position read | implemented in contract; frontend integration pending |
+| Contract -> indexer | `TradeExecuted` with complete post-trade projection fields | implemented in contract; live event decoding/projection validation pending |
 | Backend -> frontend | indexed market, trade, and indexer-status reads | foundation implemented |
 
 See `interfaces/M3_TRADING_INTERFACE.md` for the approved trading-interface freeze and `milestones/MILESTONE_3.md` for the recovery model and acceptance criteria.
@@ -199,6 +205,7 @@ Contract setup and deployment commands are documented in `contracts/README.md`. 
 ## Known Gaps
 
 - The checked-in contract and the existing Sepolia deployment came from different source versions.
+- `getMarket` returns six fields, with market ID supplied by the lookup/event rather than returned; confirm that representation with consumers before the ABI handoff.
 - No contract write or trading interface exists in the frontend.
 - The RPC/ABI worker is implemented but cannot be validated against live contract logs until the final ABI, address, and deployment block are published.
 - Resolver selection randomness, conflict exclusions, and timeout/liveness behavior are not decided.
