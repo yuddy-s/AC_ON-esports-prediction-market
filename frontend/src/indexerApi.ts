@@ -42,3 +42,21 @@ export async function fetchTradesByTransaction(hash: string, signal?: AbortSigna
 export function fetchIndexerStatus(signal?: AbortSignal): Promise<IndexerStatus> {
   return getJson<IndexerStatus>("/api/indexer/status", signal);
 }
+
+interface TradePage {
+  items: IndexedTrade[];
+  total: number;
+}
+
+// The API pages oldest-first, so read the total, then fetch the last `count`.
+export async function fetchRecentMarketTrades(
+  marketId: bigint,
+  count: number,
+  signal?: AbortSignal,
+): Promise<{ trades: IndexedTrade[]; total: number }> {
+  const path = `/api/markets/${marketId}/trades`;
+  const first = await getJson<TradePage>(`${path}?limit=${count}&offset=0`, signal);
+  if (first.total <= count) return { trades: first.items, total: first.total };
+  const last = await getJson<TradePage>(`${path}?limit=${count}&offset=${first.total - count}`, signal);
+  return { trades: last.items, total: last.total };
+}

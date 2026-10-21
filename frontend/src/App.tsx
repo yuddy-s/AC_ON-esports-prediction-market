@@ -2,6 +2,7 @@ import { WalletConnect } from "./WalletConnect";
 import { MarketCard } from "./MarketCard";
 import { AconPanel } from "./AconPanel";
 import { TradePanel } from "./TradePanel";
+import { RecentTrades } from "./RecentTrades";
 
 export default function App() {
   return (
@@ -28,6 +29,10 @@ export default function App() {
 
         <div className="mt-6">
           <TradePanel />
+        </div>
+
+        <div className="mt-6">
+          <RecentTrades />
         </div>
       </div>
     </div>
