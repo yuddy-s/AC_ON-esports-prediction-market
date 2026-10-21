@@ -8,13 +8,13 @@ Deliver a live minimum viable product that implements the core feature end to en
 
 ## Repository Assessment
 
-The guarded-buy branch now contains these components:
+The `dev` branch now contains these components:
 
 - a React frontend with Coinbase Wallet support and an Ethereum Sepolia contract read
 - `ACONTestToken` plus a `PredictionMarket` contract integrating the bounded LMSR library for subsidy-funded market creation, quotes, guarded buys, positions, and events
 - a FastAPI backend with indexed market/trade/status APIs, database migrations, and an RPC/ABI indexer worker; sample-match rows remain fallback data
 
-Contract implementation commit `4c57dc0` is available for review. Foundry unit tests cover the ACON faucet/transfers, market funding, quote/buy behavior, slippage rejection, and deadlines; the existing pure LMSR fuzz/invariant suite also passes locally. The current Sepolia deployment is an earlier M2 prototype. A new ACON/market deployment, compiled-ABI handoff, and live buy-to-indexer-to-frontend validation are still required. No sell, oracle proposal, challenge, resolver voting, settlement, or payout behavior is implemented by this contract change.
+Contract implementation commit `4c57dc0` merged in PR #16. Foundry unit tests cover the ACON faucet/transfers, market funding, quote/buy behavior, slippage rejection, and deadlines; the existing pure LMSR fuzz/invariant suite also passes locally. The current Sepolia deployment is an earlier M2 prototype. A new ACON/market deployment, compiled-ABI handoff, and live buy-to-indexer-to-frontend validation are still required. No sell, oracle proposal, challenge, resolver voting, settlement, or payout behavior is implemented by this contract change.
 
 Ethereum Sepolia (chain ID `11155111`) is the selected testnet for Milestone 3. Do not plan a Base Sepolia migration during MVP integration.
 
@@ -110,9 +110,10 @@ These names and fields remain blocked on the resolution contract design and are 
 | `GET /api/markets` | Paginated indexed markets, optionally filtered by state. | required |
 | `GET /api/markets/{market_id}` | Indexed market details plus projection metadata. | required |
 | `GET /api/markets/{market_id}/trades` | Paginated confirmed trade history. | required |
+| `GET /api/trades/by-transaction/{transaction_hash}` | Confirmed indexed trades for a mined wallet transaction; empty `items` until matching logs are indexed. | implemented for frontend synchronization |
 | `GET /api/indexer/status` | Chain ID, contract address, latest observed block, safe checkpoint, and lag. | required |
 
-The backend does not submit user trades. Users sign contract transactions through their wallets. API responses must identify indexed/derived data and include enough checkpoint information for the frontend to avoid presenting it as immediate authoritative state.
+The backend does not submit user trades. Users sign contract transactions through their wallets. API responses must identify indexed/derived data and include enough checkpoint information for the frontend to avoid presenting it as immediate authoritative state. The status response also includes `updated_at` so the frontend can detect a stalled worker even when reported block lag is zero. See the [backend frontend handoff](../APPLICATION_ROADMAP.md#frontend-backend-api-handoff) for the polling sequence.
 
 ### Oracle boundary
 

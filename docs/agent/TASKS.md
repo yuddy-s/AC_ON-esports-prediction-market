@@ -55,11 +55,11 @@ The approved cross-layer freeze is documented in [`interfaces/M3_TRADING_INTERFA
 |---|---|---|---|---|---|
 | P0 | team | interfaces | Freeze the payment asset, market/trade ABI, enum order, event fields, numeric units, and deployment handoff. | Team approval of the decision record | approved in PR #12 |
 | P0 | Matthew | LMSR/contracts | Implement `LMSR.sol` with 1e18 precision, `b = 50`, creator subsidy `ceil(b * ln(2))`, quote/cost math, and economic invariants. | team review | merged in PR #13 |
-| P0 | Benny | contracts | Integrate ACON subsidy collection, LMSR quotes, guarded YES/NO buy, positions, and `TradeExecuted`. | interface freeze and LMSR library | implemented in 4c57dc0 on feature/guarded-buy; review/ABI handoff and fresh Sepolia deployment pending |
+| P0 | Benny | contracts | Integrate ACON subsidy collection, LMSR quotes, guarded YES/NO buy, positions, and `TradeExecuted`. | interface freeze and LMSR library | merged in PR #16; generated ABI handoff and fresh Sepolia deployment pending |
 | P0 | Yudhveer | indexer/database | Implement migrations, unique event identity, atomic checkpoints, confirmation handling, deterministic rebuild, and reorg recovery. | final live validation waits on deployment | merged in PR #10 |
 | P0 | Yudhveer | backend | Implement paginated indexed market/trade/status read APIs with derived-state metadata. | indexed schema | merged in PR #10 |
 | P0 | Yudhveer | RPC worker | Implement validated JSON-RPC retrieval, bounded polling/retries/range splitting, ABI decoder boundary, clean shutdown, and deployment runbook. | live validation waits on exact ABI and deployment record | merged in PR #15; live M3 validation pending |
-| P0 | Adriel | frontend | Implement quote/buy and submitted/mined/indexed UI states. | ABI and backend endpoints | contract ABI available for review; new addresses and live integration pending |
+| P0 | Adriel | frontend | Implement quote/buy and submitted/mined/indexed UI states. | ABI and backend endpoints | source interface reviewed; transaction-hash lookup and indexer freshness timestamp implemented; generated ABI, new addresses, and live integration pending |
 | P1 | team | integration | Deploy fresh Sepolia contract and run contract-to-indexer-to-API-to-frontend demo. | P0 slice | blocked |
 | P1 | Yudhveer | oracle | Add provider and least-privilege signer boundaries with deterministic mock tests. | proposal/challenge ABI | blocked |
 | P2 | Benny | resolver contracts | Implement authoritative eligibility, randomness, conflict checks, selection, voting, quorum, timeout, and finalization rules. | protocol decision and working trading slice | deferred to Milestone 4 |

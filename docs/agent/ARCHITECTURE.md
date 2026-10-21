@@ -11,7 +11,7 @@ This document describes the repository as currently inspected. Do not treat plan
 | Frontend | implemented | React + Vite + TypeScript app under `frontend/`. |
 | Wallet | implemented | Coinbase Smart Wallet and injected wallet fallback through wagmi. |
 | Chain config | implemented | Frontend and Milestone 2 deployment use Ethereum Sepolia (chain ID `11155111`), selected for Milestone 3. |
-| Contracts | guarded-buy implementation | Commit `4c57dc0` on `feature/guarded-buy` integrates ACON-funded creation, LMSR quotes, guarded buys, positions, and `TradeExecuted`. Review, fresh Sepolia deployment, and live integration are pending. |
+| Contracts | guarded-buy implementation | PR #16 merged ACON-funded creation, LMSR quotes, guarded buys, positions, and `TradeExecuted` into `dev`. Fresh Sepolia deployment and live integration are pending. |
 | Backend | foundation | FastAPI app has health, deprecated sample-match endpoints, and paginated indexed market/trade/status reads. |
 | Oracle | planned | No oracle service found. |
 | Indexer | foundation + RPC worker | Confirmed projections, checkpoints, rebuild/reorg recovery, RPC polling, and ABI decoding exist; live validation awaits the M3 deployment handoff. |
@@ -67,7 +67,7 @@ Status: M3 guarded-buy implementation, deployment pending.
 
 Creation atomically collects the exact LMSR subsidy, allocates a sequential market ID, and initializes `OPEN` with zero quantities. Both `quoteBuy` and `buy` call `LMSR.buyCost`. Execution enforces `actualCost <= maxCost`, collects the actual payment, updates the caller's shares plus market quantities/collateral, and emits the frozen event. Both mutators hold a shared reentrancy guard across the token call. The constructor rejects a zero token address but relies on deployment to supply the intended ACON token.
 
-The implementation's unit and existing pure-math fuzz/invariant tests pass locally. The [contracts README](../../contracts/README.md) gives the exact six-output `getMarket` ABI, revert behavior, commands, and remaining coverage follow-ups. This is not a completed live MVP: review, a fresh Ethereum Sepolia deployment, and frontend/indexer integration remain pending. Sells, resolution, settlement, and payouts are deferred.
+The implementation's unit and existing pure-math fuzz/invariant tests pass locally. The [contracts README](../../contracts/README.md) gives the exact six-output `getMarket` ABI, revert behavior, commands, and remaining coverage follow-ups. This is not a completed live MVP: a fresh Ethereum Sepolia deployment and frontend/indexer integration remain pending. Sells, resolution, settlement, and payouts are deferred.
 
 The implementation follows the approved M3 trading boundary: custom 18-decimal `ACON` test ERC-20, internal pure `LMSR.sol`, creator-funded subsidy, guarded buys with `maxCost`, and deterministic post-trade `TradeExecuted` values. See [`interfaces/M3_TRADING_INTERFACE.md`](interfaces/M3_TRADING_INTERFACE.md) for the frozen parameters and ABI contract.
 
@@ -169,7 +169,7 @@ Important invariants:
 | Backend -> frontend/dev tools | `GET /health`, sample-match reads | implemented |
 | Frontend -> contract | guarded quote/buy and position read | implemented in contract; frontend integration pending |
 | Contract -> indexer | `TradeExecuted` with complete post-trade projection fields | implemented in contract; live event decoding/projection validation pending |
-| Backend -> frontend | indexed market, trade, and indexer-status reads | foundation implemented |
+| Backend -> frontend | indexed market, trade, transaction-hash lookup, and indexer-status reads | implemented; live deployment pending |
 
 See `interfaces/M3_TRADING_INTERFACE.md` for the approved trading-interface freeze and `milestones/MILESTONE_3.md` for the recovery model and acceptance criteria.
 

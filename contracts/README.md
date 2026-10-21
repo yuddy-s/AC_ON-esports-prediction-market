@@ -1,6 +1,6 @@
 # Foundry contracts
 
-The Foundry project is under `contracts/`. Commit `4c57dc0` on `feature/guarded-buy` integrates `PredictionMarket.sol` with Matthew's `LMSR.sol` and adds `ACONTestToken.sol` for creator-funded markets and guarded YES/NO buys. The contract implementation is available for review; fresh Ethereum Sepolia deployment and end-to-end frontend/indexer validation are pending.
+The Foundry project is under `contracts/`. PR #16 merged the `4c57dc0` implementation of `PredictionMarket.sol` with Matthew's `LMSR.sol` and `ACONTestToken.sol` for creator-funded markets and guarded YES/NO buys into `dev`. Fresh Ethereum Sepolia deployment and end-to-end frontend/indexer validation are pending.
 
 The LMSR library uses 18-decimal fixed point values, `b = 50e18`, and PRBMath v4.2.2 pinned as a Git submodule. It accepts at most `2_000e18` outstanding shares per outcome and `100e18` shares per transaction. Prices sum exactly to `1e18`, accepted payments telescope exactly because quote cost is `C(after) - C(before)`, and no extra buy-cost rounding buffer is applied. A positive trade whose rounded cost does not increase is rejected as too small.
 

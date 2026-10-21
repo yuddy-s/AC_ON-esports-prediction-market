@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from app.database import Base
 from app.indexer.provider import ChainLog
 from app.indexer.service import EventIndexer, IndexerConfig, IndexerReorganizationError
-from app.models import IndexedMarket, IndexedTrade, IndexerCheckpoint, ProcessedLog
+from app.models import IndexedContract, IndexedMarket, IndexedTrade, IndexerCheckpoint, ProcessedLog
 
 
 CHAIN_ID = 11155111
@@ -295,3 +295,63 @@ def test_explicit_rebuild_is_deterministic(session: Session) -> None:
     assert result.processed_logs == 2
     assert (rebuilt.question, rebuilt.yes_quantity, rebuilt.source_transaction_hash) == original_projection
     assert session.scalar(select(func.count()).select_from(ProcessedLog)) == 2
+
+
+def test_fresh_database_full_replay_matches_incremental_database(
+    session: Session, tmp_path: Path
+) -> None:
+    initial_logs = [market_created(1), trade_executed(2)]
+    provider = FakeProvider(2, initial_logs)
+    indexer(provider, batch_size=2).sync_once(session)
+
+    provider.latest = 4
+    provider.hashes.update({3: _hash(3), 4: _hash(4)})
+    provider.logs.extend([
+        market_created(3, market_id=1),
+        trade_executed(4, suffix=9, yes_quantity=2 * 10**18),
+    ])
+    indexer(provider, batch_size=2).sync_once(session)
+
+    fresh_engine = create_engine(
+        f"sqlite+pysqlite:///{tmp_path / 'fresh_replay.db'}",
+        connect_args={"check_same_thread": False},
+    )
+    Base.metadata.create_all(bind=fresh_engine)
+    FreshSession = sessionmaker(bind=fresh_engine, autoflush=False, autocommit=False)
+    with FreshSession() as fresh_session:
+        replay_provider = FakeProvider(4, provider.logs)
+        result = indexer(replay_provider, batch_size=2).sync_once(fresh_session)
+
+        assert result.processed_logs == 4
+        assert _projection_snapshot(fresh_session) == _projection_snapshot(session)
+
+
+def _projection_snapshot(session: Session) -> tuple[object, ...]:
+    contract = session.scalar(select(IndexedContract))
+    checkpoint = session.scalar(select(IndexerCheckpoint))
+    assert contract is not None and checkpoint is not None
+    markets = session.scalars(select(IndexedMarket).order_by(IndexedMarket.market_id)).all()
+    trades = session.scalars(select(IndexedTrade).order_by(IndexedTrade.block_number)).all()
+    processed = session.scalars(select(ProcessedLog).order_by(ProcessedLog.block_number)).all()
+    return (
+        (contract.chain_id, contract.contract_address, contract.deployment_block, contract.abi_version),
+        (checkpoint.next_block, checkpoint.last_safe_block, checkpoint.last_safe_block_hash,
+         checkpoint.latest_observed_block),
+        [
+            (market.market_id, market.question, market.state, market.creator, market.trading_deadline,
+             market.yes_quantity, market.no_quantity, market.source_block_number,
+             market.source_block_hash, market.source_transaction_hash, market.source_log_index)
+            for market in markets
+        ],
+        [
+            (trade.market_id, trade.trader, trade.outcome, trade.shares, trade.cost,
+             trade.yes_quantity, trade.no_quantity, trade.block_number, trade.block_hash,
+             trade.transaction_hash, trade.log_index)
+            for trade in trades
+        ],
+        [
+            (log.chain_id, log.contract_address, log.block_number, log.block_hash,
+             log.transaction_hash, log.log_index, log.event_name, log.payload)
+            for log in processed
+        ],
+    )
