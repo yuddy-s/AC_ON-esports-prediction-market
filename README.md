@@ -92,7 +92,7 @@ http://localhost:5173
 
 Before the first run, create `frontend/.env.local` (see [Frontend configuration](#frontend-configuration)). Without contract addresses the page loads but cannot read a market.
 
-Click **Connect Wallet** and sign in with a passkey (Coinbase Smart Wallet, no extension needed). Coinbase Smart Wallet only works on public networks such as Sepolia; for a local Anvil chain use **Connect Anvil test wallet (local only)**.
+Click **Connect Wallet** and sign in with a passkey (Coinbase Smart Wallet, no extension needed). Coinbase Smart Wallet can connect and read on Ethereum Sepolia but cannot send transactions there (it fails with "Sepolia is not supported"), so to claim ACON or trade on Sepolia use **Connect MetaMask (browser wallet)** with MetaMask set to the Sepolia network. On a local Anvil chain use **Connect Anvil test wallet (local only)**.
 
 ### Frontend configuration
 

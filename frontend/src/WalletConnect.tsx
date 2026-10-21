@@ -1,8 +1,10 @@
 import { useAccount, useConnect, useDisconnect, useBalance } from "wagmi";
+import { CHAIN_MODE } from "./config";
 import { formatTokenAmount, shortenAddress } from "./format";
+import { connectorLabel, SEPOLIA_SMART_WALLET_NOTE, smartWalletCannotTransact } from "./walletSupport";
 
 export function WalletConnect() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, connector: activeConnector } = useAccount();
   const { connect, connectors, isPending, error } = useConnect();
   const { disconnect } = useDisconnect();
 
@@ -34,6 +36,9 @@ export function WalletConnect() {
           No wallet app or extension needed — sign in with a passkey or
           email.
         </p>
+        {CHAIN_MODE === "sepolia" && (
+          <p className="max-w-md text-xs text-amber-300/80">{SEPOLIA_SMART_WALLET_NOTE}</p>
+        )}
 
         {rest.length > 0 && (
           <div className="mt-2 flex flex-col items-start gap-1.5">
@@ -47,8 +52,7 @@ export function WalletConnect() {
                 disabled={isPending}
                 className="text-sm text-amber-300 underline underline-offset-2 hover:text-amber-200 disabled:opacity-50"
               >
-                Connect{" "}
-                {connector.type === "mock" ? "Anvil test wallet (local only)" : connector.name}
+                Connect {connectorLabel(connector)}
               </button>
             ))}
           </div>
@@ -68,6 +72,12 @@ export function WalletConnect() {
       <p className="font-mono text-lg">
         {balance ? `${formatTokenAmount(balance.value, balance.decimals, 4)} ${balance.symbol}` : "Loading..."}
       </p>
+
+      {smartWalletCannotTransact(CHAIN_MODE, activeConnector?.id) && (
+        <p className="mt-2 max-w-md rounded-md border border-amber-700 bg-amber-950 p-2 text-xs text-amber-200">
+          {SEPOLIA_SMART_WALLET_NOTE}
+        </p>
+      )}
 
       <button
         onClick={() => disconnect()}
