@@ -2,7 +2,7 @@
 
 AC_ON is a testnet-only decentralized esports prediction market for binary esports match outcomes. Users connect a Coinbase Wallet and eventually trade YES/NO shares on match results.
 
-Milestone 3 is focused on one guarded YES/NO buy end to end: quote → wallet buy → mined `TradeExecuted` → indexer → API → frontend shows indexed. The full flow runs locally on an Anvil chain (see [Run the full M3 flow locally](#run-the-full-m3-flow-locally-anvil)); the fresh Ethereum Sepolia deployment is pending.
+Milestone 3 is focused on one guarded YES/NO buy end to end: quote → wallet buy → mined `TradeExecuted` → indexer → API → frontend shows indexed. ACON and the LMSR market contract are deployed on Ethereum Sepolia, and a ten-share YES buy passed the live contract smoke test; the [versioned deployment handoff](deployments/README.md) includes addresses, ABIs, and confirmed creation/trade transactions. The full frontend → contract → indexer → API flow runs locally on an Anvil chain (see [Run the full M3 flow locally](#run-the-full-m3-flow-locally-anvil)); hosted indexer/API integration on Sepolia is pending.
 
 ## What Works Now
 
@@ -18,6 +18,7 @@ Milestone 3 is focused on one guarded YES/NO buy end to end: quote → wallet bu
 - Repeatable seed script for three fake sample matches.
 - `ACONTestToken` with 18 decimals and a one-time 1,000 ACON faucet per address.
 - `PredictionMarket` with creator-subsidy collection, LMSR `quoteBuy`, guarded `buy(..., maxCost)`, position reads, and `TradeExecuted` events. See [contract setup, ABI, and smoke-test instructions](contracts/README.md).
+- A confirmed Sepolia guarded buy with exact payment/position checks and live decoding of both creation and trade events by the backend RPC client and ABI decoder. See the [deployment and smoke-test evidence](contracts/deployments/sepolia-m3-2026-10-21/README.md).
 - Vitest unit tests for the frontend trade logic.
 - CI workflow that tests and builds the frontend, applies backend migrations/tests, and runs Foundry formatting/build/tests.
 
@@ -27,7 +28,7 @@ Milestone 3 is focused on one guarded YES/NO buy end to end: quote → wallet bu
 - PostgreSQL/Supabase is not authoritative for real market state.
 - Contracts are authoritative for market state and positions. M3 implements creation and guarded buys; settlement and payouts are deferred.
 - Ethereum Sepolia (chain ID `11155111`) is the selected Milestone 3 testnet; the team is not planning a network migration during MVP integration.
-- The full M3 quote-to-buy-to-indexer-to-frontend flow works on a local Anvil chain but is not yet live on Sepolia. The old M2 address is not an M3 deployment.
+- The full M3 quote-to-buy-to-indexer-to-frontend flow works on a local Anvil chain; the contracts are live on Sepolia but the hosted indexer/API is not yet. The old M2 address is not an M3 deployment.
 - ACON is the test-only payment/collateral token; Sepolia ETH pays gas. Sells and payouts are not part of this implementation.
 - The approved Milestone 3 decisions are recorded in [`docs/agent/interfaces/M3_TRADING_INTERFACE.md`](docs/agent/interfaces/M3_TRADING_INTERFACE.md). The [contracts README](contracts/README.md) documents the implemented ABI and remaining handoff review.
 
@@ -257,11 +258,10 @@ forge test
 ## Not Here Yet
 
 - Sell, settlement, claim, and complete VOID contract paths.
-- A fresh Ethereum Sepolia deployment of ACON and the Milestone 3 market contract.
-- A live guarded-buy demonstration on Ethereum Sepolia with Coinbase Smart Wallet (works locally on Anvil).
+- A live guarded-buy demonstration on Ethereum Sepolia with Coinbase Smart Wallet through the hosted indexer/API (works locally on Anvil).
 - Vercel deployment of the frontend.
 - Oracle service implementation.
-- Live validation of the existing RPC/ABI indexer worker against the new contract deployment.
+- Hosted indexer/database/API validation against the confirmed Sepolia creation and trade events.
 - Resolver committee implementation.
 
 ## Notes

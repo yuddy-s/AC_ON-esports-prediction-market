@@ -1,6 +1,6 @@
 # Milestone 3: MVP
 
-Status: in progress
+Status: in progress — Sepolia contract deployment and guarded-buy smoke test complete; hosted indexer/API and frontend acceptance pending.
 
 ## Course Goal
 
@@ -14,9 +14,18 @@ The `dev` branch now contains these components:
 - `ACONTestToken` plus a `PredictionMarket` contract integrating the bounded LMSR library for subsidy-funded market creation, quotes, guarded buys, positions, and events
 - a FastAPI backend with indexed market/trade/status APIs, database migrations, and an RPC/ABI indexer worker; sample-match rows remain fallback data
 
-Contract implementation commit `4c57dc0` merged in PR #16. Foundry unit tests cover the ACON faucet/transfers, market funding, quote/buy behavior, slippage rejection, and deadlines; the existing pure LMSR fuzz/invariant suite also passes locally. The current Sepolia deployment is an earlier M2 prototype. A new ACON/market deployment, compiled-ABI handoff, and live buy-to-indexer-to-frontend validation are still required. No sell, oracle proposal, challenge, resolver voting, settlement, or payout behavior is implemented by this contract change.
+Contract implementation commit `4c57dc0` merged in PR #16 and was deployed from merge commit `6e30d516669e51d7f3e4bff0d8670168da9b1f83`. Both ACON and PredictionMarket are live, market `0` is seeded, and a ten-share YES buy passed exact payment/position/event checks. The compiled ABI handoff is published in PR #19 and passes the backend validator. The frontend still points at M2; hosted indexing/database/API and frontend acceptance remain required. Sells, oracle proposals, challenges, resolver voting, settlement, and payouts are deferred.
 
 Ethereum Sepolia (chain ID `11155111`) is the selected testnet for Milestone 3. Do not plan a Base Sepolia migration during MVP integration.
+
+### Recorded deployment and trade
+
+- Canonical manifest: [`deployments/sepolia-m3.json`](../../../deployments/sepolia-m3.json); exact-build ABIs are versioned under `deployments/abi/`.
+- Market deployment/start block: `11963761`; demo market ID: `0`; confirmation depth: `2`.
+- Successful buy: [`0xe5f5ff239ff3939cfc34c1c7719f2b1db9ef83d75f77f501236d004cb2d10c16`](https://sepolia.etherscan.io/tx/0xe5f5ff239ff3939cfc34c1c7719f2b1db9ef83d75f77f501236d004cb2d10c16), block `11964663`, log index `104`.
+- Bought ten YES shares for `5249584441082326050` ACON base units (5.24958444108232605 ACON), equal to the submitted `maxCost`.
+- [Receipt, raw log, and balance evidence](../../../contracts/deployments/sepolia-m3-2026-10-21/guarded-buy.json) was verified after two confirmations; the real backend RPC client/ABI decoder also decoded the canonical creation and trade events.
+- Market `0` trading deadline: **2026-10-28 17:01:12 UTC**. A later trading demo needs a new funded market. Existing receipts remain usable for read-only indexing checks.
 
 ## MVP Definition
 
@@ -115,7 +124,7 @@ These names and fields remain blocked on the resolution contract design and are 
 
 The backend does not submit user trades. Users sign contract transactions through their wallets. API responses must identify indexed/derived data and include enough checkpoint information for the frontend to avoid presenting it as immediate authoritative state. The status response also includes `updated_at` so the frontend can detect a stalled worker even when reported block lag is zero. See the [backend frontend handoff](../APPLICATION_ROADMAP.md#frontend-backend-api-handoff) for the polling sequence.
 
-Before live validation, the team must fill the [public Sepolia deployment manifest](../../../deployments/README.md) from Benny's exact-build ABI and receipts. Yudhveer's read-only smoke script then compares those chain events with the confirmed API projections.
+The [public Sepolia deployment manifest](../../../deployments/sepolia-m3.json) is populated and validated. Once the persistent worker and API are configured, Yudhveer's read-only smoke script can compare the recorded creation/trade events with confirmed API projections. The [deployment runbook](../DEPLOYMENT_RUNBOOK.md) supplies the concrete worker configuration and validation command.
 
 ### Oracle boundary
 
@@ -214,9 +223,11 @@ PostgreSQL deletion or corruption must not affect authoritative contract state.
 - event values match post-trade contract state
 - no negative balances and bounded market-maker loss
 
-Current validation: 39 tests passed in the last local Foundry run, including the pure LMSR invariant suite. The market slippage test supplies a maximum below the current quote; an intervening-trade stale-quote scenario, callback/reentrancy tests, failed-token-transfer rollback tests, and multi-market accounting tests remain coverage follow-ups. A successful local deployment simulation is not evidence of a live Sepolia or cross-layer demo.
+Current validation: 39 Foundry tests passed, including the pure LMSR invariant suite; the deployed runtime bytecode and live ten-share YES buy also passed verification. The market slippage test supplies a maximum below the current quote; an intervening-trade stale-quote scenario, callback/reentrancy tests, failed-token-transfer rollback tests, and multi-market accounting tests remain coverage follow-ups. The live contract smoke test does not establish hosted database/indexer/API or frontend acceptance.
 
 ### Backend, indexer, and oracle / Pytest
+
+The current backend suite passed 52 tests. The completed manifest passes the handoff validator, and canonical live creation/trade retrieval and decoding passed separately. Persistent hosted projections and the read-only API smoke check remain pending; oracle provider/signer cases below are still planned scope.
 
 - duplicate log delivery changes projections once
 - restart resumes from the stored safe checkpoint
@@ -236,15 +247,15 @@ Current validation: 39 tests passed in the last local Foundry run, including the
 
 ## Demo Acceptance Criteria
 
-- all code and docs identify Ethereum Sepolia consistently
-- a fresh deployment address and deployment block are recorded without committing secrets
-- one wallet submits a guarded YES or NO buy
-- the mined transaction and `TradeExecuted` event are visible on Sepolia
-- the indexer stores the event once and reports its checkpoint
-- FastAPI returns the indexed trade and market projection
-- the frontend shows transaction confirmation separately from indexer completion
-- CI runs frontend build/tests, backend tests, contract format/build/tests, and the cross-layer integration test or a documented reproducible local equivalent
-- the presentation explains that PostgreSQL is derived and that the oracle cannot settle a challenged market
+- [x] Code and docs identify Ethereum Sepolia consistently; the deployment manifest and integration configuration specify chain ID `11155111`.
+- [x] Fresh deployment addresses, blocks, source revision, and exact-build ABIs are recorded in the public handoff.
+- [x] One wallet submits a guarded YES buy (ten shares from the deployer EOA).
+- [x] The mined transaction and `TradeExecuted` event are visible on Sepolia and verified after two confirmations.
+- [ ] The persistent indexer stores the event once and reports its checkpoint.
+- [ ] FastAPI returns the indexed trade and market projection from the hosted database.
+- [ ] The frontend shows transaction confirmation separately from indexer completion.
+- [ ] CI runs frontend build/tests, backend tests, contract format/build/tests, and the cross-layer integration test or a documented reproducible local equivalent. Current CI covers the frontend build, backend tests, and Foundry checks; full frontend/cross-layer acceptance remains.
+- [ ] The presentation explains that PostgreSQL is derived and that the oracle cannot settle a challenged market.
 
 ## Explicitly Deferred Unless The Trading Slice Finishes Early
 

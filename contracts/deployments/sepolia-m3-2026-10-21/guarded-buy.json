@@ -1,0 +1,82 @@
+{
+  "chain_id": 11155111,
+  "source_commit": "6e30d516669e51d7f3e4bff0d8670168da9b1f83",
+  "market_address": "0x19EF739001038Ce9DFB1E12Cf45A10c9250A60a7",
+  "token_address": "0x315FCA0DDAA367446f36A3184D8f6b2Df76b5618",
+  "buyer": "0xB5ce8428DD6cB9FEfD54282CB49Ef7d2629d9A6A",
+  "market_id": 0,
+  "outcome": 0,
+  "shares": "10000000000000000000",
+  "max_cost": "5249584441082326050",
+  "actual_cost": "5249584441082326050",
+  "before": {
+    "snapshot_block": 11964657,
+    "buyer_acon": "965342640972002734529",
+    "market_acon": "34657359027997265471",
+    "allowance": "0",
+    "buyer_yes_shares": "0",
+    "buyer_no_shares": "0",
+    "yes_quantity": "0",
+    "no_quantity": "0"
+  },
+  "approval": {
+    "transaction_hash": "0x1f4e9219f7060dff953ba262d469379236dc0fe104aebbe1cb37c4587f62e986",
+    "block_number": 11964662,
+    "block_hash": "0x4522b17f0692e6c684dd70d91249e01950d80af2b1faf71afc2d9b8e9bb03b5b",
+    "timestamp_utc": "2026-10-21T20:02:24Z",
+    "status": 1,
+    "nonce": 8,
+    "gas_limit": 155048,
+    "gas_used": 128115,
+    "effective_gas_price_wei": "13171889"
+  },
+  "buy": {
+    "transaction_hash": "0xe5f5ff239ff3939cfc34c1c7719f2b1db9ef83d75f77f501236d004cb2d10c16",
+    "block_number": 11964663,
+    "block_hash": "0x061d56c56da78c3eaac2236f879de1c0cec935dfbef386e03995a0c160641014",
+    "timestamp_utc": "2026-10-21T20:02:36Z",
+    "status": 1,
+    "nonce": 9,
+    "gas_limit": 408891,
+    "gas_used": 315108,
+    "effective_gas_price_wei": "13171889",
+    "trade_log_index": 104
+  },
+  "after": {
+    "snapshot_block": 11964666,
+    "safe_checkpoint_at_depth_two": 11964664,
+    "buyer_acon": "960093056530920408479",
+    "market_acon": "39906943469079591521",
+    "allowance": "0",
+    "buyer_yes_shares": "10000000000000000000",
+    "buyer_no_shares": "0",
+    "yes_quantity": "10000000000000000000",
+    "no_quantity": "0",
+    "next_yes_quote_for_ten_shares": "5743819150918039250"
+  },
+  "gas_cost_eth": "0.000005838084158247",
+  "raw_trade_log": {
+    "address": "0x19ef739001038ce9dfb1e12cf45a10c9250a60a7",
+    "topics": [
+      "0xbf7d726b38e2af587802bf22adc582447a08463ab527fc8fc56c36437ca4c78e",
+      "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "0x000000000000000000000000b5ce8428dd6cb9fefd54282cb49ef7d2629d9a6a",
+      "0x0000000000000000000000000000000000000000000000000000000000000000"
+    ],
+    "data": "0x0000000000000000000000000000000000000000000000008ac7230489e8000000000000000000000000000000000000000000000000000048da453c55212c220000000000000000000000000000000000000000000000008ac7230489e800000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x061d56c56da78c3eaac2236f879de1c0cec935dfbef386e03995a0c160641014",
+    "blockNumber": "0xb690f7",
+    "blockTimestamp": "0x6ad91a5c",
+    "transactionHash": "0xe5f5ff239ff3939cfc34c1c7719f2b1db9ef83d75f77f501236d004cb2d10c16",
+    "transactionIndex": "0x3b",
+    "logIndex": "0x68",
+    "removed": false
+  },
+  "verification": {
+    "confirmation_depth": 2,
+    "canonical_receipts_checked": true,
+    "exact_payment_and_position_checked": true,
+    "live_backend_rpc_and_abi_decoder_checked": true,
+    "hosted_indexer_database_api_frontend_verified": false
+  }
+}

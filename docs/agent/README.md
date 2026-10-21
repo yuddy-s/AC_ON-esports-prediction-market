@@ -12,7 +12,9 @@ Keep this folder small. It should help agents pick the right slice of work witho
 - `TASKS.md`: current team assignments and coding-agent work queue.
 - `APPLICATION_ROADMAP.md`: canonical product checklist, blockers, ABI handoff, and remaining work by owner.
 - `DEPLOYMENT_RUNBOOK.md`: Supabase migrations plus Render API/indexer-worker deployment and recovery steps.
-- `../../deployments/README.md`: public Sepolia deployment manifest and versioned ABI convention.
+- [`../../deployments/README.md`](../../deployments/README.md): public Sepolia handoff and versioned ABI convention.
+- [`../../deployments/sepolia-m3.json`](../../deployments/sepolia-m3.json): completed M3 deployment manifest with exact-build ABIs and confirmed creation/trade examples.
+- [`../../contracts/deployments/sepolia-m3-2026-10-21/README.md`](../../contracts/deployments/sepolia-m3-2026-10-21/README.md): deployment recovery, verified live buy, demo deadline, and remaining hosted integration work.
 - `interfaces/`: proposed or approved cross-layer interface decision records.
 - `milestones/`: milestone scope so agents do not overbuild beyond the active course milestone.
 
