@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { connectorLabel, smartWalletCannotTransact } from "./walletSupport";
+import { connectorLabel, smartWalletCannotTransact, visibleConnectors } from "./walletSupport";
 
 describe("connectorLabel", () => {
   it("names the generic injected connector MetaMask", () => {
@@ -21,5 +21,19 @@ describe("smartWalletCannotTransact", () => {
     expect(smartWalletCannotTransact("sepolia", "injected")).toBe(false);
     expect(smartWalletCannotTransact("anvil", "coinbaseWalletSDK")).toBe(false);
     expect(smartWalletCannotTransact("sepolia", undefined)).toBe(false);
+  });
+});
+
+describe("visibleConnectors", () => {
+  const coinbase = { id: "coinbaseWalletSDK", name: "Coinbase Wallet", type: "coinbaseWallet" };
+  const generic = { id: "injected", name: "Injected", type: "injected" };
+  const metamask = { id: "io.metamask", name: "MetaMask", type: "injected" };
+
+  it("hides the generic browser-wallet button when MetaMask is detected", () => {
+    expect(visibleConnectors([coinbase, generic, metamask]).map((c) => c.id)).toEqual(["coinbaseWalletSDK", "io.metamask"]);
+  });
+
+  it("keeps the generic button as a fallback when no wallet is detected", () => {
+    expect(visibleConnectors([coinbase, generic]).map((c) => c.id)).toEqual(["coinbaseWalletSDK", "injected"]);
   });
 });

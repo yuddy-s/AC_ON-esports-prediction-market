@@ -1,7 +1,7 @@
-import { useAccount, useConnect, useDisconnect, useBalance } from "wagmi";
+import { ProviderNotFoundError, useAccount, useConnect, useDisconnect, useBalance } from "wagmi";
 import { CHAIN_MODE } from "./config";
 import { formatTokenAmount, shortenAddress } from "./format";
-import { connectorLabel, SEPOLIA_SMART_WALLET_NOTE, smartWalletCannotTransact } from "./walletSupport";
+import { connectorLabel, SEPOLIA_SMART_WALLET_NOTE, smartWalletCannotTransact, visibleConnectors } from "./walletSupport";
 
 export function WalletConnect() {
   const { address, isConnected, connector: activeConnector } = useAccount();
@@ -19,7 +19,7 @@ export function WalletConnect() {
     // No extension or app required — opens a popup, sign in with a
     // passkey or email. This is the option most users (and any demo
     // machine) should use.
-    const [primary, ...rest] = connectors;
+    const [primary, ...rest] = visibleConnectors(connectors);
 
     return (
       <div className="flex flex-col items-start gap-3">
@@ -58,7 +58,13 @@ export function WalletConnect() {
           </div>
         )}
 
-        {error && <p className="text-sm text-red-400">{error.message}</p>}
+        {error && (
+          <p className="text-sm text-red-400">
+            {error instanceof ProviderNotFoundError
+              ? "No browser wallet found. Install or unlock MetaMask in this browser, then refresh the page."
+              : error.message}
+          </p>
+        )}
       </div>
     );
   }

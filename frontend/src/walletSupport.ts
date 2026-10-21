@@ -15,6 +15,14 @@ export function connectorLabel(connector: ConnectorInfo): string {
   return connector.name;
 }
 
+// wagmi auto-adds a connector for each wallet extension that announces itself
+// (EIP-6963), e.g. "MetaMask". Hide the generic injected fallback when a named
+// one exists so the same wallet is not offered twice.
+export function visibleConnectors<T extends ConnectorInfo>(connectors: readonly T[]): T[] {
+  const hasDiscoveredWallet = connectors.some((c) => c.type === "injected" && c.id !== "injected");
+  return connectors.filter((c) => !(hasDiscoveredWallet && c.id === "injected"));
+}
+
 // Coinbase Smart Wallet supports Base Sepolia but not Ethereum Sepolia for
 // transactions: it connects and reads, but claim/approve/buy fail with
 // "Sepolia is not supported". MetaMask works on Ethereum Sepolia.
