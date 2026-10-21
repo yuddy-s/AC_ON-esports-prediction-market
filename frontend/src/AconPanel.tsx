@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAccount, useReadContracts, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { ACON_TOKEN_ADDRESS, CHAIN } from "./config";
 import { isWrongNetwork } from "./walletSupport";
@@ -22,11 +23,12 @@ export function AconPanel() {
   const claim = useWriteContract();
   const receipt = useWaitForTransactionReceipt({ hash: claim.data, chainId: CHAIN.id });
 
-  // Refresh balance and claimed flag once the faucet transaction is mined.
-  const { refetch } = reads;
+  // Once the faucet transaction is mined, refresh every read on the page
+  // (this panel and the trade form both show the ACON balance).
+  const queryClient = useQueryClient();
   useEffect(() => {
-    if (receipt.isSuccess) void refetch();
-  }, [receipt.isSuccess, refetch]);
+    if (receipt.isSuccess) void queryClient.invalidateQueries();
+  }, [receipt.isSuccess, queryClient]);
 
   if (!isConnected) return null;
 
