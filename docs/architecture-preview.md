@@ -2,9 +2,11 @@
 
 AC_ON is a testnet-only decentralized esports prediction market. Users connect Coinbase Wallet and trade YES/NO shares on binary esports match outcomes.
 
-Core market logic is planned to run on-chain on Ethereum Sepolia for Milestone 3. Off-chain services support esports API access, oracle automation, indexing, PostgreSQL derived data, and FastAPI queries. The system is not fully trustless or fully permissionless.
+Milestone 3 market creation, LMSR quotes, and guarded buys are deployed on Ethereum Sepolia, with a confirmed ten-share YES smoke test. The [deployment manifest](../deployments/sepolia-m3.json) and [verification record](../contracts/deployments/sepolia-m3-2026-10-21/README.md) identify the live contracts and trade. Hosted indexer/API and frontend integration remain pending. Off-chain services support indexing, PostgreSQL derived data, and FastAPI queries; esports APIs and oracle automation remain future work. The system is not fully trustless or fully permissionless.
 
 ## Main System Architecture
+
+This diagram is the **target product architecture**, including future resolution components. The deployed M3 subset is ACON-funded market creation, internal LMSR pricing, guarded buys, positions, and events. Oracle proposals, challenges, resolver registry/voting, settlement, and claims are not deployed. See the [current implementation architecture](agent/ARCHITECTURE.md) for the verified M3 path and remaining integration work.
 
 ```mermaid
 flowchart TB
@@ -113,6 +115,8 @@ flowchart TB
 - PostgreSQL does not write authoritative state into smart contracts.
 
 ## Market State Machine
+
+The diagram below is the future lifecycle design. The deployed M3 contract creates markets directly in `OPEN` after collecting the subsidy. It rejects quotes/buys at the trading deadline while the stored state remains `OPEN`; it does not implement the close/resolution transitions shown here.
 
 ```mermaid
 stateDiagram-v2
