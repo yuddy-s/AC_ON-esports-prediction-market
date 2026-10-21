@@ -47,7 +47,7 @@ These ownership areas remain stable through the final product so later milestone
 
 ## Milestone 3 MVP Queue
 
-The shared priority is one end-to-end guarded buy on Ethereum Sepolia. Full resolver committee implementation is deferred until that slice works and the protocol rules are approved.
+The shared priority is one end-to-end guarded buy on Ethereum Sepolia. The resolver protocol rules are documented and await implementation through the Milestone 4 contract/event ABI; full committee execution remains deferred until that milestone.
 
 The approved cross-layer freeze is documented in [`interfaces/M3_TRADING_INTERFACE.md`](interfaces/M3_TRADING_INTERFACE.md). Dependent contract, indexer, and frontend work must implement that interface or update the decision record through team review.
 
@@ -63,7 +63,7 @@ The approved cross-layer freeze is documented in [`interfaces/M3_TRADING_INTERFA
 | P0 | Adriel | frontend | Implement quote/buy and submitted/mined/indexed UI states. | published M3 addresses/ABIs and indexed backend endpoints | contract handoff and example trade available; update M2 frontend and complete live UI/API integration |
 | P1 | team | integration | Run the contract-to-indexer-to-API-to-frontend demo against the deployed M3 contracts. | trading UI and hosted worker/API | contract deployment/buy smoke complete; full cross-layer demo pending |
 | P1 | Yudhveer | oracle | Add provider and least-privilege signer boundaries with deterministic mock tests. | proposal/challenge ABI | blocked |
-| P2 | Benny | resolver contracts | Implement authoritative eligibility, randomness, conflict checks, selection, voting, quorum, timeout, and finalization rules. | protocol decision and working trading slice | deferred to Milestone 4 |
+| P2 | Benny | resolver contracts | Implement authoritative eligibility, Chainlink VRF selection, conflict checks, two 48-hour voting rounds, three-of-five quorum, seven-day committee-formation fallback, and finalization. | approved protocol decision and Milestone 4 ABI freeze | design documented; implementation deferred to Milestone 4 |
 | P2 | Yudhveer | resolver backend | Index resolver events and expose committee, vote, quorum, and timeout status without making authoritative decisions. | resolver event interface | deferred to Milestone 4 |
 | P2 | team | CI/tests | Add cross-layer integration job or reproducible local integration harness. | working vertical slice | blocked |
 

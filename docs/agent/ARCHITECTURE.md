@@ -79,6 +79,18 @@ Status: planned.
 
 No oracle service exists yet. Intended behavior: compare approved esports API results, propose outcomes on-chain when rules allow, route disagreements or timeouts to dispute/manual paths, and avoid unilateral settlement of disputed markets.
 
+## Resolver Protocol
+
+Status: design approved for Milestone 4; not implemented.
+
+Resolution remains authoritative on-chain. A project-team multisignature wallet administers an on-chain resolver allowlist and emits an event for every admission or removal. Registry changes apply to future committee selections; removal does not rewrite an active voting round. PostgreSQL may project registry, selection, vote, deadline, and outcome events, but it must never select resolvers or decide an outcome.
+
+A challenged result or unusable oracle result requests five distinct eligible resolvers through Chainlink VRF on Sepolia. Failed or delayed VRF requests may be retried without changing the market to `VOID`. The contract excludes the market creator, oracle proposer, challenger, and any address recorded on-chain as having traded in or holding a position in the market. These conflicts are enforceable only at the address level.
+
+Each selected resolver may cast one direct on-chain `YES`, `NO`, or `VOID` vote during a 48-hour round. Three matching votes finalize the result. If the first committee does not reach three matching votes, VRF selects one replacement committee for a second 48-hour round, excluding first-round resolvers when the eligible pool permits. Each initial or replacement selection request has a seven-day formation deadline. Failure to form the requested committee by that deadline, or failure of the replacement round to reach quorum, makes the market `VOID`.
+
+Direct voting authorizes `msg.sender` and does not require off-chain signature recovery, including for Coinbase Smart Wallet transactions. A future relayed-vote feature must support ECDSA for externally owned accounts and EIP-1271 for contract wallets. Contract interfaces, exact VRF configuration, settlement, payouts, and complete `VOID` accounting are deferred to Milestone 4.
+
 ## Indexer
 
 Status: worker implemented; live RPC/ABI decoding verified; hosted indexing pending.
@@ -204,5 +216,5 @@ Contract setup and deployment commands are documented in `contracts/README.md`. 
 - Deployed `getMarket` returns six fields, with market ID supplied by the lookup/event rather than returned. The handoff validator accepts this ABI; the identifier representation remains a consumer-review follow-up.
 - No contract write or trading interface exists in the frontend.
 - The public manifest, ABIs, and confirmed events are available. Hosted worker/database/API verification and the full frontend demo remain pending.
-- Resolver selection randomness, conflict exclusions, and timeout/liveness behavior are not decided.
+- Resolver randomness, address-level conflicts, quorum, retry, and timeout/liveness behavior are documented for Milestone 4; the contracts and ABI are not implemented.
 - Backend sample-match data is fake/off-chain and exists only for Milestone 2 fallback display.

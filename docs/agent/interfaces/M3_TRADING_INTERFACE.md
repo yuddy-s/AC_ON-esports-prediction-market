@@ -220,7 +220,7 @@ forge test
 
 The LMSR implementation PR also runs deterministic tests, bounded fuzz/property tests, and the bounded-loss invariant. CI is pinned to 256 fuzz runs and 256 invariant runs at depth 500 (128,000 stateful calls). A supplemental local run of 10,000 cases per fuzz property passed against PRBMath v4.2.2; it supplements but does not replace CI.
 
-## Explicitly Deferred Decisions
+## Explicitly Deferred Implementation And Decisions
 
 These decisions do not block the Milestone 3 guarded-buy slice:
 
@@ -228,7 +228,7 @@ These decisions do not block the Milestone 3 guarded-buy slice:
 - Settlement, claims, and at-most-once payout execution.
 - Release or disposition of creator subsidy after finalization or VOID.
 - Complete VOID accounting across terminal states.
-- Resolver eligibility, admission, randomness, conflicts, quorum, non-votes, and timeout fallback.
+- Resolver implementation is deferred. Its admission/removal, Chainlink VRF selection, address-level conflicts, three-of-five quorum, replacement round, seven-day committee-formation fallback, and direct-vote wallet rules are documented in [`../milestones/MILESTONE_3.md`](../milestones/MILESTONE_3.md); the exact Milestone 4 contract/event ABI remains to be frozen.
 - Oracle proposal/challenge implementation and real esports API selection.
 - Mainnet deployment.
 

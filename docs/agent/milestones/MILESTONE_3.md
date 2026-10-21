@@ -146,16 +146,17 @@ Milestone 3 may use a deterministic mock provider. No public endpoint should acc
 
 Resolution remains authoritative on-chain. PostgreSQL may project resolver selections and votes but must never select resolvers or decide the winning outcome independently.
 
-Before resolver implementation, the team must decide:
+The protocol decision for Milestone 4 is:
 
-- the eligible resolver set and admission/removal rules
-- the manipulation-resistant randomness source
-- exclusions for creator, proposer/oracle, challenger, and other conflicts
-- behavior when fewer than five eligible resolvers exist
-- voting deadline and terminal fallback when three matching votes are not reached
-- EIP-1271 handling if Coinbase Smart Wallet accounts may act as resolvers
+- A project-team multisignature wallet holds the resolver-administrator role. It may admit known independent resolver wallets or remove inactive, compromised, or rule-violating resolvers. Every registry change emits an on-chain event. Removal prevents future selection but does not alter a committee already assigned to an active voting round.
+- A challenged result or unusable oracle result enters resolver selection. Chainlink VRF on Sepolia selects five distinct eligible addresses from the on-chain allowlist. Failed or delayed VRF requests may be retried and do not by themselves make a market `VOID`.
+- The market creator, oracle proposer, challenger, and any wallet recorded on-chain as having traded in or holding a position in that market are ineligible. These checks operate at the address level and cannot detect an undisclosed related wallet.
+- If five eligible resolvers cannot be selected, the market remains pending while the pool is replenished. Each committee-selection request has a seven-day formation deadline; failure to assemble that committee by its deadline makes the market `VOID`.
+- Each selected resolver may cast one direct on-chain vote for `YES`, `NO`, or `VOID` during a 48-hour round. Three matching votes finalize the result.
+- If the first committee does not reach three matching votes, Chainlink VRF selects one replacement committee for a second 48-hour round. The replacement selection should exclude the first-round resolvers when at least five other eligible addresses exist. Failure to form the replacement within seven days of its selection request, or failure of the replacement round to reach three matching votes, makes the market `VOID`.
+- Initial voting uses direct transactions from selected resolver addresses and therefore does not recover off-chain signatures. Any future relayed-vote path must validate ECDSA signatures for externally owned accounts and EIP-1271 signatures for Coinbase Smart Wallet and other contract accounts.
 
-The actor who raises a valid dispute is the challenger and must not serve on that dispute's resolver committee.
+This is a design decision, not an M3 implementation claim. Resolver contracts, the resolution ABI, settlement, payout, and complete `VOID` accounting remain Milestone 4 scope.
 
 ## Derived Database Plan
 
@@ -209,7 +210,8 @@ PostgreSQL deletion or corruption must not affect authoritative contract state.
    - real esports API integration is optional for the MVP
 7. **Resolver seam**
    - document and test projection handlers when resolution events exist
-   - defer complete committee behavior until the protocol decisions above are approved
+   - use the approved protocol decision above when freezing the Milestone 4 resolution ABI
+   - defer complete committee behavior to Milestone 4
 
 ## Initial Test Plan
 
@@ -270,5 +272,4 @@ The current backend suite passed 52 tests. The completed manifest passes the han
 - keep the approved Milestone 3 trading interface decision record aligned with implementation
 - approve or revise the PRBMath v4.2.2 pin and validated numeric policy supplied by LMSR implementation PR [#13](https://github.com/yuddy-s/AC_ON-esports-prediction-market/pull/13)
 - select the operational Sepolia RPC provider while retaining the provider-neutral `SEPOLIA_RPC_URL` interface
-- resolver randomness and liveness rules
 - approved esports API and evidence format
