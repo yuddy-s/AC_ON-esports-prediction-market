@@ -15,7 +15,7 @@ This document describes the repository as currently inspected. Do not treat plan
 | Backend | foundation | FastAPI app has health, deprecated sample-match endpoints, and paginated indexed market/trade/status reads. |
 | Oracle | planned | No oracle service found. |
 | Indexer | foundation + RPC worker | Confirmed projections, checkpoints, rebuild/reorg recovery, RPC polling, and ABI decoding exist; live validation awaits the M3 deployment handoff. |
-| Database | foundation | Alembic manages indexed contract/checkpoint/log/market/trade tables; sample data remains non-authoritative fallback data. |
+| Database | foundation | Alembic revision `20261018_0001` was applied to the configured Supabase database on 2026-10-21. Indexed contract/checkpoint/log/market/trade tables are empty pending live deployment; sample data remains non-authoritative fallback data. |
 | CI | scaffolded | GitHub Actions runs frontend build, backend tests, and contract formatting/build/tests. |
 
 ## Current Diagram

@@ -33,7 +33,7 @@ The Solidity source is written for people and the compiler. The ABI is the machi
 | Frontend | Wallet connection, Sepolia balance, and a read of prototype market `0`. | On `dev`; no trading write or indexed API integration. |
 | Contracts | ACON faucet/token, atomic creator subsidy, LMSR quotes, guarded buys, share balances, and complete trade events. | Merged into `dev` in PR #16; not yet a fresh Sepolia deployment. Sells/resolution/payouts remain deferred. |
 | Backend API | Health, deprecated sample data, and indexed market/trade/status endpoints. | Merged into `dev`; not yet deployed with live indexed data. |
-| Database | Alembic models for indexed contracts, checkpoints, processed logs, markets, and trades. | Merged into `dev`; not yet applied to shared Supabase. |
+| Database | Alembic models for indexed contracts, checkpoints, processed logs, markets, and trades. | Merged into `dev`; revision `20261018_0001` applied to the configured Supabase database on 2026-10-21. Indexer tables are empty pending deployment. |
 | Indexer | Confirmed-log projections, atomic checkpoints, idempotency, restart/reorg recovery, JSON-RPC transport, polling worker, and strict ABI decoder. | Foundation and RPC worker merged; live validation awaits the M3 contract handoff. |
 | Oracle | Design boundary only. | Not implemented. |
 | Resolver | Design and ownership boundary only. | Not implemented; Milestone 4 scope. |
@@ -87,7 +87,7 @@ Verification confirmed that the Foundry invariant executed 256 runs and 128,000 
 
 The merged Solidity `MarketCreated` and `TradeExecuted` declarations match the backend decoder's required field names, types, order, and indexed positions. The backend's current fixtures exercise those event shapes, but they are hand-built; the exact compiler-generated ABI and deployed log fixtures remain a handoff item. The frontend still has the M2 address and four-output `getMarket` ABI. The M3 contract returns six values in the order question, deadline, state, creator, YES quantity, NO quantity; the market ID comes from the call argument or event rather than a return value. No contract interface change is made in this check.
 
-The indexer status API reports block lag against its last observed head and now exposes `updated_at` for detecting a stopped worker. Frontend freshness work must consider both: a stopped worker with a once-current checkpoint can still report zero lag. Backend tests on `backend/m3-indexer-integration-tests` compare incremental indexing with a full replay into a separate empty database and exercise database-outage responses, transaction lookup, and stale status timestamps.
+The indexer status API reports block lag against its last observed head and now exposes `updated_at` for detecting a stopped worker. Frontend freshness work must consider both: a stopped worker with a once-current checkpoint can still report zero lag. Backend commit `edfc7f9` on local `dev` compares incremental indexing with a full replay into a separate empty database and exercises database-outage responses, transaction lookup, and stale status timestamps. Remote `dev` still needs the normal GitHub integration once authentication is restored.
 
 ### Frontend backend-API handoff
 
@@ -141,16 +141,16 @@ The full resolver committee, production esports provider, selling, settlement, p
 - [x] Add operational logs for completed sync state, RPC retries/range splits, rebuilds, and failures.
 - [x] Test transient/non-retryable HTTP failures, malformed responses, oversized ranges, worker modes, and shutdown using mocked dependencies.
 - [x] Add a deployment runbook for Alembic, Render API/worker processes, Supabase, secrets, health checks, rollback, and rebuild.
-- [ ] Add a checked-in ABI-version convention and deployment manifest format without committing secrets.
-- [ ] Confirm pagination limits, validation, empty responses, metadata, and lag reporting on the indexed APIs.
+- [x] Add a checked-in ABI-version convention and deployment manifest template without committing secrets; the real manifest still awaits Benny's deployment record.
+- [x] Confirm pagination limits, validation, empty responses, metadata, and lag reporting on the indexed APIs with local tests.
 
 ### Can be scaffolded now but needs a final handoff
 
 - [x] Build ABI-driven decoder dispatch that maps known event topics to normalized `ChainLog` values and rejects ABIs missing the approved events.
 - [x] Prepare hand-built decoder fixtures for the approved events; add exact Foundry-generated fixtures after the deployed ABI freezes.
-- [ ] Prepare Supabase migrations and a staging verification query; running them requires authorized database credentials.
-- [ ] Prepare Render service/worker settings; live deployment requires RPC/database secrets and the contract deployment record.
-- [ ] Prepare a Sepolia smoke test; its assertions require the final contract address and known transactions.
+- [x] Prepare the Alembic migration and read-only staging verification queries; revision `20261018_0001` was applied to the configured Supabase database on 2026-10-21 after backing up its three sample rows.
+- [x] Prepare Render service/worker settings in the deployment runbook; live deployment requires RPC/database secrets and the contract deployment record.
+- [x] Prepare a read-only Sepolia creation/trade-to-API smoke test; running it requires the final ABI, address, block, example transactions, and live API.
 - [ ] Coordinate Adriel's API client against the existing OpenAPI endpoints; real UI verification requires indexed Sepolia data.
 
 ### Blocked inputs
@@ -159,7 +159,8 @@ The full resolver committee, production esports provider, selling, settlement, p
 - [ ] Final Sepolia contract address and deployment transaction/block.
 - [x] Contract behavior documented for creation subsidy, guarded buy, deadline, enum-decoder rejection, balance/allowance, and slippage reverts; consumer review remains.
 - [x] ACON faucet authorization and demo-token distribution procedure documented in `contracts/README.md`; live accounts still need funding.
-- [ ] Permission to use the shared Supabase and Render projects and their secret values.
+- [x] Supabase migration access was authorized for this session and the configured database migration was applied.
+- [ ] Render access and the required RPC/database environment values for hosted deployment.
 
 ### Yudhveer M3 completion criteria
 

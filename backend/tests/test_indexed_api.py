@@ -165,6 +165,65 @@ def test_pagination_validation(client_and_session: tuple[TestClient, sessionmake
     assert client.get("/api/markets?offset=-1").status_code == 422
 
 
+def test_market_state_filter_and_empty_page(
+    client_and_session: tuple[TestClient, sessionmaker[Session]],
+) -> None:
+    client, SessionLocal = client_and_session
+    add_projection(SessionLocal)
+
+    filtered = client.get("/api/markets?state=open&limit=2&offset=2")
+    empty = client.get("/api/markets?state=CLOSED")
+
+    assert filtered.status_code == 200
+    assert filtered.json()["total"] == 3
+    assert [market["market_id"] for market in filtered.json()["items"]] == [2]
+    assert empty.status_code == 200
+    assert empty.json()["items"] == []
+    assert empty.json()["total"] == 0
+
+
+def test_trade_history_pagination_validation_and_empty_page(
+    client_and_session: tuple[TestClient, sessionmaker[Session]],
+) -> None:
+    client, SessionLocal = client_and_session
+    add_projection(SessionLocal)
+    with SessionLocal() as session:
+        session.add(
+            IndexedTrade(
+                chain_id=11155111,
+                contract_address=CONTRACT,
+                market_id=0,
+                trader="0x3333333333333333333333333333333333333333",
+                outcome=0,
+                shares=2 * 10**18,
+                cost=10**18,
+                yes_quantity=2 * 10**18,
+                no_quantity=0,
+                block_number=111,
+                block_hash="0x" + f"{111:064x}",
+                transaction_hash="0x" + f"{211:064x}",
+                log_index=1,
+            )
+        )
+        session.commit()
+
+    page = client.get("/api/markets/0/trades?limit=1&offset=1")
+    beyond = client.get("/api/markets/0/trades?limit=1&offset=2")
+    other_market = client.get("/api/markets/1/trades")
+
+    assert page.status_code == 200
+    assert page.json()["total"] == 2
+    assert page.json()["items"][0]["block_number"] == 111
+    assert page.json()["items"][0]["authoritative"] is False
+    assert beyond.json()["items"] == []
+    assert beyond.json()["total"] == 2
+    assert other_market.json()["items"] == []
+    assert other_market.json()["total"] == 0
+    assert client.get("/api/markets/0/trades?limit=0").status_code == 422
+    assert client.get("/api/markets/0/trades?limit=101").status_code == 422
+    assert client.get("/api/markets/0/trades?offset=-1").status_code == 422
+
+
 def test_status_exposes_old_observation_even_when_reported_lag_is_zero(
     client_and_session: tuple[TestClient, sessionmaker[Session]],
 ) -> None:

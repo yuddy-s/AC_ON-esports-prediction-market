@@ -115,6 +115,8 @@ These names and fields remain blocked on the resolution contract design and are 
 
 The backend does not submit user trades. Users sign contract transactions through their wallets. API responses must identify indexed/derived data and include enough checkpoint information for the frontend to avoid presenting it as immediate authoritative state. The status response also includes `updated_at` so the frontend can detect a stalled worker even when reported block lag is zero. See the [backend frontend handoff](../APPLICATION_ROADMAP.md#frontend-backend-api-handoff) for the polling sequence.
 
+Before live validation, the team must fill the [public Sepolia deployment manifest](../../../deployments/README.md) from Benny's exact-build ABI and receipts. Yudhveer's read-only smoke script then compares those chain events with the confirmed API projections.
+
 ### Oracle boundary
 
 Implement the oracle behind a provider interface only after the on-chain proposal/challenge interface is frozen:
