@@ -1,16 +1,24 @@
-import { ProviderNotFoundError, useAccount, useConnect, useDisconnect, useBalance } from "wagmi";
-import { CHAIN_MODE } from "./config";
+import { ProviderNotFoundError, useAccount, useConnect, useDisconnect, useBalance, useSwitchChain } from "wagmi";
+import { CHAIN, CHAIN_MODE } from "./config";
 import { formatTokenAmount, shortenAddress } from "./format";
-import { connectorLabel, SEPOLIA_SMART_WALLET_NOTE, smartWalletCannotTransact, visibleConnectors } from "./walletSupport";
+import {
+  connectorLabel,
+  isWrongNetwork,
+  SEPOLIA_SMART_WALLET_NOTE,
+  smartWalletCannotTransact,
+  visibleConnectors,
+} from "./walletSupport";
 
 export function WalletConnect() {
-  const { address, isConnected, connector: activeConnector } = useAccount();
+  const { address, isConnected, connector: activeConnector, chainId: walletChainId } = useAccount();
+  const switchChain = useSwitchChain();
   const { connect, connectors, isPending, error } = useConnect();
   const { disconnect } = useDisconnect();
 
   // Native ETH balance (pays gas). The ACON trading balance is in AconPanel.
   const { data: balance } = useBalance({
     address,
+    chainId: CHAIN.id,
     query: { enabled: isConnected },
   });
 
@@ -78,6 +86,22 @@ export function WalletConnect() {
       <p className="font-mono text-lg">
         {balance ? `${formatTokenAmount(balance.value, balance.decimals, 4)} ${balance.symbol}` : "Loading..."}
       </p>
+
+      {isWrongNetwork(walletChainId, CHAIN.id) && (
+        <div className="mt-2 flex max-w-md flex-col items-start gap-2 rounded-md border border-red-800 bg-red-950 p-3 text-sm text-red-200">
+          <p>Wrong network: your wallet is on chain {walletChainId}, but this app uses {CHAIN.name}.</p>
+          <button
+            onClick={() => switchChain.switchChain({ chainId: CHAIN.id })}
+            disabled={switchChain.isPending}
+            className="rounded-md bg-red-200 px-3 py-1.5 font-semibold text-red-950 hover:bg-white disabled:opacity-50"
+          >
+            {switchChain.isPending ? "Confirm in wallet…" : `Switch to ${CHAIN.name}`}
+          </button>
+          {switchChain.error && (
+            <p className="text-xs">Could not switch automatically. Choose {CHAIN.name} in your wallet's network menu.</p>
+          )}
+        </div>
+      )}
 
       {smartWalletCannotTransact(CHAIN_MODE, activeConnector?.id) && (
         <p className="mt-2 max-w-md rounded-md border border-amber-700 bg-amber-950 p-2 text-xs text-amber-200">

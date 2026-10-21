@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { connectorLabel, smartWalletCannotTransact, visibleConnectors } from "./walletSupport";
+import { connectorLabel, isWrongNetwork, smartWalletCannotTransact, visibleConnectors } from "./walletSupport";
 
 describe("connectorLabel", () => {
   it("names the generic injected connector MetaMask", () => {
@@ -35,5 +35,16 @@ describe("visibleConnectors", () => {
 
   it("keeps the generic button as a fallback when no wallet is detected", () => {
     expect(visibleConnectors([coinbase, generic]).map((c) => c.id)).toEqual(["coinbaseWalletSDK", "injected"]);
+  });
+});
+
+describe("isWrongNetwork", () => {
+  it("flags a wallet on another chain (MetaMask left on mainnet)", () => {
+    expect(isWrongNetwork(1, 11155111)).toBe(true);
+  });
+
+  it("accepts the app's chain and an unknown chain while connecting", () => {
+    expect(isWrongNetwork(11155111, 11155111)).toBe(false);
+    expect(isWrongNetwork(undefined, 11155111)).toBe(false);
   });
 });

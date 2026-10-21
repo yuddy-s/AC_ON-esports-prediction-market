@@ -32,3 +32,9 @@ export function smartWalletCannotTransact(chainMode: ChainMode, connectorId: str
 
 export const SEPOLIA_SMART_WALLET_NOTE =
   "On Ethereum Sepolia, Coinbase Smart Wallet can connect and read but cannot send transactions. To claim ACON or trade, connect MetaMask instead.";
+
+// The wallet is connected but pointed at another network (e.g. MetaMask on
+// Ethereum mainnet). Writes would fail with a chain-mismatch error.
+export function isWrongNetwork(walletChainId: number | undefined, appChainId: number): boolean {
+  return walletChainId !== undefined && walletChainId !== appChainId;
+}

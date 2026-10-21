@@ -1,13 +1,14 @@
 import { useEffect } from "react";
 import { useAccount, useReadContracts, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { ACON_TOKEN_ADDRESS, CHAIN } from "./config";
+import { isWrongNetwork } from "./walletSupport";
 import { formatTokenAmount } from "./format";
 import { aconTokenAbi } from "./predictionMarket";
 
 // ACON is the market's payment token (Sepolia ETH only pays gas).
 // Each address can claim the faucet once for 1,000 ACON.
 export function AconPanel() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chainId: walletChainId } = useAccount();
 
   const reads = useReadContracts({
     contracts: [
@@ -53,7 +54,7 @@ export function AconPanel() {
       {hasClaimed === false && (
         <button
           onClick={() => claim.writeContract({ address: token, abi: aconTokenAbi, functionName: "faucet", chainId: CHAIN.id })}
-          disabled={claiming}
+          disabled={claiming || isWrongNetwork(walletChainId, CHAIN.id)}
           className="self-start rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-neutral-900 hover:bg-amber-300 disabled:opacity-50"
         >
           {claim.isPending ? "Confirm in wallet..." : claiming ? "Claiming..." : "Claim 1,000 ACON"}

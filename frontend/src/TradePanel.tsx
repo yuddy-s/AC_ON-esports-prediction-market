@@ -13,11 +13,12 @@ import { isTradable } from "./lmsr";
 import { aconTokenAbi, OUTCOME, predictionMarketAbi, type Outcome } from "./predictionMarket";
 import { computeMaxCost, parseBaseUnits, parseShares, parseSlippagePercent } from "./tradeMath";
 import { useNowSeconds } from "./useNow";
+import { isWrongNetwork } from "./walletSupport";
 import { isBusy, isFailure, statusMessage, stepIndex, TRADE_STEPS, type TradeStatus } from "./tradeStatus";
 import { useTradeFlow } from "./useTradeFlow";
 
 export function TradePanel() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chainId: walletChainId } = useAccount();
   const now = useNowSeconds();
   const [outcome, setOutcome] = useState<Outcome>(OUTCOME.YES);
   const [sharesInput, setSharesInput] = useState("10");
@@ -70,7 +71,9 @@ export function TradePanel() {
   const busy = isBusy(status);
   const notEnoughAcon = quote !== undefined && aconBalance !== undefined && aconBalance < quote;
   const needsApproval = maxCost !== undefined && allowance !== undefined && allowance < maxCost;
-  const canBuy = tradable && shares.ok && maxCost !== undefined && !notEnoughAcon && !busy && aconBalance !== undefined;
+  const wrongNetwork = isWrongNetwork(walletChainId, CHAIN.id);
+  const canBuy =
+    tradable && shares.ok && maxCost !== undefined && !notEnoughAcon && !busy && aconBalance !== undefined && !wrongNetwork;
 
   const onBuy = () => {
     if (!canBuy || !shares.ok || maxCost === undefined) return;
