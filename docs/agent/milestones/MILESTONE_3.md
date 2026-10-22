@@ -232,7 +232,7 @@ Current validation: 39 Foundry tests passed, including the pure LMSR invariant s
 
 ### Backend, indexer, and oracle / Pytest
 
-The current backend suite passed 52 tests. The completed manifest passes the handoff validator, and canonical live creation/trade retrieval and decoding passed separately. Persistent hosted projections and the read-only API smoke check remain pending; oracle provider/signer cases below are still planned scope.
+The current backend suite passed 52 tests. The completed manifest passes the handoff validator, and canonical live creation/trade retrieval and decoding passed separately. A local Sepolia worker populated Supabase and the read-only smoke check passed against local FastAPI on 2026-10-22. Persistent hosted worker/API operation and deployed-frontend acceptance remain pending; oracle provider/signer cases below are still planned scope.
 
 - duplicate log delivery changes projections once
 - restart resumes from the stored safe checkpoint
@@ -260,7 +260,7 @@ Current validation: 74 frontend tests passed, TypeScript type checking passed, a
 - [x] One wallet submits a guarded YES buy (ten shares from the deployer EOA).
 - [x] The mined transaction and `TradeExecuted` event are visible on Sepolia and verified after two confirmations.
 - [x] The local persistent indexer stores the confirmed event once and reports its checkpoint; hosted Sepolia worker verification remains pending.
-- [x] Local FastAPI returns the indexed trade and market projection from the derived database; hosted PostgreSQL/API verification remains pending.
+- [x] Local FastAPI returns the indexed trade and market projection from Anvil and, separately, from Sepolia events stored in Supabase; hosted worker/API service verification remains pending.
 - [x] The frontend shows submitted, mined, and indexed states separately and completed the local Anvil acceptance run.
 - [x] CI runs frontend tests/build, backend migrations/tests, and contract format/build/tests; the README documents the reproducible local cross-layer equivalent.
 - [ ] The hosted Sepolia worker, PostgreSQL database, FastAPI service, and deployed frontend pass the same end-to-end smoke test.

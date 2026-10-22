@@ -8,7 +8,7 @@
     "dev:sepolia": "vite --mode sepolia",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint . --ext ts,tsx",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
