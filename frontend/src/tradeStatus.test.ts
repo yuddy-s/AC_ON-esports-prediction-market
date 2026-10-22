@@ -62,7 +62,7 @@ describe("indexer problems keep the trade marked as mined", () => {
 
   it("API unreachable", () => {
     expect(statusMessage(mined({ state: "unavailable", detail: "Failed to fetch" }))).toMatch(
-      /on-chain, but the indexer API can't be reached yet \(Failed to fetch\)\. Retrying/,
+      /on-chain, but the indexer API cannot confirm this trade yet \(Failed to fetch\)\. Retrying/,
     );
   });
 
@@ -72,6 +72,10 @@ describe("indexer problems keep the trade marked as mined", () => {
 
   it("indexer timed out", () => {
     expect(statusMessage(mined({ state: "timed-out" }))).toMatch(/after 3 minutes/);
+  });
+
+  it("stalled worker keeps the on-chain trade mined", () => {
+    expect(statusMessage(mined({ state: "stale", lastSafeBlock: 520 }))).toMatch(/worker has not updated for over 2 minutes/);
   });
 });
 

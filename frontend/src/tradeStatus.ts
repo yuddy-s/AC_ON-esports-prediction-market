@@ -5,6 +5,7 @@ import type { IndexedTrade } from "./indexerApi";
 // decision record), so each gets its own state. Pure: no React or wallet.
 export type IndexerWait =
   | { state: "waiting"; lastSafeBlock: number | null }
+  | { state: "stale"; lastSafeBlock: number | null }
   | { state: "unavailable"; detail: string }
   | { state: "not-configured" }
   | { state: "timed-out" };
@@ -70,8 +71,12 @@ export function statusMessage(status: TradeStatus): string {
           return `Mined in block ${status.blockNumber}. Your shares are on-chain. Waiting for the indexer${
             status.indexer.lastSafeBlock !== null ? ` (indexed up to block ${status.indexer.lastSafeBlock})` : ""
           }…`;
+        case "stale":
+          return `Mined in block ${status.blockNumber}. Your shares are on-chain, but the indexer worker has not updated for over 2 minutes${
+            status.indexer.lastSafeBlock !== null ? ` (last indexed block ${status.indexer.lastSafeBlock})` : ""
+          }. Retrying…`;
         case "unavailable":
-          return `Mined in block ${status.blockNumber}. Your shares are on-chain, but the indexer API can't be reached yet (${status.indexer.detail}). Retrying…`;
+          return `Mined in block ${status.blockNumber}. Your shares are on-chain, but the indexer API cannot confirm this trade yet (${status.indexer.detail}). Retrying…`;
         case "not-configured":
           return `Mined in block ${status.blockNumber}. Your shares are on-chain. (No indexer API configured, so the indexed step is skipped.)`;
         case "timed-out":

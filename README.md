@@ -12,6 +12,7 @@ Milestone 3 is focused on one guarded YES/NO buy end to end: quote → wallet bu
 - Frontend market card with YES/NO LMSR prices and a trading-open/closed check (OPEN state and deadline).
 - ACON balance and one-time faucet claim in the frontend.
 - Frontend trade form: live `quoteBuy`, slippage-guarded `buy(..., maxCost)`, ACON approval when needed, and separate wallet / submitted / mined / indexed transaction states with user-facing error messages.
+- Indexer-derived trade rows and the indexed transaction state appear only when the API reports the same chain and PredictionMarket address as the frontend. The UI reports a checkpoint older than two minutes while preserving the mined on-chain state.
 - Contract addresses and API URL come from `VITE_*` env vars (see [Frontend configuration](#frontend-configuration)).
 - FastAPI backend with health and sample-match endpoints.
 - Supabase PostgreSQL connection through `DATABASE_URL`.

@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAccount } from "wagmi";
-import { API_URL, DEMO_MARKET_ID, EXPLORER_URL } from "./config";
+import { API_URL, CHAIN, DEMO_MARKET_ID, EXPLORER_URL, PREDICTION_MARKET_ADDRESS } from "./config";
 import { fetchIndexerStatus, fetchRecentMarketTrades } from "./indexerApi";
+import { indexerDeploymentProblem, indexerIsStale } from "./indexerHealth";
 import { describeIndexerLag, toTradeRows } from "./tradeRows";
 
 const SHOWN = 10;
@@ -25,7 +26,11 @@ export function RecentTrades() {
   });
 
   if (!API_URL) return null;
-  const rows = trades.data ? toTradeRows(trades.data.trades, address) : [];
+  const deploymentProblem = status.data
+    ? indexerDeploymentProblem(status.data, CHAIN.id, PREDICTION_MARKET_ADDRESS)
+    : null;
+  const trustedStatus = status.data && !status.isError && !deploymentProblem;
+  const rows = trustedStatus && trades.data ? toTradeRows(trades.data.trades, address) : [];
 
   return (
     <section className="rounded-lg border border-neutral-700 bg-neutral-900 p-5">
@@ -34,9 +39,15 @@ export function RecentTrades() {
         <span className="text-xs text-neutral-500">from the indexer API</span>
       </div>
 
-      {status.data && (
+      {trustedStatus && (
         <p className="mt-1 text-xs text-neutral-500">{describeIndexerLag(status.data.last_safe_block, status.data.lag_blocks)}</p>
       )}
+      {trustedStatus && indexerIsStale(status.data) && (
+        <p className="mt-2 text-sm text-amber-300">The indexer worker has not updated for over 2 minutes. Recent trades may be missing.</p>
+      )}
+      {status.isLoading && <p className="mt-3 text-sm text-neutral-400">Checking indexer deployment…</p>}
+      {status.isError && <p className="mt-3 text-sm text-red-400">Cannot verify the indexer deployment. Recent trades are hidden.</p>}
+      {deploymentProblem && <p className="mt-3 text-sm text-red-400">{deploymentProblem} Recent trades are hidden.</p>}
 
       {trades.isLoading && <p className="mt-3 text-sm text-neutral-400">Loading trades…</p>}
       {trades.isError && (
@@ -44,7 +55,7 @@ export function RecentTrades() {
           Indexer API unreachable at {API_URL}. Trades on the chain are unaffected.
         </p>
       )}
-      {trades.data && rows.length === 0 && <p className="mt-3 text-sm text-neutral-400">No trades indexed yet.</p>}
+      {trustedStatus && trades.data && rows.length === 0 && <p className="mt-3 text-sm text-neutral-400">No trades indexed yet.</p>}
 
       {rows.length > 0 && (
         <table className="mt-3 w-full text-left text-sm">
@@ -81,7 +92,7 @@ export function RecentTrades() {
           </tbody>
         </table>
       )}
-      {trades.data && trades.data.total > rows.length && (
+      {trustedStatus && trades.data && trades.data.total > rows.length && (
         <p className="mt-2 text-xs text-neutral-500">
           Showing the latest {rows.length} of {trades.data.total} trades.
         </p>

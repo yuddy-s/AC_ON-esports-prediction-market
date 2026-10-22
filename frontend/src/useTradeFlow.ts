@@ -2,9 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Address } from "viem";
 import { simulateContract, waitForTransactionReceipt, writeContract } from "wagmi/actions";
-import { API_URL, CHAIN } from "./config";
+import { API_URL, CHAIN, PREDICTION_MARKET_ADDRESS } from "./config";
 import { describeError, isUserRejection } from "./errors";
 import { fetchIndexerStatus, fetchTradesByTransaction } from "./indexerApi";
+import { indexerDeploymentProblem, indexerIsStale } from "./indexerHealth";
 import { aconTokenAbi, predictionMarketAbi, type Outcome } from "./predictionMarket";
 import type { IndexerWait, TradeStatus } from "./tradeStatus";
 import { config } from "./wagmi";
@@ -110,7 +111,10 @@ export function useTradeFlow() {
           fetchTradesByTransaction(minedHash, controller.signal),
           fetchIndexerStatus(controller.signal),
         ]);
-        if (trades.length > 0) {
+        const deploymentProblem = indexerDeploymentProblem(indexerStatus, CHAIN.id, PREDICTION_MARKET_ADDRESS);
+        if (deploymentProblem) {
+          setIndexer({ state: "unavailable", detail: deploymentProblem });
+        } else if (trades.length > 0) {
           setStatus((current) =>
             current.kind === "mined" && current.hash === minedHash
               ? { kind: "indexed", hash: minedHash, blockNumber: minedBlock, trade: trades[0] }
@@ -118,8 +122,11 @@ export function useTradeFlow() {
           );
           void queryClient.invalidateQueries();
           return;
+        } else if (indexerIsStale(indexerStatus)) {
+          setIndexer({ state: "stale", lastSafeBlock: indexerStatus.last_safe_block });
+        } else {
+          setIndexer({ state: "waiting", lastSafeBlock: indexerStatus.last_safe_block });
         }
-        setIndexer({ state: "waiting", lastSafeBlock: indexerStatus.last_safe_block });
       } catch (error) {
         if (controller.signal.aborted) return;
         setIndexer({ state: "unavailable", detail: error instanceof Error ? error.message : String(error) });
