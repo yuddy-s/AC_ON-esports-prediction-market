@@ -1,10 +1,10 @@
 # Foundry contracts
 
-The Foundry project is under `contracts/`. PR #16 merged the `4c57dc0` implementation of `PredictionMarket.sol` with Matthew's `LMSR.sol` and `ACONTestToken.sol` for creator-funded markets and guarded YES/NO buys into `dev`. Fresh Ethereum Sepolia deployment and end-to-end frontend/indexer validation are pending.
+The Foundry project is under `contracts/`. PR #16 merged the `4c57dc0` implementation of `PredictionMarket.sol` with Matthew's `LMSR.sol` and `ACONTestToken.sol` for creator-funded markets and guarded YES/NO buys into `dev`. Both contracts were deployed from merge commit `6e30d51`, and a live ten-share YES buy passed on Ethereum Sepolia. See the [deployment and trade record](deployments/sepolia-m3-2026-10-21/README.md) and [versioned integration manifest](../deployments/sepolia-m3.json). Hosted frontend/indexer/API acceptance remains pending.
 
 The LMSR library uses 18-decimal fixed point values, `b = 50e18`, and PRBMath v4.2.2 pinned as a Git submodule. It accepts at most `2_000e18` outstanding shares per outcome and `100e18` shares per transaction. Prices sum exactly to `1e18`, accepted payments telescope exactly because quote cost is `C(after) - C(before)`, and no extra buy-cost rounding buffer is applied. A positive trade whose rounded cost does not increase is rejected as too small.
 
-The older Ethereum Sepolia address is an M2 prototype and must not be used as the M3 deployment. A fresh deployment of ACON and PredictionMarket is required. The approved payment asset, LMSR boundary, public ABI, events, numeric validation, and deployment handoff are recorded in [`../docs/agent/interfaces/M3_TRADING_INTERFACE.md`](../docs/agent/interfaces/M3_TRADING_INTERFACE.md).
+The older Ethereum Sepolia address is an M2 prototype and must not be used as the M3 deployment. Use the deployed addresses and exact-build ABIs in the versioned integration manifest above. The approved payment asset, LMSR boundary, public ABI, events, numeric validation, and deployment handoff are recorded in [`../docs/agent/interfaces/M3_TRADING_INTERFACE.md`](../docs/agent/interfaces/M3_TRADING_INTERFACE.md).
 
 ## Implemented behavior
 
@@ -89,6 +89,8 @@ Market tests cover creation/subsidy collection, metadata, YES/NO buys, payment/p
 CI already runs formatting, build, deployment-script compilation, and tests with recursive submodules on PRs to `dev`/`main`. The contract commit did not add a new CI job. The deployment script and README smoke-test sequence were also exercised on a temporary local Anvil chain: seed reads, faucet claim status, ten-share YES and NO buys, positions, exact ACON charges, and JSON ABI exports passed. This is contract-level local verification, not a frontend/indexer test or a Sepolia deployment.
 
 ## Ethereum Sepolia deployment
+
+The existing M3 deployment is recorded above. Its initial script broadcast underestimated live token-creation gas; recovery used the RPC's `eth_estimateGas` plus 20% per transaction. See the [recovery record](deployments/sepolia-m3-2026-10-21/README.md#gas-estimation-recovery) before repeating deployment. Inspect receipts and pending nonces after any partial failure; a successful local simulation alone does not validate the live gas limit.
 
 The following commands assume a terminal in `contracts/`, with Foundry on `PATH`. Create a local `.env` from `.env.example` if you do not already have one; set `SEPOLIA_PRIVATE_KEY` and `SEPOLIA_RPC_URL` locally. The deployer needs Ethereum Sepolia ETH for gas.
 
@@ -181,8 +183,8 @@ forge inspect PredictionMarket abi --json
 forge inspect ACONTestToken abi --json
 ```
 
-Record the source commit (`4c57dc0` if the implementation is unchanged), chain ID `11155111`, both checksummed addresses, market deployment transaction/block, ABI artifact paths/version, demo market ID, enum order, units, two-confirmation default, and successful market-creation/buy transaction hashes. Do not invent deployment values before broadcasting. The backend uses `PREDICTION_MARKET_ADDRESS`, `PREDICTION_MARKET_DEPLOYMENT_BLOCK`, and `PREDICTION_MARKET_ABI_PATH`; see the [deployment runbook](../docs/agent/DEPLOYMENT_RUNBOOK.md).
+The current [integration manifest](../deployments/sepolia-m3.json) records deployed source `6e30d516669e51d7f3e4bff0d8670168da9b1f83`, chain ID `11155111`, both checksummed addresses, deployment transactions/blocks, versioned ABI paths/hashes, demo market ID, confirmation depth, and successful creation/buy transactions. For future deployments, record the exact source revision and actual receipts, and follow the [ABI filename convention](../deployments/README.md#abi-version-convention). The [deployment/trade record](deployments/sepolia-m3-2026-10-21/README.md) documents enum order, units, and executed checks. The backend uses `PREDICTION_MARKET_ADDRESS`, `PREDICTION_MARKET_DEPLOYMENT_BLOCK`, and `PREDICTION_MARKET_ABI_PATH`; see the [deployment runbook](../docs/agent/DEPLOYMENT_RUNBOOK.md).
 
-Adriel must use the new addresses/ABIs, add ACON faucet/approval and quote/buy flows, and retain the market ID from the lookup/event (it is not a `getMarket` return field). Yudhveer must validate the compiled event ABI and confirmed logs. Review the six-output `getMarket` schema together before integration. The existing M2 frontend remains pointed at the old deployment until that handoff.
+Adriel must use the published addresses/ABIs, add ACON faucet/approval and quote/buy flows, and retain the market ID from the lookup/event (it is not a `getMarket` return field). The backend handoff validator and live RPC/ABI decoding checks passed; Yudhveer still needs to verify persistent hosted projections and their API responses. Consumer review of the six-output identifier representation remains a team follow-up. The existing M2 frontend still needs the new address and ABI applied together during integration.
 
 Do not commit private keys, `.env`, `broadcast/`, or compiler output. Never deploy this demo contract to mainnet.

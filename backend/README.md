@@ -22,25 +22,25 @@ Apply schema migrations before running the API or indexer:
 alembic upgrade head
 ```
 
-Indexer configuration is environment-driven:
+Indexer configuration is environment-driven. For the deployed M3 market, with the worker launched from `backend/`, use these public values and set the RPC URL privately:
 
 ```env
 INDEXER_CHAIN_ID=11155111
 SEPOLIA_RPC_URL=https://your-sepolia-rpc.example
-PREDICTION_MARKET_ADDRESS=0x...
-PREDICTION_MARKET_DEPLOYMENT_BLOCK=0
+PREDICTION_MARKET_ADDRESS=0x19EF739001038Ce9DFB1E12Cf45A10c9250A60a7
+PREDICTION_MARKET_DEPLOYMENT_BLOCK=11963761
 INDEXER_CONFIRMATION_DEPTH=2
 INDEXER_POLL_INTERVAL_SECONDS=5
 INDEXER_BLOCK_BATCH_SIZE=500
 INDEXER_RPC_TIMEOUT_SECONDS=10
 INDEXER_RPC_MAX_ATTEMPTS=3
 INDEXER_RPC_BACKOFF_SECONDS=0.5
-PREDICTION_MARKET_ABI_PATH=path/to/PredictionMarket.json
+PREDICTION_MARKET_ABI_PATH=../deployments/abi/PredictionMarket.6e30d516669e.792fa9f230ed.abi.json
 ```
 
 Two confirmations are the approved Sepolia demo default; deployments may override the value. Before touching indexer state, the worker verifies `eth_chainId` against `INDEXER_CHAIN_ID` and validates the supplied ABI against the approved `MarketCreated` and `TradeExecuted` event contracts. It fails closed for a wrong network or while the final deployed ABI is unavailable.
 
-The [public deployment handoff convention](../deployments/README.md) defines the versioned ABI filenames and manifest. Run `python -m scripts.validate_handoff ../deployments/sepolia-m3.json` after the exact build and receipts are available. The worker records the ABI filename as its version and refuses to resume an existing contract record with a different ABI version or deployment block. The template cannot be used until real deployment values replace its placeholders.
+The completed [M3 manifest](../deployments/sepolia-m3.json) follows the [public deployment handoff convention](../deployments/README.md) and passes `python -m scripts.validate_handoff ../deployments/sepolia-m3.json`. It records the deployed source, token/market addresses, exact-build ABIs, and successful creation/buy receipts. The worker records the ABI filename as its version and refuses to resume an existing contract record with a different ABI version or deployment block. Use the completed manifest, not `sepolia-m3.template.json`.
 
 Run one backfill/live synchronization pass, continuous polling, or a deterministic rebuild:
 
@@ -52,13 +52,15 @@ python -m app.indexer.worker --rebuild
 
 The JSON-RPC transport retries bounded transient failures and splits provider-rejected block ranges. Run only one worker instance for the Milestone 3 deployment.
 
-After a live market creation and guarded buy have been recorded in the completed manifest, run the read-only check against RPC, the single worker, and the API:
+The real backend RPC client and ABI decoder have fetched and decoded the confirmed creation and guarded-buy events. Persistent hosted indexing/database/API verification remains pending. Once the worker has indexed the manifest's trade and the API is running against the same database, run the read-only cross-layer check:
 
 ```bash
 python -m scripts.smoke_sepolia --manifest ../deployments/sepolia-m3.json --api-base-url https://YOUR_API_HOST
 ```
 
 Set `SEPOLIA_RPC_URL` privately in the environment for this command. The smoke test reads `PredictionMarket.paymentToken()` and requires it to match the handoff's ACON token address. It also checks the canonical `MarketCreated`/`TradeExecuted` logs, status freshness and safe checkpoint, market projection, and transaction-hash trade lookup. It submits no transactions.
+
+The known trade is `0xe5f5ff239ff3939cfc34c1c7719f2b1db9ef83d75f77f501236d004cb2d10c16` in block `11964663`, log index `104`: ten YES shares for `5249584441082326050` ACON base units. Its [receipt and event fixture](../contracts/deployments/sepolia-m3-2026-10-21/guarded-buy.json) includes exact payment/position checks. Market `0` stops accepting new buys at **2026-10-28 17:01:12 UTC**; the recorded events remain usable for read-only indexing validation afterward.
 
 ## Seed Sample Data
 
