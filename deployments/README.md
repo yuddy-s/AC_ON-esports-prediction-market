@@ -16,6 +16,8 @@ Use `forge inspect PredictionMarket abi --json` and `forge inspect ACONTestToken
 
 The full SHA-256 digest goes in the manifest. The filename is the `abi_version` stored in `indexed_contracts` by the worker, so a different ABI produces a different version label. Do not rename or edit an ABI after recording its hash. The manifest uses repository-relative paths. A future incompatible manifest shape must increment `manifest_version` and update the validator and consumers together.
 
+Git checks out `deployments/abi/*.abi.json` with LF line endings on every platform. Their manifest digests cover exact file bytes, so Windows CRLF conversion would otherwise make handoff validation and the Sepolia smoke check fail despite unchanged JSON content.
+
 The market event decoder validates `MarketCreated` and `TradeExecuted` against the approved M3 field order, types, and indexed positions. `backend/app/indexer/handoff.py` additionally verifies the token/market functions needed by consumers, the manifest's chain ID, checksummed addresses, transaction hashes, block order, source commit, ABI paths, and file digests. The template deliberately fails validation until real deployment data and ABI files are supplied.
 
 ## Handoff procedure

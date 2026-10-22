@@ -1,0 +1,2 @@
+# ABI hashes in deployment manifests cover exact file bytes.
+deployments/abi/*.abi.json text eol=lf
