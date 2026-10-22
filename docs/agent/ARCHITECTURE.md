@@ -1,6 +1,6 @@
 # AC_ON Architecture
 
-AC_ON is a testnet-only decentralized esports prediction market. Users connect a Coinbase Wallet and trade YES/NO shares on binary esports match outcomes. The planned product is not fully trustless or fully permissionless: contract state should be authoritative for markets and payouts, while esports APIs, oracle automation, initial resolver bootstrapping, and indexing are trusted/off-chain support systems.
+AC_ON is a testnet-only decentralized esports prediction market. Users connect an Ethereum wallet and trade YES/NO shares on binary esports match outcomes. The planned product is not fully trustless or fully permissionless: contract state should be authoritative for markets and payouts, while esports APIs, oracle automation, initial resolver bootstrapping, and indexing are trusted/off-chain support systems.
 
 This document describes the repository as currently inspected. Do not treat planned components as implemented.
 
@@ -8,44 +8,35 @@ This document describes the repository as currently inspected. Do not treat plan
 
 | Area | Status | Notes |
 |---|---|---|
-| Frontend | implemented | React + Vite + TypeScript app under `frontend/`. |
-| Wallet | implemented | Coinbase Smart Wallet and injected wallet fallback through wagmi. |
-| Chain config | implemented | Frontend and Milestone 2 deployment use Ethereum Sepolia (chain ID `11155111`), selected for Milestone 3. |
-| Contracts | partial | Foundry includes market creation/read plus a tested bounded `LMSR.sol`; the library is not yet integrated into trading or resolution. |
-| Backend | foundation | FastAPI app has health, deprecated sample-match endpoints, and paginated indexed market/trade/status reads. |
+| Frontend | implemented; locally integrated | React + Vite + TypeScript app under `frontend/` supports M3 quotes, guarded buys, positions, indexed trades, and submitted/mined/indexed progress. |
+| Wallet | implemented | Coinbase Smart Wallet and injected-wallet connectors through wagmi. Use MetaMask for Ethereum Sepolia writes because Coinbase Smart Wallet does not support sending transactions on that network; the local Anvil demo uses the development wallet. |
+| Chain config | implemented | Environment-driven configuration supports local Anvil and the deployed Ethereum Sepolia M3 token/market pair (chain ID `11155111`) with the published six-output ABI. |
+| Contracts | deployed and smoke-tested | ACON-funded creation, LMSR quotes, guarded buys, positions, and `TradeExecuted` are deployed from `6e30d51`. Market `0` and a ten-share YES buy are confirmed. |
+| Backend | implemented; locally integrated | FastAPI app has health, deprecated sample-match endpoints, and paginated indexed market/trade/status reads. The local frontend/indexer/API path is verified; hosted acceptance remains. |
 | Oracle | planned | No oracle service found. |
-| Indexer | foundation | Normalized provider boundary, atomic checkpoints, idempotent projections, rebuild/reorg recovery, and tests exist; live RPC/ABI decoding is deferred. |
-| Database | foundation | Alembic manages indexed contract/checkpoint/log/market/trade tables; sample data remains non-authoritative fallback data. |
-| CI | scaffolded | GitHub Actions runs frontend build, backend tests, and contract formatting/build/tests. |
+| Indexer | implemented; locally integrated | Confirmed projections, checkpoints, rebuild/reorg recovery, RPC polling, and ABI decoding exist. Canonical Sepolia event decoding and the complete local projection/API flow passed; hosted persistent indexing/API verification remains. |
+| Database | Sepolia projections locally verified | Supabase revision `20261018_0001` is applied. A local worker populated one Sepolia market and two trades on 2026-10-22; the local API smoke check passed. Persistent hosted worker/API operation remains pending. |
+| CI | implemented | GitHub Actions runs frontend build, backend tests, and contract formatting/build/tests. |
 
 ## Current Diagram
 
 ```text
-Implemented:
+Verified local M3 end-to-end path:
+User Browser -> React / wagmi / viem -> local wallet -> ACON approval + guarded buy
+     ^                                                        |
+     |                                                        v
+indexed state <- FastAPI <- derived SQLite <- indexer <- confirmed Anvil logs
 
-User Browser
-    |
-    v
-React + Vite frontend
-    |
-    v
-wagmi + viem
-    |
-    +--> Coinbase Smart Wallet connector
-    +--> Injected wallet connector
-    |
-    v
-Ethereum Sepolia
+Verified Sepolia contract path:
+Funded EOA / MetaMask -> ACON approval -> guarded buy -> confirmed TradeExecuted
+                                                        |
+                                                        v
+                           local worker -> Supabase -> local FastAPI smoke check
 
-Planned:
+Remaining hosted acceptance path:
+Sepolia logs -> hosted worker -> PostgreSQL -> hosted FastAPI -> deployed frontend
 
-React frontend --> Ethereum Sepolia contracts --> contract events
-        |                 ^                       |
-        v                 |                       v
-FastAPI backend ---- oracle service          indexer
-        |                                         |
-        v                                         v
-PostgreSQL API/cache state                PostgreSQL indexed state
+Future scope: oracle proposals, challenges, resolver voting, settlement, payouts.
 
 Authoritative state: blockchain contracts
 Derived state: PostgreSQL
@@ -53,25 +44,29 @@ Derived state: PostgreSQL
 
 ## Frontend
 
-Status: implemented, minimal prototype.
+Status: M3 trading interface implemented and locally integrated.
 
-The frontend lives in `frontend/` and uses React, Vite, TypeScript, Tailwind, wagmi, viem, and Coinbase Wallet SDK. It currently supports wallet connection and balance display.
+The frontend lives in `frontend/` and uses React, Vite, TypeScript, Tailwind, wagmi, viem, and Coinbase Wallet SDK. It supports wallet connection, network/configuration checks, ACON faucet and balance reads, market reads, LMSR quotes, user-selected slippage converted to `maxCost`, guarded buys, authoritative position reads, recent indexed trades, and explicit submitted/mined/indexed states.
 
-The app reads placeholder market `0` from the deployed Ethereum Sepolia contract. It does not submit contract writes or trades.
+PR #20 replaced the M2 placeholder contract with environment-driven M3 addresses and the published six-output ABI. A fresh local Anvil run verified the entire UI path through the indexer and API. Ethereum Sepolia reads work with the configured deployment, but writes require an injected wallet such as MetaMask because Coinbase Smart Wallet currently reports Sepolia as unsupported. Hosted API/indexer acceptance remains pending.
 
 ## Contracts
 
-Status: prototype.
+Status: deployed M3 guarded-buy implementation; live contract smoke test passed.
 
-The Foundry project under `contracts/` implements `createMarket`, `getMarket`, `marketCount`, and `MarketCreated`. A prototype is deployed on Ethereum Sepolia and read by the frontend. The checked-in source does not accept funds or implement trading, LMSR pricing, challenges, resolver voting, settlement, or payouts. The deployed prototype came from an earlier source version, so Milestone 3 requires a fresh deployment after the ABI is frozen.
+`ACONTestToken` is an 18-decimal test ERC-20. Each address can call its permissionless `faucet()` once for 1,000 ACON. The immutable `paymentToken` in `PredictionMarket` is set at construction. Creation and buys pull ACON from `msg.sender` using the caller's token allowance; positions are also credited only to that caller. No native ETH is accepted by these operations.
 
-The approved Milestone 3 trading boundary uses a custom 18-decimal `ACON` test ERC-20, an internal pure `LMSR.sol` library, creator-funded LMSR subsidy, guarded buys with `maxCost`, and a deterministic post-trade `TradeExecuted` event. These are approved design decisions, not claims that the behavior is already implemented. See [`interfaces/M3_TRADING_INTERFACE.md`](interfaces/M3_TRADING_INTERFACE.md) for the decision record.
+Creation atomically collects the exact LMSR subsidy, allocates a sequential market ID, and initializes `OPEN` with zero quantities. Both `quoteBuy` and `buy` call `LMSR.buyCost`. Execution enforces `actualCost <= maxCost`, collects the actual payment, updates the caller's shares plus market quantities/collateral, and emits the frozen event. Both mutators hold a shared reentrancy guard across the token call. The constructor rejects a zero token address but relies on deployment to supply the intended ACON token.
+
+The implementation's 39 Foundry tests pass, including the pure-math fuzz/invariant suite. Runtime bytecode matches the deployed build, and a live ten-share YES buy passed exact payment/position/event checks after two confirmations. The [contracts README](../../contracts/README.md) gives the deployed six-output `getMarket` ABI, revert behavior, commands, and coverage follow-ups. Local frontend/indexer/database/API integration is verified; hosted Sepolia application acceptance remains. Sells, resolution, settlement, and payouts are deferred.
+
+The implementation follows the approved M3 trading boundary: custom 18-decimal `ACON` test ERC-20, internal pure `LMSR.sol`, creator-funded subsidy, guarded buys with `maxCost`, and deterministic post-trade `TradeExecuted` values. See [`interfaces/M3_TRADING_INTERFACE.md`](interfaces/M3_TRADING_INTERFACE.md) for the frozen parameters and ABI contract.
 
 ## Backend
 
-Status: scaffolded.
+Status: indexed APIs implemented; hosted M3 acceptance pending.
 
-The backend is a FastAPI service intended to run from `backend/`. For Milestone 2 it exposes health/sample-match API endpoints backed by Supabase PostgreSQL through `DATABASE_URL`.
+The FastAPI service runs from `backend/` and exposes indexed markets, trades, transaction-hash lookup, and indexer status with freshness metadata. Health/sample-match endpoints remain from M2. It connects through `DATABASE_URL`; the local Anvil browser flow passed, and a local Sepolia worker/API backed by Supabase passed the read-only smoke check. Hosted worker/API and deployed-frontend validation remain pending.
 
 The sample matches are fake display data only. They are not on-chain markets and must not be treated as authoritative market state.
 
@@ -81,27 +76,43 @@ Status: planned.
 
 No oracle service exists yet. Intended behavior: compare approved esports API results, propose outcomes on-chain when rules allow, route disagreements or timeouts to dispute/manual paths, and avoid unilateral settlement of disputed markets.
 
+## Resolver Protocol
+
+Status: proposed for team review; not approved or implemented.
+
+Resolution remains authoritative on-chain. The proposal assigns an on-chain resolver allowlist to a project-team multisignature wallet and requires an event for every admission or removal. Registry changes apply to future committee selections; removal does not rewrite an active voting round. PostgreSQL may project registry, selection, vote, deadline, and outcome events, but it must never select resolvers or decide an outcome.
+
+A challenged result or unusable oracle result opens the first committee-selection round. A first voting round without quorum opens one replacement selection round. Each selection round stores one fixed seven-day deadline when the round opens; retries cannot restart or extend that clock. Before the first VRF request, the contract snapshots the round's eligible, non-conflicted candidates. Registry changes after that snapshot apply only to later rounds, and retries reuse the same snapshot. The contract excludes the market creator, oracle proposer, challenger, and any address recorded on-chain as having traded in or holding a position in the market. These conflicts are enforceable only at the address level.
+
+Chainlink VRF on Sepolia selects five distinct addresses from the snapshot. The contract tracks one current request ID per market and round; a retry replaces that ID without changing the snapshot or deadline. A callback may install a committee only when its request ID, market, round, selection state, and deadline are all current. Superseded, duplicate, mismatched, or late callbacks emit an ignored-fulfillment event and make no state change. If no five-address snapshot or valid committee exists by the fixed deadline, any account may trigger `VOID`.
+
+Each selected resolver may cast one direct on-chain `YES`, `NO`, or `VOID` vote during a 48-hour round. Three matching votes finalize the result. If the first committee does not reach quorum, the replacement round takes a new candidate snapshot and excludes first-round resolvers when the eligible pool permits. Failure of the replacement round to reach quorum makes the market `VOID`.
+
+Direct voting authorizes `msg.sender` and does not require off-chain signature recovery, including for Coinbase Smart Wallet transactions. A future relayed-vote feature must support ECDSA for externally owned accounts and EIP-1271 for contract wallets. Team approval of this proposal, contract interfaces, exact VRF retry delay/configuration, settlement, payouts, and complete `VOID` accounting are deferred to Milestone 4.
+
 ## Indexer
 
-Status: foundation.
+Status: worker implemented and locally integrated; live Sepolia RPC/ABI decoding verified; hosted indexing pending.
 
-The backend contains a provider-independent event indexer with normalized `MarketCreated` and approved `TradeExecuted` handlers. It persists a unique `(chain_id, transaction_hash, log_index)` event identity, checks range-end hashes before and after applying each batch, advances each bounded block range atomically with its checkpoint, waits for configurable confirmations, and rebuilds derived projections when the checkpoint block hash no longer matches the canonical chain. A live Ethereum RPC client and final ABI decoder are deferred until the approved trade ABI is implemented in the contract.
+The backend contains a provider-independent event indexer with normalized `MarketCreated` and approved `TradeExecuted` handlers. It persists a unique `(chain_id, transaction_hash, log_index)` event identity, checks range-end hashes before and after applying each batch, advances each bounded block range atomically with its checkpoint, waits for configurable confirmations, and rebuilds derived projections when the checkpoint block hash no longer matches the canonical chain. PR #15 added JSON-RPC retrieval/polling and the strict ABI decoder; PRs #17 and #18 added transaction lookup, freshness/replay checks, versioned handoff validation, and a read-only smoke command. The published manifest passes validation, local Anvil logs reached the UI through FastAPI, and real Sepolia logs reached Supabase and passed the local API smoke check. Persistent hosted worker/API operation remains to be verified.
 
 ## Database
 
-Status: scaffolded.
+Status: Supabase schema applied and Sepolia projections verified through a local worker/API; hosted service operation unverified.
 
 Milestone 2 uses Supabase PostgreSQL as a hosted development database so teammates do not need local PostgreSQL. PostgreSQL should be treated as derived/indexed or demo display state. Blockchain state is authoritative.
 
-## Deployment Assumptions
+## Deployment Status
 
-Status: partial.
+Status: contracts live; local application integration verified; hosted application integration pending.
 
-Ethereum Sepolia is the selected Milestone 3 network. A deployment script and environment template exist under `contracts/`. RPC URLs and private keys remain local/hosted secrets and must not be exposed to the frontend or committed.
+The canonical [Sepolia manifest](../../deployments/sepolia-m3.json) records source `6e30d516669e51d7f3e4bff0d8670168da9b1f83`, ACON `0x315FCA0DDAA367446f36A3184D8f6b2Df76b5618`, and PredictionMarket `0x19EF739001038Ce9DFB1E12Cf45A10c9250A60a7`. The market deployment/start block is `11963761`; the indexer default is two confirmations. The [deployment/trade record](../../contracts/deployments/sepolia-m3-2026-10-21/README.md) includes receipts and exact-build ABIs.
+
+The script's first token-creation broadcast exhausted its simulated gas limit. After inspecting the failed receipt, deployment completed through `forge create` and `cast send` using RPC gas estimates plus 20% per transaction. The deployer claimed the faucet, funded market `0`, then bought ten YES shares. That market's deadline is **2026-10-28 17:01:12 UTC**. RPC URLs and private keys remain local/hosted secrets.
 
 ## On-Chain vs Off-Chain Boundary
 
-On-chain planned responsibilities:
+On-chain responsibilities (M3 creation/trading deployed; resolution and payouts planned):
 
 - Market state.
 - Trades.
@@ -113,7 +124,7 @@ On-chain planned responsibilities:
 - Settlement.
 - Payouts.
 
-Off-chain planned responsibilities:
+Off-chain responsibilities (indexer/API implemented; hosted integration and oracle work remain):
 
 - Esports API calls.
 - API credentials.
@@ -126,6 +137,8 @@ Off-chain planned responsibilities:
 The project should not be described as fully trustless or fully permissionless.
 
 ## Planned Market Lifecycle
+
+M3 currently creates markets directly in `OPEN`. Quotes and buys require `block.timestamp < tradingDeadline`, even if the stored state remains `OPEN`. The fuller lifecycle below is future design, not a set of implemented transitions; the current enum order remains the seven states in the approved M3 interface.
 
 ```text
 CREATED
@@ -158,12 +171,12 @@ Important invariants:
 
 | Boundary | Interface | Status |
 |---|---|---|
-| Frontend -> contract | `getMarket(0)` | implemented |
-| Contract -> indexer | normalized `MarketCreated` projection | foundation implemented; live decoder pending |
+| Frontend -> contract | `getMarket(0)` | M3 six-output ABI and environment-driven address implemented and locally verified |
+| Contract -> indexer | normalized `MarketCreated` projection | projected on Anvil and from canonical Sepolia logs into Supabase by a local worker; hosted worker operation pending |
 | Backend -> frontend/dev tools | `GET /health`, sample-match reads | implemented |
-| Frontend -> contract | guarded quote/buy and position read | Milestone 3 proposed |
-| Contract -> indexer | `TradeExecuted` with complete post-trade projection fields | Milestone 3 proposed |
-| Backend -> frontend | indexed market, trade, and indexer-status reads | foundation implemented |
+| Frontend -> contract | guarded quote/buy and position read | implemented and verified in the local browser flow; Sepolia writes require MetaMask |
+| Contract -> indexer | `TradeExecuted` with complete post-trade projection fields | projected from confirmed Sepolia logs into Supabase by a local worker; hosted worker operation pending |
+| Backend -> frontend | indexed market, trade, transaction-hash lookup, and indexer-status reads | implemented and locally verified; hosted API deployment remains pending |
 
 See `interfaces/M3_TRADING_INTERFACE.md` for the approved trading-interface freeze and `milestones/MILESTONE_3.md` for the recovery model and acceptance criteria.
 
@@ -194,12 +207,13 @@ uvicorn app.main:app --reload
 
 Set `DATABASE_URL` in `backend/.env` to the Supabase PostgreSQL connection string before seeding/running.
 
-Contract setup and deployment commands are documented in `contracts/README.md`. Database migrations use `alembic upgrade head`. A live indexer runner command will be added with the RPC/ABI decoder after the trade interface freezes.
+Contract setup and deployment commands are documented in `contracts/README.md`. Database migrations use `alembic upgrade head`. The indexer supports one-shot synchronization with `python -m app.indexer.worker --once`, continuous polling without a flag, and deterministic projection rebuilding with `--rebuild`; hosted setup is documented in `DEPLOYMENT_RUNBOOK.md`.
 
 ## Known Gaps
 
-- The checked-in contract and the existing Sepolia deployment came from different source versions.
-- No contract write or trading interface exists in the frontend.
-- No production oracle or live Ethereum RPC/ABI decoder runner exists yet.
-- Resolver selection randomness, conflict exclusions, and timeout/liveness behavior are not decided.
+- The public manifest, ABIs, and confirmed events are available. Hosted worker/database/API verification and the deployed-frontend Sepolia demo remain pending.
+- Coinbase Smart Wallet connects and reads but cannot send Ethereum Sepolia transactions; use MetaMask for the hosted Sepolia demo. The local Anvil demo uses the development wallet.
+- The reproducible local cross-layer flow has been manually verified, but it is not yet an automated end-to-end CI job.
+- Local SQLite is suitable for the reproducible Anvil demo; PostgreSQL/Supabase preserves exact large-integer Sepolia projections and passed the local API smoke check.
+- Resolver randomness, address-level conflicts, quorum, snapshot, retry, and timeout/liveness behavior are proposed for Milestone 4; team approval, contracts, and the ABI remain outstanding.
 - Backend sample-match data is fake/off-chain and exists only for Milestone 2 fallback display.

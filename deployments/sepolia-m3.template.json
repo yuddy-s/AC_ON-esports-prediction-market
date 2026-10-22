@@ -1,0 +1,32 @@
+{
+  "manifest_version": 1,
+  "network": "ethereum-sepolia",
+  "chain_id": 11155111,
+  "source_commit": "REPLACE_WITH_FULL_LOWERCASE_40_CHARACTER_GIT_COMMIT",
+  "confirmation_depth": 2,
+  "token": {
+    "address": "REPLACE_WITH_CHECKSUMMED_ACON_ADDRESS",
+    "deployment_transaction_hash": "REPLACE_WITH_ACON_DEPLOYMENT_TRANSACTION_HASH",
+    "deployment_block": 0,
+    "abi_path": "deployments/abi/ACONTestToken.SOURCE_SHA12.ABI_SHA12.abi.json",
+    "abi_sha256": "REPLACE_WITH_ACON_ABI_SHA256"
+  },
+  "market": {
+    "address": "REPLACE_WITH_CHECKSUMMED_MARKET_ADDRESS",
+    "deployment_transaction_hash": "REPLACE_WITH_MARKET_DEPLOYMENT_TRANSACTION_HASH",
+    "deployment_block": 0,
+    "abi_path": "deployments/abi/PredictionMarket.SOURCE_SHA12.ABI_SHA12.abi.json",
+    "abi_sha256": "REPLACE_WITH_MARKET_ABI_SHA256"
+  },
+  "demo": {
+    "market_id": 0,
+    "creation": {
+      "transaction_hash": "REPLACE_WITH_MARKET_CREATION_TRANSACTION_HASH",
+      "block_number": 0
+    },
+    "trade": {
+      "transaction_hash": "REPLACE_WITH_SUCCESSFUL_BUY_TRANSACTION_HASH",
+      "block_number": 0
+    }
+  }
+}

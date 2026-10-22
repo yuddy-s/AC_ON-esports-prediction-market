@@ -76,6 +76,11 @@ class TradeListResponse(BaseModel):
     offset: int
 
 
+class TransactionTradeLookupResponse(BaseModel):
+    transaction_hash: str
+    items: list[IndexedTradeRead]
+
+
 class IndexerStatusResponse(BaseModel):
     configured: bool
     chain_id: int
@@ -85,4 +90,5 @@ class IndexerStatusResponse(BaseModel):
     last_safe_block: int | None
     next_block: int | None
     lag_blocks: int | None
+    updated_at: datetime | None
     authoritative: bool = False

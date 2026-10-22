@@ -1,12 +1,16 @@
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
+import logging
 
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.indexer.provider import ChainLog, EthereumLogProvider
 from app.models import IndexedContract, IndexedMarket, IndexedTrade, IndexerCheckpoint, ProcessedLog
+
+
+logger = logging.getLogger("acon.indexer.service")
 
 
 class IndexerProjectionError(RuntimeError):
@@ -61,12 +65,21 @@ class EventIndexer:
 
         rebuilt = self._reset_if_reorganized(session, contract, checkpoint)
         safe_head = latest_block - self.config.confirmation_depth
+        logger.info(
+            "indexer head observed=%s safe=%s next=%s contract=%s",
+            latest_block,
+            safe_head,
+            checkpoint.next_block,
+            self.address,
+        )
         processed_count = 0
         batch_count = 0
 
         while checkpoint.next_block <= safe_head:
             from_block = checkpoint.next_block
             to_block = min(from_block + self.config.block_batch_size - 1, safe_head)
+            logger.info("indexer range start=%s end=%s", from_block, to_block)
+            batch_processed_before = processed_count
 
             try:
                 end_block_hash_before = self.provider.block_hash(to_block)
@@ -96,8 +109,16 @@ class EventIndexer:
                 checkpoint.updated_at = datetime.now(UTC)
                 session.commit()
                 batch_count += 1
+                logger.info(
+                    "indexer range committed start=%s end=%s logs=%s next=%s",
+                    from_block,
+                    to_block,
+                    processed_count - batch_processed_before,
+                    checkpoint.next_block,
+                )
             except Exception:
                 session.rollback()
+                logger.exception("indexer range rolled back start=%s end=%s", from_block, to_block)
                 raise
 
         return SyncResult(
@@ -131,6 +152,14 @@ class EventIndexer:
             )
             session.add(contract)
             session.flush()
+        elif (
+            contract.deployment_block != self.config.deployment_block
+            or contract.abi_version != self.config.abi_version
+            or not contract.active
+        ):
+            raise IndexerProjectionError(
+                "registered deployment block, ABI version, or active state differs from indexer configuration"
+            )
 
         checkpoint = session.get(IndexerCheckpoint, contract.id)
         if checkpoint is None:

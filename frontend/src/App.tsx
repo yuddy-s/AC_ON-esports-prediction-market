@@ -1,5 +1,8 @@
 import { WalletConnect } from "./WalletConnect";
 import { MarketCard } from "./MarketCard";
+import { AconPanel } from "./AconPanel";
+import { TradePanel } from "./TradePanel";
+import { RecentTrades } from "./RecentTrades";
 
 export default function App() {
   return (
@@ -9,7 +12,7 @@ export default function App() {
           Esports Prediction Market
         </h1>
         <p className="mt-1 text-sm text-neutral-400">
-          Team AC_ON — Milestone 2 prototype
+          Team AC_ON — Milestone 3 MVP
         </p>
 
         <div className="mt-8">
@@ -17,7 +20,19 @@ export default function App() {
         </div>
 
         <div className="mt-6">
+          <AconPanel />
+        </div>
+
+        <div className="mt-6">
           <MarketCard />
+        </div>
+
+        <div className="mt-6">
+          <TradePanel />
+        </div>
+
+        <div className="mt-6">
+          <RecentTrades />
         </div>
       </div>
     </div>

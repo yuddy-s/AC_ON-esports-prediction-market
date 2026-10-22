@@ -47,7 +47,7 @@ These ownership areas remain stable through the final product so later milestone
 
 ## Milestone 3 MVP Queue
 
-The shared priority is one end-to-end guarded buy on Ethereum Sepolia. Full resolver committee implementation is deferred until that slice works and the protocol rules are approved.
+The guarded-buy implementation is complete and the full contract-to-indexer-to-API-to-frontend path has been verified on local Anvil. The remaining M3 integration task is to repeat that acceptance path with the hosted Sepolia worker, PostgreSQL/API services, and deployed frontend. Resolver protocol rules are recorded as a proposal in merged PR #22 and still require explicit team approval before the Milestone 4 contract/event ABI can freeze; full committee execution remains deferred until that milestone.
 
 The approved cross-layer freeze is documented in [`interfaces/M3_TRADING_INTERFACE.md`](interfaces/M3_TRADING_INTERFACE.md). Dependent contract, indexer, and frontend work must implement that interface or update the decision record through team review.
 
@@ -55,12 +55,16 @@ The approved cross-layer freeze is documented in [`interfaces/M3_TRADING_INTERFA
 |---|---|---|---|---|---|
 | P0 | team | interfaces | Freeze the payment asset, market/trade ABI, enum order, event fields, numeric units, and deployment handoff. | Team approval of the decision record | approved in PR #12 |
 | P0 | Matthew | LMSR/contracts | Implement `LMSR.sol` with 1e18 precision, `b = 50`, creator subsidy `ceil(b * ln(2))`, quote/cost math, and economic invariants. | team review | merged in PR #13 |
-| P0 | Benny | contracts | Integrate LMSR into the market contract, implement guarded YES/NO buy, and emit `TradeExecuted`. | interface freeze and LMSR library | blocked |
-| P0 | Yudhveer | indexer/database | Implement migrations, unique event identity, atomic checkpoints, confirmation handling, deterministic rebuild, and reorg recovery. | final event decoder waits on ABI | implemented on feature branch; review pending |
-| P0 | Yudhveer | backend | Implement paginated indexed market/trade/status read APIs with derived-state metadata. | indexed schema | implemented on feature branch; review pending |
-| P0 | Adriel | frontend | Implement quote/buy and submitted/mined/indexed UI states. | ABI and backend endpoints | blocked |
-| P1 | team | integration | Deploy fresh Sepolia contract and run contract-to-indexer-to-API-to-frontend demo. | P0 slice | blocked |
+| P0 | Benny | contracts | Integrate ACON subsidy collection, LMSR quotes, guarded YES/NO buy, positions, and `TradeExecuted`. | interface freeze and LMSR library | merged in PR #16; deployed from `6e30d51`; live ten-share YES buy verified; handoff published in PR #19 |
+| P0 | Yudhveer | indexer/database | Implement migrations, unique event identity, atomic checkpoints, confirmation handling, deterministic rebuild, and reorg recovery. | hosted database/worker configuration and published M3 manifest | merged in PR #10; local Sepolia worker populated Supabase and passed API smoke check; hosted worker operation pending |
+| P0 | Yudhveer | backend | Implement paginated indexed market/trade/status read APIs with derived-state metadata. | indexed schema | merged in PR #10 |
+| P0 | Yudhveer | RPC worker | Implement validated JSON-RPC retrieval, bounded polling/retries/range splitting, ABI decoder boundary, clean shutdown, and deployment runbook. | persistent worker and API configuration | merged in PR #15; canonical creation/trade retrieval and decoding passed; hosted indexing pending |
+| P1 | Yudhveer | deployment prep | Version the exact-build ABI, validate a public deployment manifest, verify API edge cases, and prepare a Sepolia smoke test. | configured hosted worker/API for cross-layer check | PR #18 merged; local Sepolia worker/Supabase/API smoke passed; repeat against hosted services later |
+| P0 | Adriel | frontend | Implement quote/buy and submitted/mined/indexed UI states. | published M3 addresses/ABIs and indexed backend endpoints | merged in PR #20; M3 ABI/config, quote/buy, positions, freshness guard, and transaction states verified in the local Anvil flow |
+| P1 | team | integration | Run the contract-to-indexer-to-API-to-frontend demo against the deployed M3 contracts. | hosted worker/API/frontend configuration | complete on local Anvil; hosted Sepolia acceptance remains pending |
 | P1 | Yudhveer | oracle | Add provider and least-privilege signer boundaries with deterministic mock tests. | proposal/challenge ABI | blocked |
-| P2 | Benny | resolver contracts | Implement authoritative eligibility, randomness, conflict checks, selection, voting, quorum, timeout, and finalization rules. | protocol decision and working trading slice | deferred to Milestone 4 |
+| P2 | Benny | resolver contracts | After approval, implement authoritative eligibility, snapshotted candidate pools, current-request-only Chainlink VRF selection, conflict checks, two 48-hour voting rounds, three-of-five quorum, fixed seven-day committee-formation deadlines, and finalization. | explicit approval of PR #22 protocol proposal and Milestone 4 ABI freeze | proposal under review; implementation deferred to Milestone 4 |
 | P2 | Yudhveer | resolver backend | Index resolver events and expose committee, vote, quorum, and timeout status without making authoritative decisions. | resolver event interface | deferred to Milestone 4 |
-| P2 | team | CI/tests | Add cross-layer integration job or reproducible local integration harness. | working vertical slice | blocked |
+| P2 | team | CI/tests | Add a cross-layer integration job or reproducible local integration harness. | working vertical slice | reproducible local flow documented and manually verified; automated cross-layer CI remains a follow-up |
+
+Use the validated [`../../deployments/sepolia-m3.json`](../../deployments/sepolia-m3.json) for M3 addresses, blocks, versioned ABIs, and creation/trade transactions. The [deployment and live-buy evidence](../../contracts/deployments/sepolia-m3-2026-10-21/README.md) is published in PR #19. Market `0` closes for trading on **2026-10-28 at 17:01:12 UTC**. PR #20 updated the frontend to the M3 ABI and environment-driven addresses, including the six-output `getMarket` representation. Use MetaMask for Sepolia writes because Coinbase Smart Wallet does not support sending transactions on Ethereum Sepolia.
