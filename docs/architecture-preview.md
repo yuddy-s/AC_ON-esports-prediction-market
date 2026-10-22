@@ -40,7 +40,7 @@ flowchart TB
     subgraph contracts["Smart Contract System"]
       market["PredictionMarket.sol<br/>main market contract<br/>market lifecycle<br/>YES / NO share balances<br/>trading<br/>trading deadline enforcement<br/>oracle proposals<br/>challenge state<br/>settlement<br/>payout claims<br/>emits market events"]
       lmsr["LMSR.sol Library<br/>on-chain pricing math<br/>trade cost calculation<br/>liquidity parameter logic<br/>no users or permissions"]
-      resolver["ResolverRegistry.sol<br/>multisignature-administered allowlist<br/>Chainlink VRF committee selection<br/>address-level conflict checks<br/>selected resolver validation"]
+      resolver["ResolverRegistry.sol<br/>proposed multisignature-administered allowlist<br/>snapshotted candidate pools<br/>current-request-only Chainlink VRF<br/>address-level conflict checks"]
     end
 
     base --- market
@@ -51,7 +51,7 @@ flowchart TB
   resolverWallets["Independent Resolver Wallets"]
   apiNote["API credentials remain server-side.<br/>Never exposed to frontend or blockchain."]
   chainWins["If PostgreSQL state disagrees with blockchain state:<br/>BLOCKCHAIN WINS."]
-  disputeRule["Dispute finalization rule<br/>3-of-5 matching votes<br/>two 48-hour rounds maximum<br/>7-day committee-formation fallback"]
+  disputeRule["Proposed dispute rule<br/>3-of-5 matching votes<br/>two 48-hour voting rounds maximum<br/>fixed 7-day selection deadline per round"]
 
   user -->|"uses application"| frontend
   frontend -->|"wallet connect / request signature"| wallet
@@ -98,7 +98,7 @@ flowchart TB
   - active resolver
   - selected for the dispute
   - no prohibited conflict
-- A project-team multisignature wallet administers the resolver allowlist. Admissions and removals emit events, and removals affect future selections rather than rewriting an active voting round.
+- The proposal assigns resolver-allowlist administration to a project-team multisignature wallet. Admissions and removals emit events, and changes after a round snapshots its candidates affect later rounds rather than the pending selection.
 - The market creator, result proposer, challenger, and any address recorded as having traded in or holding a position in the market must not resolve that market. These checks cannot identify undisclosed related wallets.
 - Resolvers cast direct transactions from their selected addresses. Relayed voting is not part of the initial design; if added later, it must support ECDSA and EIP-1271 validation.
 
@@ -106,7 +106,7 @@ flowchart TB
 
 - `PredictionMarket.sol` is the main user-facing contract for market state, trading, disputes, settlement, and claims.
 - `LMSR.sol` is a Solidity library used by `PredictionMarket.sol` for on-chain pricing math. It is not an off-chain service and users do not call it directly.
-- `ResolverRegistry.sol` stores the approved resolver pool and resolver eligibility rules. `PredictionMarket.sol` checks it when resolver votes are submitted.
+- `ResolverRegistry.sol` stores the allowlisted resolver pool and resolver eligibility rules. `PredictionMarket.sol` checks it when resolver votes are submitted.
 
 ### Database Authority And Recovery
 
@@ -131,14 +131,14 @@ stateDiagram-v2
 
   PROPOSED --> FINALIZED: challenge window expires
   PROPOSED --> DISPUTED: valid challenge
-  DISPUTED --> RESOLVER_SELECTION: request Chainlink VRF committee
-  ORACLE_TIMEOUT --> RESOLVER_SELECTION: request Chainlink VRF committee
-  RESOLVER_SELECTION --> RESOLVER_VOTING: 5 eligible resolvers selected
-  RESOLVER_SELECTION --> VOID: no committee within 7 days
+  DISPUTED --> RESOLVER_SELECTION: open round 1; set fixed 7-day deadline
+  ORACLE_TIMEOUT --> RESOLVER_SELECTION: open round 1; set fixed 7-day deadline
+  RESOLVER_SELECTION --> RESOLVER_VOTING: snapshot candidates; current VRF request selects 5
+  RESOLVER_SELECTION --> VOID: no valid committee by fixed deadline
   RESOLVER_VOTING --> FINALIZED: 3-of-5 matching votes in round 1
   RESOLVER_VOTING --> RESOLVER_RESELECTION: no quorum after 48 hours
-  RESOLVER_RESELECTION --> RESOLVER_REVOTE: VRF selects replacement committee
-  RESOLVER_RESELECTION --> VOID: no replacement by day 7
+  RESOLVER_RESELECTION --> RESOLVER_REVOTE: open round 2; snapshot and select replacement
+  RESOLVER_RESELECTION --> VOID: no valid replacement by fixed deadline
   RESOLVER_REVOTE --> FINALIZED: 3-of-5 matching votes in round 2
   RESOLVER_REVOTE --> VOID: no quorum after 48 hours
   FINALIZED --> CLAIMABLE: winning positions redeemable
@@ -159,19 +159,21 @@ flowchart TB
   voided --> refundRule
 ```
 
-`ORACLE_TIMEOUT` means the system does not have a reliable result yet. It does not silently choose a winner or immediately become `VOID`; it requests the same VRF-selected resolver path used by a challenged result. A failed or delayed VRF request is retryable. `VOID` is reached only if an initial or replacement five-resolver committee cannot be assembled within seven days of its selection request, or a replacement committee fails to reach three matching votes during its 48-hour round.
+`ORACLE_TIMEOUT` means the system does not have a reliable result yet. It does not silently choose a winner or immediately become `VOID`; it opens the same proposed resolver-selection path used by a challenged result. Each selection round stores a fixed seven-day deadline when the round opens. A failed or delayed VRF request may be retried, but retries reuse the candidate snapshot and cannot extend the deadline. `VOID` is reached only if no valid current request installs a five-resolver committee by that deadline, or a replacement committee fails to reach three matching votes during its 48-hour voting round.
 
-## Resolver Protocol Decision
+## Proposed Resolver Protocol Decision
 
-- A project-team multisignature wallet controls admission to and removal from the on-chain resolver allowlist. Every registry change emits an event. Changes govern future selection; an assigned voting round remains fixed.
-- Chainlink VRF on Sepolia selects five distinct eligible addresses. A failed or delayed request may be retried and does not itself change the market outcome.
+- A project-team multisignature wallet would control admission to and removal from the on-chain resolver allowlist. Every registry change emits an event. This administrator model and the Chainlink VRF dependency require explicit team approval.
+- A challenged result or unusable oracle result opens selection round 1; a first voting round without quorum opens the single replacement selection round. Each round stores one fixed seven-day deadline when it opens, and retries cannot reset it.
 - Creator, oracle proposer, challenger, trader, and position-holder addresses for the market are excluded. Enforcement is address-based and cannot detect an undisclosed related wallet.
+- Before the first VRF request in a round, the contract snapshots at least five eligible, non-conflicted candidates. Registry changes after the snapshot apply only to later rounds, and retries reuse the same snapshot. The replacement round takes a new snapshot and excludes first-round resolvers when the pool permits.
+- Chainlink VRF on Sepolia selects five distinct addresses from the snapshot. The contract stores one current request ID per market and round; a retry replaces that ID without changing the snapshot or deadline.
+- Only a current request matching the pending market and round may install a committee before the deadline. Superseded, duplicate, mismatched, or late callbacks emit an ignored-fulfillment event and make no state change.
 - A resolver may submit one direct on-chain vote for `YES`, `NO`, or `VOID` per round. Three matching votes finalize the market.
-- A first round without quorum after 48 hours triggers one VRF-selected replacement committee. First-round resolvers are excluded from replacement selection when at least five other eligible addresses exist.
-- Each initial or replacement committee-selection request has a seven-day formation deadline. Missing that deadline, or reaching the end of the replacement round without quorum, makes the market `VOID`.
+- If no valid committee exists by a selection round's fixed deadline, any account may trigger `VOID`. A replacement voting round that ends without quorum also becomes `VOID`.
 - Direct voting relies on transaction sender authorization. A future relayed-vote path must support both ECDSA and EIP-1271 signatures.
 
-These are approved design rules for Milestone 4, not deployed Milestone 3 behavior. Exact contract functions, events, VRF configuration, settlement, payouts, and complete `VOID` accounting remain to be implemented and tested.
+These are proposed design rules for Milestone 4, not approved or deployed Milestone 3 behavior. The team must explicitly approve the administrator, Chainlink VRF, selection, and liveness rules. Exact contract functions, events, VRF retry delay/configuration, settlement, payouts, and complete `VOID` accounting remain to be implemented and tested.
 
 ## Trust Model
 
@@ -179,9 +181,9 @@ These are approved design rules for Milestone 4, not deployed Milestone 3 behavi
 - External esports APIs remain trusted off-chain dependencies.
 - Initial approved APIs are configured by the project team.
 - The automated oracle proposes outcomes but cannot unilaterally settle challenged markets.
-- The initial resolver pool is bootstrapped and maintained by a project-team multisignature wallet.
+- The proposal has a project-team multisignature wallet bootstrap and maintain the resolver pool; this trust assumption still requires team approval.
 - Disputes are decided by multiple resolvers, not one centralized operator.
-- Five eligible resolvers are selected through Chainlink VRF for each voting round.
+- The proposal uses snapshotted candidate pools and current-request-only Chainlink VRF fulfillment to select five eligible resolvers per voting round.
 - Three matching votes are required.
 - One replacement committee is allowed before terminal `VOID` fallback.
 - Oracle and human resolver are separate actors.

@@ -228,7 +228,7 @@ These decisions do not block the Milestone 3 guarded-buy slice:
 - Settlement, claims, and at-most-once payout execution.
 - Release or disposition of creator subsidy after finalization or VOID.
 - Complete VOID accounting across terminal states.
-- Resolver implementation is deferred. Its admission/removal, Chainlink VRF selection, address-level conflicts, three-of-five quorum, replacement round, seven-day committee-formation fallback, and direct-vote wallet rules are documented in [`../milestones/MILESTONE_3.md`](../milestones/MILESTONE_3.md); the exact Milestone 4 contract/event ABI remains to be frozen.
+- Resolver implementation is deferred. Proposed admission/removal, candidate snapshot, Chainlink VRF request-identity, address-level conflict, three-of-five quorum, replacement-round, fixed seven-day selection-deadline, and direct-vote wallet rules are documented for team review in [`../milestones/MILESTONE_3.md`](../milestones/MILESTONE_3.md); approval and the exact Milestone 4 contract/event ABI remain outstanding.
 - Oracle proposal/challenge implementation and real esports API selection.
 - Mainnet deployment.
 

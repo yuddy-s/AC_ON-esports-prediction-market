@@ -202,4 +202,4 @@ forge test
 
 ## Notes
 
-- The approved Milestone 4 resolver design uses direct on-chain votes authorized by `msg.sender`, including Coinbase Smart Wallet transactions. If relayed signed votes are added later, contract-wallet signatures must use EIP-1271 rather than relying only on `ecrecover`.
+- The proposed Milestone 4 resolver design uses direct on-chain votes authorized by `msg.sender`, including Coinbase Smart Wallet transactions. It remains subject to explicit team approval. If relayed signed votes are added later, contract-wallet signatures must use EIP-1271 rather than relying only on `ecrecover`.
