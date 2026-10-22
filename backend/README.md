@@ -106,10 +106,12 @@ After the wallet reports a successful mined `buy`, poll `GET /api/trades/by-tran
 
 ## Frontend Integration
 
-To fetch the indexed API from the frontend, set:
+To fetch the indexed API from the frontend, set this in `frontend/.env.local` (see [Frontend configuration](../README.md#frontend-configuration)):
 
 ```text
-VITE_API_BASE_URL=http://localhost:8000
+VITE_API_URL=http://localhost:8000
 ```
+
+Also set the backend's `FRONTEND_ORIGIN` to the frontend's origin (for example `http://localhost:5173`) so CORS allows the requests.
 
 The frontend should use the indexed endpoints above for M3 market and trade state. The sample-match endpoints remain deprecated M2 fallback data.
