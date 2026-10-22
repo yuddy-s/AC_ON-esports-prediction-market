@@ -1,6 +1,6 @@
 # Milestone 3: MVP
 
-Status: in progress — Sepolia contract deployment and guarded-buy smoke test complete; hosted indexer/API and frontend acceptance pending.
+Status: implementation complete for the guarded-buy vertical slice and verified end to end on local Anvil. Sepolia contracts and a guarded-buy smoke test are live; hosted Sepolia indexer/API acceptance and final presentation sign-off remain pending.
 
 ## Course Goal
 
@@ -10,11 +10,11 @@ Deliver a live minimum viable product that implements the core feature end to en
 
 The `dev` branch now contains these components:
 
-- a React frontend with Coinbase Wallet support and an Ethereum Sepolia contract read
+- a React frontend with M3 contract configuration, ACON faucet/balance support, LMSR quotes, guarded buys with slippage protection, authoritative position reads, submitted/mined/indexed transaction states, and recent indexed trades
 - `ACONTestToken` plus a `PredictionMarket` contract integrating the bounded LMSR library for subsidy-funded market creation, quotes, guarded buys, positions, and events
 - a FastAPI backend with indexed market/trade/status APIs, database migrations, and an RPC/ABI indexer worker; sample-match rows remain fallback data
 
-Contract implementation commit `4c57dc0` merged in PR #16 and was deployed from merge commit `6e30d516669e51d7f3e4bff0d8670168da9b1f83`. Both ACON and PredictionMarket are live, market `0` is seeded, and a ten-share YES buy passed exact payment/position/event checks. The compiled ABI handoff is published in PR #19 and passes the backend validator. The frontend still points at M2; hosted indexing/database/API and frontend acceptance remain required. Sells, oracle proposals, challenges, resolver voting, settlement, and payouts are deferred.
+Contract implementation commit `4c57dc0` merged in PR #16 and was deployed from merge commit `6e30d516669e51d7f3e4bff0d8670168da9b1f83`. Both ACON and PredictionMarket are live, market `0` is seeded, and a ten-share YES buy passed exact payment/position/event checks. The compiled ABI handoff is published in PR #19 and passes the backend validator. PR #20 integrated the M3 frontend with the published ABI, contract writes, indexed APIs, and transaction-progress states. A fresh local Anvil run verified the complete browser-to-contract-to-indexer-to-FastAPI-to-browser path. Hosted Sepolia indexing/database/API acceptance remains required for a public deployment claim. Sells, oracle proposals, challenges, resolver voting, settlement, and payouts are deferred.
 
 Ethereum Sepolia (chain ID `11155111`) is the selected testnet for Milestone 3. Do not plan a Base Sepolia migration during MVP integration.
 
@@ -74,7 +74,7 @@ The approved decision record is [`../interfaces/M3_TRADING_INTERFACE.md`](../int
 
 The write must contain an explicit slippage guard. A frontend-only quote is not sufficient because the price can change before mining.
 
-Implementation handoff note: `getMarket` currently returns six values: question, deadline, state, creator, YES quantity, and NO quantity. The stable market ID is supplied as its argument and emitted in events, rather than returned. Confirm this representation of the identifier requirement with the frontend/backend reviewers before integration; the approved decision record is unchanged.
+Implementation handoff note: `getMarket` returns six values: question, deadline, state, creator, YES quantity, and NO quantity. The stable market ID is supplied as its argument and emitted in events, rather than returned. The frontend and backend handoff validator now consume this representation; the approved decision record is unchanged.
 
 ### Events required by the Milestone 3 indexer
 
@@ -248,7 +248,10 @@ The current backend suite passed 52 tests. The completed manifest passes the han
 
 - quote loading, stale-quote/slippage error, wallet rejection, revert, mined, and indexed states
 - enum/status mapping matches Solidity exactly
-- one integration test creates or loads a market, buys a position, indexes the event, and reads it through FastAPI
+- component tests cover contract/API configuration, quote/buy behavior, transaction-state rendering, and indexer freshness/error handling
+- a documented local integration run creates a market, buys a position, indexes the event, reads it through FastAPI, and renders the indexed result in the browser
+
+Current validation: 74 frontend tests passed, TypeScript type checking passed, and the Vite production build completed. A fresh browser session on local Anvil completed wallet connection, exact ACON approval, guarded buy, submitted/mined/two-confirmation indexed transitions, API lookup, position refresh, and recent-trade rendering without browser runtime errors. This is the documented reproducible local equivalent required by the acceptance criteria; it is not a hosted Sepolia acceptance run or an automated cross-layer CI job.
 
 ## Demo Acceptance Criteria
 
@@ -256,10 +259,11 @@ The current backend suite passed 52 tests. The completed manifest passes the han
 - [x] Fresh deployment addresses, blocks, source revision, and exact-build ABIs are recorded in the public handoff.
 - [x] One wallet submits a guarded YES buy (ten shares from the deployer EOA).
 - [x] The mined transaction and `TradeExecuted` event are visible on Sepolia and verified after two confirmations.
-- [ ] The persistent indexer stores the event once and reports its checkpoint.
-- [ ] FastAPI returns the indexed trade and market projection from the hosted database.
-- [ ] The frontend shows transaction confirmation separately from indexer completion.
-- [ ] CI runs frontend build/tests, backend tests, contract format/build/tests, and the cross-layer integration test or a documented reproducible local equivalent. Current CI covers the frontend build, backend tests, and Foundry checks; full frontend/cross-layer acceptance remains.
+- [x] The local persistent indexer stores the confirmed event once and reports its checkpoint; hosted Sepolia worker verification remains pending.
+- [x] Local FastAPI returns the indexed trade and market projection from the derived database; hosted PostgreSQL/API verification remains pending.
+- [x] The frontend shows submitted, mined, and indexed states separately and completed the local Anvil acceptance run.
+- [x] CI runs frontend tests/build, backend migrations/tests, and contract format/build/tests; the README documents the reproducible local cross-layer equivalent.
+- [ ] The hosted Sepolia worker, PostgreSQL database, FastAPI service, and deployed frontend pass the same end-to-end smoke test.
 - [ ] The presentation explains that PostgreSQL is derived and that the oracle cannot settle a challenged market.
 
 ## Explicitly Deferred Unless The Trading Slice Finishes Early
@@ -270,9 +274,8 @@ The current backend suite passed 52 tests. The completed manifest passes the han
 - sell flow and advanced portfolio UX
 - mainnet deployment or migration to another testnet
 
-## Open Team Decisions
+## Remaining Team Decisions
 
 - keep the approved Milestone 3 trading interface decision record aligned with implementation
-- approve or revise the PRBMath v4.2.2 pin and validated numeric policy supplied by LMSR implementation PR [#13](https://github.com/yuddy-s/AC_ON-esports-prediction-market/pull/13)
 - select the operational Sepolia RPC provider while retaining the provider-neutral `SEPOLIA_RPC_URL` interface
 - approved esports API and evidence format
