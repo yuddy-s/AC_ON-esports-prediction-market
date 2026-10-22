@@ -19,7 +19,8 @@ concurrency:
 
 jobs:
   frontend:
-    name: Install, test and build frontend
+    # Keep this exact name aligned with the required check in the main/dev ruleset.
+    name: Install and build frontend
     runs-on: ubuntu-latest
 
     defaults:
