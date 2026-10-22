@@ -267,4 +267,4 @@ forge test
 
 ## Notes
 
-- Coinbase Smart Wallet is a contract wallet (ERC-4337), so any signature checks in the resolver contract need EIP-1271 support, not just `ecrecover`.
+- The proposed Milestone 4 resolver design uses direct on-chain votes authorized by `msg.sender`, including Coinbase Smart Wallet transactions. It remains subject to explicit team approval. If relayed signed votes are added later, contract-wallet signatures must use EIP-1271 rather than relying only on `ecrecover`.
