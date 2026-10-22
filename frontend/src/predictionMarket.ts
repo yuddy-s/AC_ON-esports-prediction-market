@@ -1,30 +1,23 @@
-import type { Address } from "viem";
+export { predictionMarketAbi } from "./abi/predictionMarketAbi";
+export { aconTokenAbi } from "./abi/aconTokenAbi";
 
-// PredictionMarket deployment on Ethereum Sepolia (chain ID 11155111).
-export const PREDICTION_MARKET_ADDRESS: Address =
-  "0x5fc55783fD777BA52253E985078C3326E6ea9554";
-
-export const predictionMarketAbi = [
-  {
-    type: "function",
-    name: "getMarket",
-    stateMutability: "view",
-    inputs: [{ name: "marketId", type: "uint256" }],
-    outputs: [
-      { name: "question", type: "string" },
-      { name: "tradingDeadline", type: "uint256" },
-      { name: "state", type: "uint8" },
-      { name: "creator", type: "address" },
-    ],
-  },
-] as const;
-
+// Frozen order from docs/agent/interfaces/M3_TRADING_INTERFACE.md.
+// Index = the uint8 value the contract returns.
 export const MARKET_STATES = [
-  "Created",
-  "Open",
-  "Closed",
-  "Proposed",
-  "Disputed",
-  "Finalized",
-  "Void",
+  "CREATED",
+  "OPEN",
+  "CLOSED",
+  "PROPOSED",
+  "DISPUTED",
+  "FINALIZED",
+  "VOID",
 ] as const;
+
+export const MARKET_STATE_OPEN = 1;
+
+// Outcome enum: YES = 0, NO = 1.
+export const OUTCOME = { YES: 0, NO: 1 } as const;
+export type Outcome = (typeof OUTCOME)[keyof typeof OUTCOME];
+
+// LMSR limit frozen in the decision record (1e18 base units).
+export const MAX_SHARES_PER_TRADE = 100n * 10n ** 18n;
