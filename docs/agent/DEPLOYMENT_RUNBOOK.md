@@ -22,7 +22,7 @@ INDEXER_CONFIRMATION_DEPTH=2
 
 ACON is `0x315FCA0DDAA367446f36A3184D8f6b2Df76b5618`; the frontend needs that token address and its versioned ABI for faucet/approval. Configure RPC/database values privately. These are the final deployed addresses; earlier simulation addresses are superseded. See the [deployment/trade record](../../contracts/deployments/sepolia-m3-2026-10-21/README.md) for receipts and gas-estimation recovery.
 
-Live contract state and RPC/ABI event decoding have passed verification. Hosted database/indexer/API and frontend acceptance are still pending.
+Live contract state and RPC/ABI event decoding have passed verification. The complete frontend/indexer/API path also passed locally on Anvil. Hosted Sepolia database/indexer/API operation and deployed-frontend acceptance are still pending; use MetaMask for Sepolia writes because Coinbase Smart Wallet does not support sending transactions on that network.
 
 ## Supabase
 

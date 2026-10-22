@@ -1,13 +1,13 @@
 # AC_ON Esports Prediction Market
 
-AC_ON is a testnet-only decentralized esports prediction market for binary esports match outcomes. Users connect a Coinbase Wallet and eventually trade YES/NO shares on match results.
+AC_ON is a testnet-only decentralized esports prediction market for binary esports match outcomes. Users connect an Ethereum wallet and trade YES/NO shares on match results.
 
 Milestone 3 is focused on one guarded YES/NO buy end to end: quote → wallet buy → mined `TradeExecuted` → indexer → API → frontend shows indexed. ACON and the LMSR market contract are deployed on Ethereum Sepolia, and a ten-share YES buy passed the live contract smoke test; the [versioned deployment handoff](deployments/README.md) includes addresses, ABIs, and confirmed creation/trade transactions. The full frontend → contract → indexer → API flow runs locally on an Anvil chain (see [Run the full M3 flow locally](#run-the-full-m3-flow-locally-anvil)); hosted indexer/API integration on Sepolia is pending.
 
 ## What Works Now
 
 - React + Vite + TypeScript + Tailwind frontend.
-- Coinbase Smart Wallet connection through wagmi/viem.
+- Coinbase Smart Wallet, MetaMask/injected-wallet, and local Anvil development-wallet connections through wagmi/viem.
 - Connected wallet address and testnet balance display.
 - Frontend market card with YES/NO LMSR prices and a trading-open/closed check (OPEN state and deadline).
 - ACON balance and one-time faucet claim in the frontend.

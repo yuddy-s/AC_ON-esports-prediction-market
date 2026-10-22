@@ -1,8 +1,8 @@
 # AC_ON Architecture Preview
 
-AC_ON is a testnet-only decentralized esports prediction market. Users connect Coinbase Wallet and trade YES/NO shares on binary esports match outcomes.
+AC_ON is a testnet-only decentralized esports prediction market. Users connect an Ethereum wallet and trade YES/NO shares on binary esports match outcomes.
 
-Milestone 3 market creation, LMSR quotes, and guarded buys are deployed on Ethereum Sepolia, with a confirmed ten-share YES smoke test. The [deployment manifest](../deployments/sepolia-m3.json) and [verification record](../contracts/deployments/sepolia-m3-2026-10-21/README.md) identify the live contracts and trade. Hosted indexer/API and frontend integration remain pending. Off-chain services support indexing, PostgreSQL derived data, and FastAPI queries; esports APIs and oracle automation remain future work. The system is not fully trustless or fully permissionless.
+Milestone 3 market creation, LMSR quotes, and guarded buys are deployed on Ethereum Sepolia, with a confirmed ten-share YES smoke test. The [deployment manifest](../deployments/sepolia-m3.json) and [verification record](../contracts/deployments/sepolia-m3-2026-10-21/README.md) identify the live contracts and trade. The frontend implements the M3 quote/buy, position, indexed-data, and submitted/mined/indexed flows, and the complete browser-to-contract-to-indexer-to-API path has been verified locally on Anvil. Hosted Sepolia indexer/API operation and deployed-frontend acceptance remain pending. Off-chain services support indexing, PostgreSQL derived data, and FastAPI queries; esports APIs and oracle automation remain future work. The system is not fully trustless or fully permissionless.
 
 ## Main System Architecture
 
@@ -12,7 +12,7 @@ This diagram is the **target product architecture**, including future resolution
 flowchart TB
   user["User Roles<br/>Trader / Market Creator / Resolver"]
   frontend["React Frontend<br/>React + Vite + TypeScript<br/>Tailwind + wagmi + viem"]
-  wallet["Coinbase Wallet"]
+  wallet["Ethereum Wallet<br/>MetaMask on Sepolia"]
 
   subgraph client["USER / CLIENT"]
     user
