@@ -52,7 +52,7 @@ python -m app.indexer.worker --rebuild
 
 The JSON-RPC transport retries bounded transient failures and splits provider-rejected block ranges. Run only one worker instance for the Milestone 3 deployment.
 
-The real backend RPC client and ABI decoder have fetched and decoded the confirmed creation and guarded-buy events. Persistent hosted indexing/database/API verification remains pending. Once the worker has indexed the manifest's trade and the API is running against the same database, run the read-only cross-layer check:
+The real backend RPC client and ABI decoder have fetched and decoded the confirmed creation and guarded-buy events. On 2026-10-22, a local worker populated the configured Supabase database and the read-only smoke check passed against a local FastAPI instance. Persistent hosted worker/API operation and deployed-frontend acceptance remain pending. Once the worker has indexed the manifest's trade and the API is running against the same database, run the read-only cross-layer check:
 
 ```bash
 python -m scripts.smoke_sepolia --manifest ../deployments/sepolia-m3.json --api-base-url https://YOUR_API_HOST

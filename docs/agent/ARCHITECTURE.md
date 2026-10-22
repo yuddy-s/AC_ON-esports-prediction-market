@@ -15,7 +15,7 @@ This document describes the repository as currently inspected. Do not treat plan
 | Backend | implemented; locally integrated | FastAPI app has health, deprecated sample-match endpoints, and paginated indexed market/trade/status reads. The local frontend/indexer/API path is verified; hosted acceptance remains. |
 | Oracle | planned | No oracle service found. |
 | Indexer | implemented; locally integrated | Confirmed projections, checkpoints, rebuild/reorg recovery, RPC polling, and ABI decoding exist. Canonical Sepolia event decoding and the complete local projection/API flow passed; hosted persistent indexing/API verification remains. |
-| Database | schema prepared | Alembic revision `20261018_0001` was reported applied to Supabase on 2026-10-21, with empty indexer tables at that check. Hosted M3 projections remain to be verified; sample data remains non-authoritative fallback data. |
+| Database | Sepolia projections locally verified | Supabase revision `20261018_0001` is applied. A local worker populated one Sepolia market and two trades on 2026-10-22; the local API smoke check passed. Persistent hosted worker/API operation remains pending. |
 | CI | implemented | GitHub Actions runs frontend build, backend tests, and contract formatting/build/tests. |
 
 ## Current Diagram
@@ -31,7 +31,7 @@ Verified Sepolia contract path:
 Funded EOA / MetaMask -> ACON approval -> guarded buy -> confirmed TradeExecuted
                                                         |
                                                         v
-                                           RPC client + ABI decoder
+                           local worker -> Supabase -> local FastAPI smoke check
 
 Remaining hosted acceptance path:
 Sepolia logs -> hosted worker -> PostgreSQL -> hosted FastAPI -> deployed frontend
@@ -66,7 +66,7 @@ The implementation follows the approved M3 trading boundary: custom 18-decimal `
 
 Status: indexed APIs implemented; hosted M3 acceptance pending.
 
-The FastAPI service runs from `backend/` and exposes indexed markets, trades, transaction-hash lookup, and indexer status with freshness metadata. Health/sample-match endpoints remain from M2. It connects through `DATABASE_URL`; a local projection-to-API-to-frontend comparison passed, while hosted PostgreSQL deployment and the equivalent Sepolia comparison remain required.
+The FastAPI service runs from `backend/` and exposes indexed markets, trades, transaction-hash lookup, and indexer status with freshness metadata. Health/sample-match endpoints remain from M2. It connects through `DATABASE_URL`; the local Anvil browser flow passed, and a local Sepolia worker/API backed by Supabase passed the read-only smoke check. Hosted worker/API and deployed-frontend validation remain pending.
 
 The sample matches are fake display data only. They are not on-chain markets and must not be treated as authoritative market state.
 
@@ -94,11 +94,11 @@ Direct voting authorizes `msg.sender` and does not require off-chain signature r
 
 Status: worker implemented and locally integrated; live Sepolia RPC/ABI decoding verified; hosted indexing pending.
 
-The backend contains a provider-independent event indexer with normalized `MarketCreated` and approved `TradeExecuted` handlers. It persists a unique `(chain_id, transaction_hash, log_index)` event identity, checks range-end hashes before and after applying each batch, advances each bounded block range atomically with its checkpoint, waits for configurable confirmations, and rebuilds derived projections when the checkpoint block hash no longer matches the canonical chain. PR #15 added JSON-RPC retrieval/polling and the strict ABI decoder; PRs #17 and #18 added transaction lookup, freshness/replay checks, versioned handoff validation, and a read-only smoke command. The published manifest passes validation, the real RPC client/decoder correctly reads both canonical Sepolia demo events, and local Anvil logs were projected exactly once and returned through FastAPI to the UI. Persistent hosted projections and hosted API reconciliation remain to be verified.
+The backend contains a provider-independent event indexer with normalized `MarketCreated` and approved `TradeExecuted` handlers. It persists a unique `(chain_id, transaction_hash, log_index)` event identity, checks range-end hashes before and after applying each batch, advances each bounded block range atomically with its checkpoint, waits for configurable confirmations, and rebuilds derived projections when the checkpoint block hash no longer matches the canonical chain. PR #15 added JSON-RPC retrieval/polling and the strict ABI decoder; PRs #17 and #18 added transaction lookup, freshness/replay checks, versioned handoff validation, and a read-only smoke command. The published manifest passes validation, local Anvil logs reached the UI through FastAPI, and real Sepolia logs reached Supabase and passed the local API smoke check. Persistent hosted worker/API operation remains to be verified.
 
 ## Database
 
-Status: schema migration reported applied; hosted live projections unverified.
+Status: Supabase schema applied and Sepolia projections verified through a local worker/API; hosted service operation unverified.
 
 Milestone 2 uses Supabase PostgreSQL as a hosted development database so teammates do not need local PostgreSQL. PostgreSQL should be treated as derived/indexed or demo display state. Blockchain state is authoritative.
 
@@ -172,10 +172,10 @@ Important invariants:
 | Boundary | Interface | Status |
 |---|---|---|
 | Frontend -> contract | `getMarket(0)` | M3 six-output ABI and environment-driven address implemented and locally verified |
-| Contract -> indexer | normalized `MarketCreated` projection | projected in the local flow and decoded from the canonical Sepolia log; hosted database projection pending |
+| Contract -> indexer | normalized `MarketCreated` projection | projected on Anvil and from canonical Sepolia logs into Supabase by a local worker; hosted worker operation pending |
 | Backend -> frontend/dev tools | `GET /health`, sample-match reads | implemented |
 | Frontend -> contract | guarded quote/buy and position read | implemented and verified in the local browser flow; Sepolia writes require MetaMask |
-| Contract -> indexer | `TradeExecuted` with complete post-trade projection fields | projected exactly once locally and decoded from the confirmed Sepolia buy; hosted database projection pending |
+| Contract -> indexer | `TradeExecuted` with complete post-trade projection fields | projected from confirmed Sepolia logs into Supabase by a local worker; hosted worker operation pending |
 | Backend -> frontend | indexed market, trade, transaction-hash lookup, and indexer-status reads | implemented and locally verified; hosted API deployment remains pending |
 
 See `interfaces/M3_TRADING_INTERFACE.md` for the approved trading-interface freeze and `milestones/MILESTONE_3.md` for the recovery model and acceptance criteria.
@@ -214,6 +214,6 @@ Contract setup and deployment commands are documented in `contracts/README.md`. 
 - The public manifest, ABIs, and confirmed events are available. Hosted worker/database/API verification and the deployed-frontend Sepolia demo remain pending.
 - Coinbase Smart Wallet connects and reads but cannot send Ethereum Sepolia transactions; use MetaMask for the hosted Sepolia demo. The local Anvil demo uses the development wallet.
 - The reproducible local cross-layer flow has been manually verified, but it is not yet an automated end-to-end CI job.
-- Local SQLite is suitable for the reproducible demo; hosted PostgreSQL remains the target for exact large-integer production-like projections.
+- Local SQLite is suitable for the reproducible Anvil demo; PostgreSQL/Supabase preserves exact large-integer Sepolia projections and passed the local API smoke check.
 - Resolver randomness, address-level conflicts, quorum, snapshot, retry, and timeout/liveness behavior are proposed for Milestone 4; team approval, contracts, and the ABI remain outstanding.
 - Backend sample-match data is fake/off-chain and exists only for Milestone 2 fallback display.

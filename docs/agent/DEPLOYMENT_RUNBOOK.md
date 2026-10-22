@@ -47,7 +47,7 @@ SELECT count(*) AS projected_trades FROM trades;
 
 The expected Alembic revision is `20261018_0001`. Before a worker runs, the three counts should be zero for a new database. Preserve any existing rows if this is not a fresh database.
 
-At the previously recorded Supabase check on 2026-10-21, the configured database was at revision `20261018_0001`. The five indexer tables existed with zero rows, and the three preexisting sample-match rows remained. A local pre-migration export was reported saved outside Git. This is historical schema-setup evidence; recheck the target database before starting its worker. The contract smoke test did not verify hosted database contents.
+At the previously recorded Supabase check on 2026-10-21, the configured database was at revision `20261018_0001`. The five indexer tables existed with zero rows, and the three preexisting sample-match rows remained. A local pre-migration export was reported saved outside Git. On 2026-10-22, a single locally run Sepolia worker populated that database with one market and two trades; local FastAPI returned the recorded buy, and `smoke_sepolia` passed against that API. This verifies the database projections, not persistent Render worker/API operation or a deployed-frontend buy. Recheck the database and whether a worker is already running before starting another one.
 
 ## Render
 

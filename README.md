@@ -2,7 +2,7 @@
 
 AC_ON is a testnet-only decentralized esports prediction market for binary esports match outcomes. Users connect an Ethereum wallet and trade YES/NO shares on match results.
 
-Milestone 3 is focused on one guarded YES/NO buy end to end: quote → wallet buy → mined `TradeExecuted` → indexer → API → frontend shows indexed. ACON and the LMSR market contract are deployed on Ethereum Sepolia, and a ten-share YES buy passed the live contract smoke test; the [versioned deployment handoff](deployments/README.md) includes addresses, ABIs, and confirmed creation/trade transactions. The full frontend → contract → indexer → API flow runs locally on an Anvil chain (see [Run the full M3 flow locally](#run-the-full-m3-flow-locally-anvil)); hosted indexer/API integration on Sepolia is pending.
+Milestone 3 is focused on one guarded YES/NO buy end to end: quote → wallet buy → mined `TradeExecuted` → indexer → API → frontend shows indexed. ACON and the LMSR market contract are deployed on Ethereum Sepolia, and a ten-share YES buy passed the live contract smoke test; the [versioned deployment handoff](deployments/README.md) includes addresses, ABIs, and confirmed creation/trade transactions. The full frontend → contract → indexer → API flow runs locally on Anvil. A local Sepolia worker also indexed the confirmed events into Supabase and passed the API smoke check; hosted worker/API/frontend acceptance is pending.
 
 ## What Works Now
 
@@ -189,7 +189,7 @@ http://localhost:8000/api/sample-matches/valorant-sentinels-loud
 
 ## Run The Full M3 Flow Locally (Anvil)
 
-This runs the real contracts, indexer, API, and frontend on a local chain, without Sepolia ETH or a hosted database. Requires [Foundry](https://book.getfoundry.sh/getting-started/installation) and the backend virtual environment from above. On Windows, run these in Git Bash. Use four terminals from the repository root.
+This runs the real contracts, indexer, API, and frontend on a local chain, without Sepolia ETH or a hosted database. Requires [Foundry](https://book.getfoundry.sh/getting-started/installation) and the backend virtual environment from above. On Windows, run these in Git Bash. Use four terminals from the repository root; reuse the deployment terminal for the frontend after step 2.
 
 1. Start a local chain (2-second blocks). Leave it running:
 
@@ -225,9 +225,45 @@ This runs the real contracts, indexer, API, and frontend on a local chain, witho
 
    SQLite is fine for local testing, but it stores the 78-digit amounts approximately (the last digits of an indexed cost can differ from the chain). Use PostgreSQL/Supabase for exact values.
 
-4. In `frontend/.env.local` set `VITE_CHAIN=anvil`, the two addresses above, and `VITE_API_URL=http://localhost:8000`. Then `npm run dev`, click **Connect Anvil test wallet (local only)**, and buy YES or NO. Account #0 already has ACON from the deployment; another account (set `VITE_ANVIL_ACCOUNT`) can claim the faucet first.
+4. In `frontend/.env.local` set `VITE_CHAIN=anvil`, the two addresses above, and `VITE_API_URL=http://localhost:8000`. In the deployment terminal, run `cd ../frontend` and `npm run dev`, click **Connect Anvil test wallet (local only)**, and buy YES or NO. Account #0 already has ACON from the deployment; another account (set `VITE_ANVIL_ACCOUNT`) can claim the faucet first.
 
 Restarting Anvil wipes the chain. Repeat step 2 (the addresses stay the same) and delete `backend/anvil-demo.db` before restarting the worker.
+
+## Run The Sepolia App Locally
+
+This uses the deployed M3 contracts and a locally running API/indexer. Use PostgreSQL (local or Supabase) for exact indexed token amounts. You need a Sepolia RPC URL; keep its API key and the database URL only in the ignored `backend/.env`. If another worker already uses that database, stop it or use a separate database: run exactly one worker per indexed deployment.
+
+1. Create the backend virtual environment as described above. Copy `backend/.env.example` to `backend/.env` if it does not exist, then set `DATABASE_URL`, `FRONTEND_ORIGIN=http://localhost:5173`, your private `SEPOLIA_RPC_URL`, and these public values:
+
+   ```env
+   INDEXER_CHAIN_ID=11155111
+   PREDICTION_MARKET_ADDRESS=0x19EF739001038Ce9DFB1E12Cf45A10c9250A60a7
+   PREDICTION_MARKET_DEPLOYMENT_BLOCK=11963761
+   PREDICTION_MARKET_ABI_PATH=../deployments/abi/PredictionMarket.6e30d516669e.792fa9f230ed.abi.json
+   INDEXER_CONFIRMATION_DEPTH=2
+   ```
+
+2. From `backend/`, apply the migration and backfill the confirmed events. Keep the single worker polling in one terminal, and start the API in another terminal from `backend/` with the same `.env`:
+
+   ```bash
+   alembic upgrade head
+   python -m app.indexer.worker --once
+   python -m app.indexer.worker
+   ```
+
+   ```bash
+   uvicorn app.main:app --host localhost --port 8000
+   ```
+
+3. Copy `frontend/.env.example` to ignored `frontend/.env.local`. Its Sepolia contract addresses and market ID are already filled in; set `VITE_API_URL=http://localhost:8000`. From `frontend/`, run `npm ci` and `npm run dev`. Open `http://localhost:5173`. Use MetaMask on Sepolia for faucet claims and buys; the wallet needs Sepolia ETH for gas. The seeded question is demo content, but market state and indexed trades come from real Sepolia transactions.
+
+4. Check `http://localhost:8000/api/indexer/status` for the expected chain/address, a recent `updated_at`, and a safe checkpoint past the known buy block `11964663`. Check `/api/markets/0/trades` for the recorded trade. From `backend/`, run the read-only reconciliation check:
+
+   ```bash
+   python -m scripts.smoke_sepolia --manifest ../deployments/sepolia-m3.json --api-base-url http://localhost:8000
+   ```
+
+This verifies Sepolia events against the database and local API. The complete browser trading flow has been verified on local Anvil. A browser-initiated Sepolia buy and a Render/Vercel deployment remain separate follow-ups; describe them as pending if presenting this local setup.
 
 ## Run Checks
 
@@ -236,6 +272,7 @@ Frontend:
 ```bash
 cd frontend
 npm test
+npm run typecheck
 npm run build
 ```
 
@@ -256,13 +293,19 @@ forge build script/Deploy.s.sol
 forge test
 ```
 
+The frontend no longer advertises a lint command without an ESLint configuration. TypeScript checking runs locally and in CI. A configured lint rule set can be added later as a separate check.
+
+## Dependency Security Follow-Up
+
+On 2026-10-22, `npm audit --omit=dev` reported **25 production dependency findings**: 23 moderate, 2 high (`follow-redirects` and `ws`), and 0 critical. These are transitive dependencies in the current frontend lockfile. Review compatible upstream updates and rerun the wallet, trade, build, and audit checks before a public or production release; do not apply a major wallet-library upgrade without integration testing.
+
 ## Not Here Yet
 
 - Sell, settlement, claim, and complete VOID contract paths.
-- A live guarded-buy demonstration on Ethereum Sepolia with Coinbase Smart Wallet through the hosted indexer/API (works locally on Anvil).
+- A hosted Ethereum Sepolia guarded-buy demonstration through the deployed frontend, indexer, and API. Use MetaMask for Sepolia writes; Coinbase Smart Wallet currently supports reads there but not transactions.
 - Vercel deployment of the frontend.
 - Oracle service implementation.
-- Hosted indexer/database/API validation against the confirmed Sepolia creation and trade events.
+- Persistent Render worker/API validation against the confirmed Sepolia creation and trade events.
 - Resolver committee implementation.
 
 ## Notes

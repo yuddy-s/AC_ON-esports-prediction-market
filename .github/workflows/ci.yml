@@ -44,6 +44,9 @@ jobs:
       - name: Run frontend tests
         run: npm test
 
+      - name: Check frontend types
+        run: npm run typecheck
+
       - name: Build frontend
         run: npm run build
 
