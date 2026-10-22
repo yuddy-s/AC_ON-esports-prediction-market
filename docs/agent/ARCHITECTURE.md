@@ -79,6 +79,20 @@ Status: planned.
 
 No oracle service exists yet. Intended behavior: compare approved esports API results, propose outcomes on-chain when rules allow, route disagreements or timeouts to dispute/manual paths, and avoid unilateral settlement of disputed markets.
 
+## Resolver Protocol
+
+Status: proposed for team review; not approved or implemented.
+
+Resolution remains authoritative on-chain. The proposal assigns an on-chain resolver allowlist to a project-team multisignature wallet and requires an event for every admission or removal. Registry changes apply to future committee selections; removal does not rewrite an active voting round. PostgreSQL may project registry, selection, vote, deadline, and outcome events, but it must never select resolvers or decide an outcome.
+
+A challenged result or unusable oracle result opens the first committee-selection round. A first voting round without quorum opens one replacement selection round. Each selection round stores one fixed seven-day deadline when the round opens; retries cannot restart or extend that clock. Before the first VRF request, the contract snapshots the round's eligible, non-conflicted candidates. Registry changes after that snapshot apply only to later rounds, and retries reuse the same snapshot. The contract excludes the market creator, oracle proposer, challenger, and any address recorded on-chain as having traded in or holding a position in the market. These conflicts are enforceable only at the address level.
+
+Chainlink VRF on Sepolia selects five distinct addresses from the snapshot. The contract tracks one current request ID per market and round; a retry replaces that ID without changing the snapshot or deadline. A callback may install a committee only when its request ID, market, round, selection state, and deadline are all current. Superseded, duplicate, mismatched, or late callbacks emit an ignored-fulfillment event and make no state change. If no five-address snapshot or valid committee exists by the fixed deadline, any account may trigger `VOID`.
+
+Each selected resolver may cast one direct on-chain `YES`, `NO`, or `VOID` vote during a 48-hour round. Three matching votes finalize the result. If the first committee does not reach quorum, the replacement round takes a new candidate snapshot and excludes first-round resolvers when the eligible pool permits. Failure of the replacement round to reach quorum makes the market `VOID`.
+
+Direct voting authorizes `msg.sender` and does not require off-chain signature recovery, including for Coinbase Smart Wallet transactions. A future relayed-vote feature must support ECDSA for externally owned accounts and EIP-1271 for contract wallets. Team approval of this proposal, contract interfaces, exact VRF retry delay/configuration, settlement, payouts, and complete `VOID` accounting are deferred to Milestone 4.
+
 ## Indexer
 
 Status: worker implemented; live RPC/ABI decoding verified; hosted indexing pending.
@@ -204,5 +218,5 @@ Contract setup and deployment commands are documented in `contracts/README.md`. 
 - Deployed `getMarket` returns six fields, with market ID supplied by the lookup/event rather than returned. The handoff validator accepts this ABI; the identifier representation remains a consumer-review follow-up.
 - No contract write or trading interface exists in the frontend.
 - The public manifest, ABIs, and confirmed events are available. Hosted worker/database/API verification and the full frontend demo remain pending.
-- Resolver selection randomness, conflict exclusions, and timeout/liveness behavior are not decided.
+- Resolver randomness, address-level conflicts, quorum, snapshot, retry, and timeout/liveness behavior are proposed for Milestone 4; team approval, contracts, and the ABI remain outstanding.
 - Backend sample-match data is fake/off-chain and exists only for Milestone 2 fallback display.

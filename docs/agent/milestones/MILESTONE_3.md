@@ -146,16 +146,20 @@ Milestone 3 may use a deterministic mock provider. No public endpoint should acc
 
 Resolution remains authoritative on-chain. PostgreSQL may project resolver selections and votes but must never select resolvers or decide the winning outcome independently.
 
-Before resolver implementation, the team must decide:
+The proposed protocol decision for Milestone 4 is below. It remains subject to explicit team approval, especially for the multisignature administrator model and Chainlink VRF dependency.
 
-- the eligible resolver set and admission/removal rules
-- the manipulation-resistant randomness source
-- exclusions for creator, proposer/oracle, challenger, and other conflicts
-- behavior when fewer than five eligible resolvers exist
-- voting deadline and terminal fallback when three matching votes are not reached
-- EIP-1271 handling if Coinbase Smart Wallet accounts may act as resolvers
+- A project-team multisignature wallet holds the resolver-administrator role. It may admit known independent resolver wallets or remove inactive, compromised, or rule-violating resolvers. Every registry change emits an on-chain event. Removal prevents future selection but does not alter a committee already assigned to an active voting round.
+- A challenged result or unusable oracle result opens the first committee-selection round. A first voting round that ends without quorum opens one replacement selection round. When either selection round opens, the contract stores `selectionStartedAt` and a fixed `selectionDeadline = selectionStartedAt + 7 days`. VRF retries for that round reuse the stored deadline and cannot restart or extend it.
+- The market creator, oracle proposer, challenger, and any wallet recorded on-chain as having traded in or holding a position in that market are ineligible. These checks operate at the address level and cannot detect an undisclosed related wallet.
+- Before the first VRF request for a round, the administrator may replenish an insufficient allowlist. Once at least five candidates are eligible, the contract snapshots the eligible, non-conflicted candidate addresses for that round. Registry or conflict-set changes after the snapshot apply only to later rounds; every retry for the current round uses the same snapshot. The replacement round takes a new snapshot and excludes first-round resolvers when at least five other eligible addresses exist.
+- Chainlink VRF on Sepolia selects five distinct addresses from the round snapshot. The contract records the current VRF request ID together with the market and round. A retry replaces the current request ID without changing the snapshot or deadline.
+- A VRF fulfillment may install a committee only if its request ID is current, it matches the pending market and round, the market is still in selection, and `block.timestamp <= selectionDeadline`. Superseded, duplicate, mismatched, or late fulfillments emit an ignored-fulfillment event and make no state change, so two callbacks cannot install different committees.
+- If no five-address snapshot can be formed or no valid current request can install a committee before the fixed deadline, any account may trigger the deadline transition to `VOID`.
+- Each selected resolver may cast one direct on-chain vote for `YES`, `NO`, or `VOID` during a 48-hour round. Three matching votes finalize the result.
+- If the first committee does not reach three matching votes, the replacement selection and voting round follow the same fixed-deadline, snapshot, request-identity, and callback rules. Failure of the replacement voting round to reach three matching votes makes the market `VOID`.
+- Initial voting uses direct transactions from selected resolver addresses and therefore does not recover off-chain signatures. Any future relayed-vote path must validate ECDSA signatures for externally owned accounts and EIP-1271 signatures for Coinbase Smart Wallet and other contract accounts.
 
-The actor who raises a valid dispute is the challenger and must not serve on that dispute's resolver committee.
+This is a proposed design record, not an approved protocol or an M3 implementation claim. Resolver contracts, the resolution ABI, exact VRF retry delay/configuration, settlement, payout, and complete `VOID` accounting remain Milestone 4 scope. The proposal must not be implemented as authoritative behavior until team approval is recorded.
 
 ## Derived Database Plan
 
@@ -209,7 +213,8 @@ PostgreSQL deletion or corruption must not affect authoritative contract state.
    - real esports API integration is optional for the MVP
 7. **Resolver seam**
    - document and test projection handlers when resolution events exist
-   - defer complete committee behavior until the protocol decisions above are approved
+   - obtain explicit team approval of the proposed administrator, VRF, selection, and liveness rules above before freezing the Milestone 4 resolution ABI
+   - defer complete committee behavior to Milestone 4
 
 ## Initial Test Plan
 
@@ -270,5 +275,4 @@ The current backend suite passed 52 tests. The completed manifest passes the han
 - keep the approved Milestone 3 trading interface decision record aligned with implementation
 - approve or revise the PRBMath v4.2.2 pin and validated numeric policy supplied by LMSR implementation PR [#13](https://github.com/yuddy-s/AC_ON-esports-prediction-market/pull/13)
 - select the operational Sepolia RPC provider while retaining the provider-neutral `SEPOLIA_RPC_URL` interface
-- resolver randomness and liveness rules
 - approved esports API and evidence format

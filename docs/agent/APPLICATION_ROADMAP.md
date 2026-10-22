@@ -241,7 +241,7 @@ The implemented `getMarket` returns six fields, with the market ID supplied by i
 - [x] Deploy the tested ACON and M3 market contracts to Sepolia and publish their addresses/blocks.
 - [x] Execute and verify a live guarded buy, including exact payment, positions, confirmations, and `TradeExecuted` decoding.
 - [ ] In M4, implement oracle proposal/challenge state transitions.
-- [ ] In M4, implement resolver eligibility, conflict exclusions, selection/randomness, voting, quorum, timeouts, and finalization.
+- [ ] After explicit team approval and the M4 ABI freeze, implement the proposed resolver protocol: multisignature-administered eligibility, snapshotted candidate pools, Chainlink VRF selection with stale-callback rejection, address-level conflict exclusions, two 48-hour voting rounds, three-of-five quorum, fixed seven-day committee-formation deadlines, and finalization.
 - [ ] In M4, implement settlement, VOID behavior, and single-claim payout protection.
 - [ ] Maintain unit/security tests, deployment tests, static checks, and contract CI.
 
@@ -285,7 +285,9 @@ Validation for the deployed `6e30d51` contract source includes Foundry format/bu
 
 The resolver committee is **not required for Yudhveer's Milestone 3 implementation**. Benny's Solidity contracts must authoritatively select resolvers, reject conflicts, count votes, apply quorum/timeouts, and finalize or void markets. Yudhveer later indexes those emitted facts and exposes them through FastAPI; PostgreSQL must never select a committee or decide an outcome.
 
-For M3, Yudhveer may implement a deterministic mock `ResultProvider` boundary after the trading path is stable. A production esports provider, an outcome-signing service, challenges, and resolver execution are M4 work and remain blocked until the proposal/challenge/resolution ABI and security rules are approved.
+The proposed resolver design for Milestone 4 remains subject to explicit team approval, especially for the project-team multisignature administrator and Chainlink VRF dependency. Creator, proposer, challenger, trader, and position-holder addresses are excluded at the address level. Each selection round has a fixed seven-day deadline that retries cannot extend, snapshots its eligible candidate pool before its first request, and accepts only the current VRF request ID for the pending market and round before the deadline. Stale, duplicate, mismatched, and late callbacks make no state change. Three matching direct on-chain votes decide each 48-hour voting round; one replacement round is allowed before terminal `VOID`. Direct voting does not require signature recovery, while any future relayed voting must support ECDSA and EIP-1271. Implementation remains blocked on explicit protocol approval and the Milestone 4 contract/event ABI freeze.
+
+For M3, Yudhveer may implement a deterministic mock `ResultProvider` boundary after the trading path is stable. A production esports provider, an outcome-signing service, challenges, and resolver execution remain M4 work.
 
 ## Work That Must Not Be Guessed
 
@@ -293,7 +295,7 @@ Agents must stop and obtain a team decision before committing any of these as au
 
 - payment asset or token decimals;
 - a changed enum order, function signature, event signature, or numeric unit;
-- resolver eligibility, randomness, conflict, quorum, timeout, or fallback rules;
+- implementation of, or any authoritative change to, the proposed resolver eligibility, randomness, snapshot, request-identity, conflict, quorum, timeout, or fallback rules before team approval;
 - which esports source is authoritative and what evidence/finality means;
 - private-key custody, signer permissions, or production secret placement;
 - a production migration or deployment requiring shared credentials.
