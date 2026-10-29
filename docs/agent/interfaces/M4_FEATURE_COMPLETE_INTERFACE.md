@@ -1,6 +1,6 @@
 # Milestone 4 Feature-Complete Design Decision
 
-Status: **team decision set supplied on 2026-10-29; implementation pending**. PR #28 records approving members before it leaves Draft. These rules define target behavior; exact Solidity types, indexed event fields, and compiled ABI remain an implementation freeze gate. The [M3 interface](M3_TRADING_INTERFACE.md) is the historical deployed baseline; M4 needs a new contract and manifest.
+Status: **target design approved and merged in PR #28 on 2026-10-29; implementation pending**. Matthew's GitHub approval and Yudhveer's confirmation established the decision set. These rules define target behavior; exact Solidity types, indexed event fields, and compiled ABI remain an implementation freeze gate. The [M3 interface](M3_TRADING_INTERFACE.md) is the historical deployed baseline; M4 needs a new contract and manifest.
 
 ## Fixture and result source
 
@@ -36,4 +36,4 @@ The frontend signs user writes and uses contract reads for spendable/claimable a
 
 ## Release scope and implementation gates
 
-M4 acceptance requires all planned features, complete normal/disputed/timeout/VOID/claim journeys on local Anvil, component tests and a documented full test plan, matching ABI/design docs, and a new Sepolia contract deployment with focused transaction smoke tests. Public Vercel/Render/Supabase/Sepolia integration is an M4 stretch target and remains an M5 deliverable if unfinished. VRF subscription setup, at least ten clean resolver addresses, exact ABI types, Matthew's collateral proof, and recorded PR approvals are implementation gates; none is evidence that M4 behavior already exists.
+M4 acceptance requires all planned features, complete normal/disputed/timeout/VOID/claim journeys on local Anvil, component tests and a documented full test plan, matching ABI/design docs, and a new Sepolia contract deployment with focused transaction smoke tests. Public Vercel/Render/Supabase/Sepolia integration is an M4 stretch target and remains an M5 deliverable if unfinished. VRF subscription setup, at least ten clean resolver addresses, exact ABI types, and Matthew's collateral proof are implementation gates; PR #28 approval is not evidence that M4 behavior already exists.
