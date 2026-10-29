@@ -1,24 +1,51 @@
 # Milestone 4: Feature-Complete
 
-Status: planned
+Status: planning proposal for team review; the M3 guarded-buy implementation remains the current deployed baseline. See [the proposed M4 interface](../interfaces/M4_FEATURE_COMPLETE_INTERFACE.md) before implementing an authoritative protocol change.
 
-## Course Goal
+## Course Goal And Acceptance
 
-Demonstrate the complete planned feature set, explain trade-offs made while finishing it, present the testing and integration plan, and deliver the complete implementation plus final-design documentation.
+Demonstrate the complete planned feature set, explain the trade-offs made while finishing it, present the testing and integration plan, and deliver the implementation plus final-design documentation. The team targets a public Ethereum Sepolia application using Vercel, Render, Supabase, and newly deployed M4 contracts. Local Anvil exercises time-dependent and failure paths that cannot be demonstrated live in one sitting. This moves the previously planned public integration target forward from M5; the date and external-service readiness are risks, not evidence of completion.
 
-## Feature-Complete Target
+Feature complete means users can browse verified esports fixtures, create and fund multiple markets, buy and sell YES/NO shares, inspect positions and trade history, challenge proposed outcomes, vote if selected as resolvers, and claim winning or VOID payouts. Market lifecycle, resolver selection/votes, collateral, and payouts are authoritative in Solidity. PostgreSQL and FastAPI expose derived history and status. The frontend must not claim that an indexed read or an esports provider independently settles a market.
 
-- Adriel completes market creation/browsing, buy/sell, positions, challenges, resolver voting, settlement/claim, VOID, and error/recovery UI flows.
-- After team approval, Benny completes the authoritative market lifecycle, access control, challenge, settlement, claim, and `VOID` contracts, including the proposed multisignature-administered resolver registry, snapshotted candidate pools, current-request-only Chainlink VRF committee selection, conflict checks, two-round voting fallback, and direct-vote authorization.
-- Matthew completes LMSR sell behavior, subsidy and bounded-loss accounting, payout/VOID accounting, and the economic invariant suite. Trading/platform fees remain out of scope.
-- Yudhveer completes production esports-provider adapters, least-privilege oracle signing, all event projections/APIs, resolver status/history, and replay/reorganization support.
-- The team freezes the final ABI, state terminology, event schema, secrets model, and full documented test plan.
+## Proposed Fixture And Result Boundary
 
-## Exit Criteria
+The backend imports upcoming fixtures and basic results from PandaScore for Valorant, Counter-Strike 2, and Rainbow Six Siege. A deterministic mock provider supplies repeatable tests. A restricted registrar approves a selected, verified fixture ID, game, YES/NO team mapping, and start time on-chain. Users then create ACON-funded markets from registered fixtures; importing a fixture does **not** create a market. The contract rejects unregistered fixture IDs even when called directly, but cannot independently prove that the registrar or provider supplied true information. Provider access, coverage, and prediction-product usage terms must be checked before live reliance.
 
-- Every planned user feature works across frontend, contracts, backend, and database.
-- Resolver selection and votes are enforced on-chain; PostgreSQL remains derived.
-- Resolver tests cover registry changes, address-level conflict exclusions, candidate snapshots, fixed selection deadlines across VRF retries, stale/duplicate/late callback rejection, five-resolver selection, one vote per resolver, three-of-five quorum, replacement committee selection, both 48-hour voting deadlines, seven-day formation fallbacks, and terminal `VOID` behavior.
-- Oracle data fetching and signing are separated, retryable, and auditable.
-- All component suites pass and the cross-layer integration suite covers normal and disputed market paths.
-- Architecture, sequence/state diagrams, API documentation, and setup instructions match the final implementation.
+The oracle result fetcher and transaction signer are separate components. A distinct least-privilege proposer account may propose an outcome, never finalize a challenged market or select resolvers. No public API endpoint accepts an arbitrary outcome for signing. Provider uncertainty, correction, or outage must leave a reviewable pending/timeout state and route unresolved cases to the approved dispute path rather than silently picking a winner. Secrets stay out of Git and the browser; ownership, revocation, and rotation must be documented before hosting.
+
+## Work Distribution
+
+| Owner | Implementation and validation assignment | Required handoff |
+|---|---|---|
+| Benny — contracts/deployment | Extend the market with fixture registration, guarded sells, oracle proposal and 24-hour challenge transitions, dispute/finalization/VOID, single-use claims, and separate registrar/proposer/resolver-administrator roles. Implement the proposed five-resolver Chainlink VRF v2.5 selection, conflict exclusions, candidate snapshots, current-request-only callbacks, three matching direct votes, one replacement committee, 48-hour voting rounds, and fixed seven-day selection deadline per round. Publish exact-build ABI/events, deploy a fresh M4 Sepolia contract, and run lifecycle, authorization, and security tests. | Team-approved interface and Matthew's accounting proof; provide ABI, event fixtures, address, deployment block, and transaction evidence to consumers. |
+| Matthew — economics/accounting | Add `quoteSell` using the LMSR cost difference; define guarded sell rounding/minimum return. Prove collateral sufficiency across buy/sell sequences, 1 ACON per winning share, proposed 0.5 ACON per outstanding share on VOID, and safe creator-surplus withdrawal. Add fuzz/stateful invariants for quantities, solvency, rounding, repeated trades, settlement, and claims; review Benny's payout implementation. | Freeze economic rules with Benny before Solidity ABI and frontend trade math are finalized. |
+| Adriel — frontend/wallet | Replace the single-market screen with fixture catalog, market browsing/detail, user-driven creation, portfolio, guarded sell, proposal/challenge status, resolver eligibility/voting, finalized/VOID status, and claims. Preserve submitted, mined, confirmed, and indexed states and handle wrong network, wallet rejection, stale indexer, unavailable result, and failed claim. Add component and end-to-end tests; deploy and validate Vercel against the public Sepolia stack. | Consume the approved ABI, versioned deployment manifest, and derived API contract; use direct contract reads for spendable positions and claimability. |
+| Yudhveer — backend/oracle/operations | Import/normalize PandaScore fixtures/results for all three games, with a deterministic mock provider. Maintain a fixture catalog and restricted on-chain registration workflow without creating markets for users. Build separate least-privilege oracle proposal, retry/audit, and key-rotation boundaries. Add Alembic migrations and confirmed-log projections for sells, proposals, challenges, committee selections, votes, outcomes, VOID, and claims; expose fixture, market history, resolution, and derived portfolio reads. Test replay/reorg, outages, and reconciliation; operate one indexer worker plus API/oracle services with Render/Supabase. | Consume frozen event shapes and role rules; publish API schema, migration/rebuild procedure, and hosted smoke evidence. |
+| Whole team — interfaces/integration | Approve fixture identity/YES-NO mapping, permissions, state/event schemas, ABI/deployment versioning, sell and payout math, resolver rules, secrets ownership, and external-service assumptions. Review subsystem PRs, run Anvil and public Sepolia acceptance, record hashes/API comparisons, update docs/test plan, and rehearse the demo. | Record approval or requested changes in the M4 decision PR before dependent interfaces become authoritative. |
+
+## Dependencies And One-Week Integration Order
+
+1. **Day 1 — review and access:** Open the planning PR, verify PandaScore access and usage terms, VRF v2.5 Sepolia configuration/funding, registrar/proposer/resolver wallets and multisignature administration, and Vercel/Render/Supabase access. Freeze fixture and outcome mapping, role/state/event ABI, challenge window, and Matthew's accounting model after team review.
+2. **Days 2–4 — parallel implementation:** Benny and Matthew build and review contracts/economics. Yudhveer implements provider, migration, indexer, APIs, and oracle against the frozen events. Adriel implements the full frontend against the frozen ABI/API. Each scoped PR updates the docs it changes.
+3. **Days 5–6 — integration:** Run local normal, disputed, timeout, and VOID flows. Deploy a fresh M4 contract and versioned manifest; configure exactly one hosted indexer worker, API/oracle processes, and frontend. Reconcile Sepolia transactions with indexed reads. Pre-seed markets for public flows with 24-hour challenge periods.
+4. **Day 7 — release evidence:** Repair integration defects, rerun CI and public smoke checks, record transaction hashes and API results, reconcile final-design docs, and rehearse the complete demonstration.
+
+No implementation PR should treat this proposal as an approved contract interface. If provider access, VRF funding, five eligible resolvers, or hosted services are unavailable, record the unmet public acceptance path explicitly rather than substituting a mock while claiming a live result.
+
+## Full Documented Test Plan
+
+| Layer | Required scenarios | Evidence |
+|---|---|---|
+| Solidity/economics | Buy/sell quote and slippage, quantity/collateral conservation, creator subsidy/surplus, winning and VOID liabilities, rounding/extreme values, failed token transfer/reentrancy, duplicate claims, unauthorized role calls. | Foundry unit, fuzz, invariant, and security/static checks. |
+| Fixture/oracle | Three-game mapping and fixture IDs, duplicate/invalid fixtures, postponed/canceled/corrected results, provider timeout/rate limit/disagreement, retry/idempotency, proposer permission and compromised-key revocation. | Deterministic provider fixtures, mocked HTTP tests, registrar/proposer integration tests. |
+| Resolver | Registry add/remove, address-level conflict exclusions, snapshot stability, five distinct selections, current VRF request identity, stale/duplicate/late callbacks, one vote per resolver, three-vote quorum, replacement round, fixed selection and 48-hour voting deadlines, terminal VOID. | Foundry unit/invariant tests and Anvil time-controlled journeys. |
+| Indexer/API/database | All new event shapes and exact amounts, duplicate/reordered logs, checkpoint/restart, missed ranges, reorg/rebuild equality, fresh migration, stale worker and database/API failure, contract/API reconciliation. | Pytest and read-only cross-layer smoke evidence. |
+| Frontend/wallet | Fixture browse/create, buy/sell, portfolio, challenge, selected-resolver vote, finalization/VOID claim, wrong chain, rejected/reverted writes, submitted/mined/confirmed/indexed distinction, stale and unavailable reads; triage the recorded production dependency findings before a public release. | Vitest/component/browser tests, dependency audit, and manual public Sepolia run. |
+| End to end | Normal unchallenged result, challenged result with quorum, first-round failure/replacement, timeout-to-VOID, and claim; compare wallet receipts, chain state, indexer projections, API responses, and UI. | Automated local Anvil flow plus public Sepolia hashes/screenshots and API reconciliation. |
+
+Use Anvil time control to exercise 24-hour and longer timeouts. Public Sepolia acceptance uses real confirmations and pre-seeded markets; it must not imply that a time-dependent path finished during a short live presentation if it did not.
+
+## Approval And Documentation Rules
+
+The [M4 interface proposal](../interfaces/M4_FEATURE_COMPLETE_INTERFACE.md) is the review gate. The existing [M3 interface](../interfaces/M3_TRADING_INTERFACE.md) remains the approved historical baseline. After team approval, update the interface status and reconcile `TASKS.md`, `APPLICATION_ROADMAP.md`, `ARCHITECTURE.md`, `docs/architecture-preview.md`, relevant diagrams, and the M5 handoff before merging the planning PR. Each implementation PR updates affected README/API/ABI, deployment, testing, and recovery documentation. Current-state pages change to “implemented” only after code and integration evidence exist.

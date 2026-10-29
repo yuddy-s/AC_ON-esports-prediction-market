@@ -70,11 +70,19 @@ The FastAPI service runs from `backend/` and exposes indexed markets, trades, tr
 
 The sample matches are fake display data only. They are not on-chain markets and must not be treated as authoritative market state.
 
+## Proposed Milestone 4 Extension
+
+Status: [planning proposal](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md); no fixture registration, sell, proposal, challenge, resolver, settlement, or claim code is deployed. The [M4 owner/test plan](milestones/MILESTONE_4.md) targets a new versioned Sepolia deployment and public Vercel/Render/Supabase application; it does not change the M3 evidence above.
+
+The proposed fixture flow is PandaScore fixture/results import for Valorant, CS2, and Rainbow Six Siege → restricted on-chain registration of selected verified fixture IDs and YES/NO team mappings → user-funded market creation from a registered fixture. Importing a listing does not create a market. The contract checks its registry rather than calling an HTTP API, so the registrar/provider remain trusted inputs. Separate registrar, oracle proposer, and resolver-administrator roles reduce the authority of any one service. The backend and PostgreSQL remain derived; wallet users submit trades, challenges, resolver votes, and claims directly to contracts.
+
+The proposed economics add guarded LMSR sells and require proof that 1 ACON per winning share, 0.5 ACON per outstanding share on VOID, and creator-surplus withdrawal cannot overdraw collateral. The proposal uses a 24-hour challenge window. These are review inputs, not implemented or approved payout rules. After the team freezes events and reads, the indexer/API would project sells, proposals, challenges, resolver selections/votes, final outcomes, and claims; frontend contract reads remain authoritative for spendable and claimable balances.
+
 ## Oracle
 
 Status: planned.
 
-No oracle service exists yet. Intended behavior: compare approved esports API results, propose outcomes on-chain when rules allow, route disagreements or timeouts to dispute/manual paths, and avoid unilateral settlement of disputed markets.
+No oracle service exists yet. The M4 proposal uses a PandaScore adapter plus deterministic mock, with result fetching separate from a least-privilege on-chain proposer. Provider access, permitted usage, result finality/evidence, correction handling, and signer rotation require review before live use. A proposer cannot unilaterally settle a challenged market; timeouts or unusable results route to the proposed dispute path.
 
 ## Resolver Protocol
 
@@ -84,7 +92,7 @@ Resolution remains authoritative on-chain. The proposal assigns an on-chain reso
 
 A challenged result or unusable oracle result opens the first committee-selection round. A first voting round without quorum opens one replacement selection round. Each selection round stores one fixed seven-day deadline when the round opens; retries cannot restart or extend that clock. Before the first VRF request, the contract snapshots the round's eligible, non-conflicted candidates. Registry changes after that snapshot apply only to later rounds, and retries reuse the same snapshot. The contract excludes the market creator, oracle proposer, challenger, and any address recorded on-chain as having traded in or holding a position in the market. These conflicts are enforceable only at the address level.
 
-Chainlink VRF on Sepolia selects five distinct addresses from the snapshot. The contract tracks one current request ID per market and round; a retry replaces that ID without changing the snapshot or deadline. A callback may install a committee only when its request ID, market, round, selection state, and deadline are all current. Superseded, duplicate, mismatched, or late callbacks emit an ignored-fulfillment event and make no state change. If no five-address snapshot or valid committee exists by the fixed deadline, any account may trigger `VOID`.
+The M4 proposal specifies Chainlink VRF v2.5 on Sepolia to select five distinct addresses from the snapshot. The contract tracks one current request ID per market and round; a retry replaces that ID without changing the snapshot or deadline. A callback may install a committee only when its request ID, market, round, selection state, and deadline are all current. Superseded, duplicate, mismatched, or late callbacks emit an ignored-fulfillment event and make no state change. If no five-address snapshot or valid committee exists by the fixed deadline, any account may trigger `VOID`.
 
 Each selected resolver may cast one direct on-chain `YES`, `NO`, or `VOID` vote during a 48-hour round. Three matching votes finalize the result. If the first committee does not reach quorum, the replacement round takes a new candidate snapshot and excludes first-round resolvers when the eligible pool permits. Failure of the replacement round to reach quorum makes the market `VOID`.
 

@@ -2,11 +2,11 @@
 
 This is the canonical implementation checklist for coding agents and team members. It records what exists, what remains, who owns each area, and whether work can proceed without another team decision. Detailed milestone scope remains in `milestones/` and current assignments remain in `TASKS.md`.
 
-Last reviewed: 2026-10-22, covering merged PRs #23-#25, the local Anvil acceptance run, and the local Sepolia worker/API smoke check against Supabase.
+Last reviewed: 2026-10-29 for the proposed Milestone 4 feature-complete plan. Current implementation evidence below remains the M3 baseline; M4 work is not yet implemented.
 
-PRs #10, #12-#20, and #22-#25 are merged into `dev`. This includes the database/indexer/API foundation, approved M3 trading interface, bounded LMSR library, RPC/ABI worker, ACON token, guarded-buy market integration, transaction lookup, versioned deployment handoff, M3 frontend, and proposed Milestone 4 resolver decision record. ACON and PredictionMarket were deployed from `6e30d516669e51d7f3e4bff0d8670168da9b1f83`; market `0` and a ten-share YES buy are confirmed on Sepolia. The complete guarded-buy path was verified locally from a fresh browser through Anvil, the indexer, FastAPI, and back to the UI. Separately, a local Sepolia worker populated Supabase and passed the local API smoke check. Hosted worker/API/frontend acceptance remains pending.
+PRs #10, #12-#20, and #22-#26 are merged into `dev`; PR #27 promoted the M3 snapshot to `main`. This includes the database/indexer/API foundation, approved M3 trading interface, bounded LMSR library, RPC/ABI worker, ACON token, guarded-buy market integration, transaction lookup, versioned deployment handoff, M3 frontend, and proposed Milestone 4 resolver decision record. ACON and PredictionMarket were deployed from `6e30d516669e51d7f3e4bff0d8670168da9b1f83`; market `0` and a ten-share YES buy are confirmed on Sepolia. The complete guarded-buy path was verified locally from a fresh browser through Anvil, the indexer, FastAPI, and back to the UI. Separately, a local Sepolia worker populated Supabase and passed the local API smoke check. Hosted worker/API/frontend acceptance remains pending.
 
-The canonical integration input is [`deployments/sepolia-m3.json`](../../deployments/sepolia-m3.json). The [deployment and trade record](../../contracts/deployments/sepolia-m3-2026-10-21/README.md) includes the exact-build ABIs, receipts, balance checks, and gas-estimation recovery. Market `0` stops accepting buys on **2026-10-28 at 17:01:12 UTC**; use a new funded market for a later demo.
+The canonical M3 integration input is [`deployments/sepolia-m3.json`](../../deployments/sepolia-m3.json). The [deployment and trade record](../../contracts/deployments/sepolia-m3-2026-10-21/README.md) includes the exact-build ABIs, receipts, balance checks, and gas-estimation recovery. Market `0` stopped accepting buys on **2026-10-28 at 17:01:12 UTC**; use a new funded market for any later M3 trade demo. The M4 target needs its own deployment and manifest.
 
 ## Status Key
 
@@ -15,7 +15,15 @@ The canonical integration input is [`deployments/sepolia-m3.json`](../../deploym
 - **Partial**: useful generic work can proceed, but final integration needs the listed handoff.
 - **Pending**: implementation/preparation exists, but execution or verification has not happened yet.
 - **Blocked**: implementation would guess an authoritative interface, secret, deployment, or protocol decision.
-- **Deferred**: intentionally outside Milestone 3 unless the trading MVP finishes early.
+- **Deferred**: intentionally outside the milestone named in the task, unless the team changes scope.
+
+## Active Milestone 4 Plan For Review
+
+The team targets a feature-complete **public Sepolia** application within one week. This is a proposed schedule, not an implementation status. The [M4 milestone](milestones/MILESTONE_4.md) owns the detailed work distribution and full test plan; [the M4 interface proposal](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md) owns fixture, lifecycle, payout, resolver, event, and role decisions. The [active M4 queue](TASKS.md#active-milestone-4-feature-complete-queue) assigns dependent PRs to Benny, Matthew, Adriel, Yudhveer, and the team. No M4 ABI or resolver rule is frozen until the discussion PR records explicit approval.
+
+Dependency order: validate PandaScore three-game fixture/results access and prediction-product terms; approve fixture registration, YES/NO mapping, separate registrar/proposer/administrator roles, sell/settlement accounting, and the resolver protocol; publish exact-build ABI/events; implement and test contracts, provider/oracle, indexer/API, and frontend in parallel; then integrate on Anvil and public Sepolia. The backend imports fixtures but does not create user markets. A restricted account registers selected verified fixtures on-chain, and users create markets from those registrations. The contract does not query the backend and cannot independently verify the source's truthfulness.
+
+The public-deployment work previously assigned to M5 is now an M4 target. This schedule does not convert unimplemented sells, oracle proposals, resolver voting, settlement, VOID, and claims into completed features. Every implementation PR must update its affected README, interface/API/deployment handoff, tests, and recovery docs. After review, align target architecture, diagrams, M5 timing, and presentation language without rewriting the approved M3 trading record.
 
 ## What An ABI Is
 

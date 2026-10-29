@@ -32,6 +32,7 @@ Milestone 3 is focused on one guarded YES/NO buy end to end: quote → wallet bu
 - The full M3 quote-to-buy-to-indexer-to-frontend flow works on a local Anvil chain; the contracts are live on Sepolia but the hosted indexer/API is not yet. The old M2 address is not an M3 deployment.
 - ACON is the test-only payment/collateral token; Sepolia ETH pays gas. Sells and payouts are not part of this implementation.
 - The approved Milestone 3 decisions are recorded in [`docs/agent/interfaces/M3_TRADING_INTERFACE.md`](docs/agent/interfaces/M3_TRADING_INTERFACE.md). The [contracts README](contracts/README.md) documents the implemented ABI and remaining handoff review.
+- The [Milestone 4 feature-complete plan](docs/agent/milestones/MILESTONE_4.md) and [proposed interface](docs/agent/interfaces/M4_FEATURE_COMPLETE_INTERFACE.md) assign the next work for team review. They do not describe deployed M4 behavior.
 
 ## Quick Start (macOS / Linux)
 

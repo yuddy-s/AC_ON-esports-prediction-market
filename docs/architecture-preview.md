@@ -6,7 +6,7 @@ Milestone 3 market creation, LMSR quotes, and guarded buys are deployed on Ether
 
 ## Main System Architecture
 
-This diagram is the **target product architecture**, including future resolution components. The deployed M3 subset is ACON-funded market creation, internal LMSR pricing, guarded buys, positions, and events. Oracle proposals, challenges, resolver registry/voting, settlement, and claims are not deployed. See the [current implementation architecture](agent/ARCHITECTURE.md) for the verified M3 path and remaining integration work.
+This diagram is the **proposed M4 target architecture**, including the new fixture and resolution components. The deployed M3 subset is ACON-funded market creation, internal LMSR pricing, guarded buys, positions, and events. Fixture registration, sells, oracle proposals, challenges, resolver registry/voting, settlement, and claims are not deployed. See the [M4 interface proposal](agent/interfaces/M4_FEATURE_COMPLETE_INTERFACE.md) for review decisions and the [current implementation architecture](agent/ARCHITECTURE.md) for verified M3 behavior.
 
 ```mermaid
 flowchart TB
@@ -24,6 +24,8 @@ flowchart TB
     api["FastAPI Backend"]
     rest["REST API"]
     oracle["Oracle Service"]
+    catalog["Fixture Catalog<br/>PandaScore import + normalized games"]
+    registrarWallet["Restricted Fixture Registrar"]
     indexer["Indexer Service<br/>Stores last processed block checkpoint<br/>Replays missed events after restart<br/>Reconciles stale DB state"]
     oracleWallet["Authorized Oracle Wallet / Signer"]
     db["PostgreSQL<br/>Derived / Indexed State Only<br/>NON-AUTHORITATIVE"]
@@ -39,6 +41,7 @@ flowchart TB
 
     subgraph contracts["Smart Contract System"]
       market["PredictionMarket.sol<br/>main market contract<br/>market lifecycle<br/>YES / NO share balances<br/>trading<br/>trading deadline enforcement<br/>oracle proposals<br/>challenge state<br/>settlement<br/>payout claims<br/>emits market events"]
+      fixtures["Proposed Fixture Registry<br/>approved match IDs + YES/NO teams<br/>contract checks before creation"]
       lmsr["LMSR.sol Library<br/>on-chain pricing math<br/>trade cost calculation<br/>liquidity parameter logic<br/>no users or permissions"]
       resolver["ResolverRegistry.sol<br/>proposed multisignature-administered allowlist<br/>snapshotted candidate pools<br/>current-request-only Chainlink VRF<br/>address-level conflict checks"]
     end
@@ -58,6 +61,7 @@ flowchart TB
   wallet -->|"signed transaction"| market
   frontend -->|"contract reads"| market
   frontend -->|"API request for market data"| rest
+  frontend -->|"browse imported fixtures"| catalog
   rest -->|"derived/indexed market data"| frontend
 
   rest <-->|"query derived/indexed data"| db
@@ -69,6 +73,10 @@ flowchart TB
   market -.->|"checks resolver status"| resolver
 
   oracle -->|"HTTPS request + server-side API credentials"| esports
+  esports -->|"upcoming matches and basic results"| catalog
+  catalog -->|"selected verified fixtures"| registrarWallet
+  registrarWallet -->|"register fixture transaction"| fixtures
+  market -->|"check registered fixture"| fixtures
   esports -->|"match result"| oracle
   oracle -->|"uses authorized signer"| oracleWallet
   oracleWallet -->|"propose outcome<br/>authorized oracle only"| market
@@ -92,6 +100,7 @@ flowchart TB
 ### Authorization Notes
 
 - The oracle may propose outcomes through an authorized oracle wallet.
+- The proposed fixture registrar and oracle proposer are separate restricted roles. The backend may import fixtures automatically, but users create markets; the registrar only approves selected fixture IDs and team mappings on-chain.
 - The oracle may not directly settle disputed markets, bypass the challenge period, or vote as a human resolver.
 - Resolver wallets are independent from the automated oracle.
 - Resolver voting authorization is enforced by contracts:
@@ -118,7 +127,7 @@ flowchart TB
 
 ## Market State Machine
 
-The diagram below is the future lifecycle design. The deployed M3 contract creates markets directly in `OPEN` after collecting the subsidy. It rejects quotes/buys at the trading deadline while the stored state remains `OPEN`; it does not implement the close/resolution transitions shown here.
+The diagram below is the proposed M4 lifecycle design. The deployed M3 contract creates markets directly in `OPEN` after collecting the subsidy. It rejects quotes/buys at the trading deadline while the stored state remains `OPEN`; it does not implement the close/resolution transitions shown here. The proposed oracle challenge window is 24 hours.
 
 ```mermaid
 stateDiagram-v2
@@ -129,7 +138,7 @@ stateDiagram-v2
   CLOSED --> ORACLE_TIMEOUT: oracle cannot retrieve usable result
   CLOSED --> VOID: canceled / no-contest match
 
-  PROPOSED --> FINALIZED: challenge window expires
+  PROPOSED --> FINALIZED: proposed 24-hour challenge window expires
   PROPOSED --> DISPUTED: valid challenge
   DISPUTED --> RESOLVER_SELECTION: open round 1; set fixed 7-day deadline
   ORACLE_TIMEOUT --> RESOLVER_SELECTION: open round 1; set fixed 7-day deadline
