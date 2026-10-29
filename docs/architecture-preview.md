@@ -54,7 +54,7 @@ flowchart TB
   resolverWallets["Independent Resolver Wallets"]
   apiNote["API credentials remain server-side.<br/>Never exposed to frontend or blockchain."]
   chainWins["If PostgreSQL state disagrees with blockchain state:<br/>BLOCKCHAIN WINS."]
-  disputeRule["Proposed dispute rule<br/>3-of-5 matching votes<br/>two 48-hour voting rounds maximum<br/>fixed 7-day selection deadline per round"]
+  disputeRule["Proposed dispute rule<br/>3 YES/NO votes → FINALIZED; 3 VOID votes → VOID<br/>two 48-hour voting rounds maximum<br/>fixed 7-day selection deadline per round"]
 
   user -->|"uses application"| frontend
   frontend -->|"wallet connect / request signature"| wallet
@@ -133,7 +133,7 @@ The diagram below is the proposed M4 lifecycle design. The deployed M3 contract 
 stateDiagram-v2
   [*] --> CREATED
   CREATED --> OPEN: market activated
-  OPEN --> CLOSED: trading deadline reached
+  OPEN --> CLOSED: close after trading deadline
   CLOSED --> PROPOSED: oracle proposes result
   CLOSED --> ORACLE_TIMEOUT: oracle cannot retrieve usable result
   CLOSED --> VOID: canceled / no-contest match
@@ -144,14 +144,19 @@ stateDiagram-v2
   ORACLE_TIMEOUT --> RESOLVER_SELECTION: open round 1; set fixed 7-day deadline
   RESOLVER_SELECTION --> RESOLVER_VOTING: snapshot candidates; current VRF request selects 5
   RESOLVER_SELECTION --> VOID: no valid committee by fixed deadline
-  RESOLVER_VOTING --> FINALIZED: 3-of-5 matching votes in round 1
+  RESOLVER_VOTING --> FINALIZED: 3 matching YES or NO votes in round 1
+  RESOLVER_VOTING --> VOID: 3 matching VOID votes in round 1
   RESOLVER_VOTING --> RESOLVER_RESELECTION: no quorum after 48 hours
   RESOLVER_RESELECTION --> RESOLVER_REVOTE: open round 2; snapshot and select replacement
   RESOLVER_RESELECTION --> VOID: no valid replacement by fixed deadline
-  RESOLVER_REVOTE --> FINALIZED: 3-of-5 matching votes in round 2
+  RESOLVER_REVOTE --> FINALIZED: 3 matching YES or NO votes in round 2
+  RESOLVER_REVOTE --> VOID: 3 matching VOID votes in round 2
   RESOLVER_REVOTE --> VOID: no quorum after 48 hours
   FINALIZED --> CLAIMABLE: winning positions redeemable
+  VOID --> CLAIMABLE: outstanding YES/NO positions redeemable at proposed 0.5 ACON per share
 ```
+
+`CLAIMABLE` labels claim eligibility in this target diagram; the approved M4 interface still needs to decide whether it is a stored contract state or a view derived from `FINALIZED`/`VOID` and unclaimed balances.
 
 ### Exceptional States
 
@@ -168,7 +173,7 @@ flowchart TB
   voided --> refundRule
 ```
 
-`ORACLE_TIMEOUT` means the system does not have a reliable result yet. It does not silently choose a winner or immediately become `VOID`; it opens the same proposed resolver-selection path used by a challenged result. Each selection round stores a fixed seven-day deadline when the round opens. A failed or delayed VRF request may be retried, but retries reuse the candidate snapshot and cannot extend the deadline. `VOID` is reached only if no valid current request installs a five-resolver committee by that deadline, or a replacement committee fails to reach three matching votes during its 48-hour voting round.
+`ORACLE_TIMEOUT` means the system does not have a reliable result yet. It does not silently choose a winner or immediately become `VOID`; it opens the same proposed resolver-selection path used by a challenged result. Each selection round stores a fixed seven-day deadline when the round opens. A failed or delayed VRF request may be retried, but retries reuse the candidate snapshot and cannot extend the deadline. `VOID` is reached if three resolvers vote VOID, no valid current request installs a five-resolver committee by its fixed deadline, or the replacement committee fails to reach three matching votes during its 48-hour voting round.
 
 ## Proposed Resolver Protocol Decision
 
@@ -178,7 +183,7 @@ flowchart TB
 - Before the first VRF request in a round, the contract snapshots at least five eligible, non-conflicted candidates. Registry changes after the snapshot apply only to later rounds, and retries reuse the same snapshot. The replacement round takes a new snapshot and excludes first-round resolvers when the pool permits.
 - Chainlink VRF on Sepolia selects five distinct addresses from the snapshot. The contract stores one current request ID per market and round; a retry replaces that ID without changing the snapshot or deadline.
 - Only a current request matching the pending market and round may install a committee before the deadline. Superseded, duplicate, mismatched, or late callbacks emit an ignored-fulfillment event and make no state change.
-- A resolver may submit one direct on-chain vote for `YES`, `NO`, or `VOID` per round. Three matching votes finalize the market.
+- A resolver may submit one direct on-chain vote for `YES`, `NO`, or `VOID` per round. Three matching YES or NO votes finalize that winner; three matching VOID votes make the market VOID and enable the proposed VOID claims.
 - If no valid committee exists by a selection round's fixed deadline, any account may trigger `VOID`. A replacement voting round that ends without quorum also becomes `VOID`.
 - Direct voting relies on transaction sender authorization. A future relayed-vote path must support both ECDSA and EIP-1271 signatures.
 
@@ -193,7 +198,7 @@ These are proposed design rules for Milestone 4, not approved or deployed Milest
 - The proposal has a project-team multisignature wallet bootstrap and maintain the resolver pool; this trust assumption still requires team approval.
 - Disputes are decided by multiple resolvers, not one centralized operator.
 - The proposal uses snapshotted candidate pools and current-request-only Chainlink VRF fulfillment to select five eligible resolvers per voting round.
-- Three matching votes are required.
+- Three matching YES/NO votes finalize a winner; three matching VOID votes make the market VOID.
 - One replacement committee is allowed before terminal `VOID` fallback.
 - Oracle and human resolver are separate actors.
 

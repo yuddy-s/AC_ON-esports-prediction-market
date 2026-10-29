@@ -94,7 +94,7 @@ A challenged result or unusable oracle result opens the first committee-selectio
 
 The M4 proposal specifies Chainlink VRF v2.5 on Sepolia to select five distinct addresses from the snapshot. The contract tracks one current request ID per market and round; a retry replaces that ID without changing the snapshot or deadline. A callback may install a committee only when its request ID, market, round, selection state, and deadline are all current. Superseded, duplicate, mismatched, or late callbacks emit an ignored-fulfillment event and make no state change. If no five-address snapshot or valid committee exists by the fixed deadline, any account may trigger `VOID`.
 
-Each selected resolver may cast one direct on-chain `YES`, `NO`, or `VOID` vote during a 48-hour round. Three matching votes finalize the result. If the first committee does not reach quorum, the replacement round takes a new candidate snapshot and excludes first-round resolvers when the eligible pool permits. Failure of the replacement round to reach quorum makes the market `VOID`.
+Each selected resolver may cast one direct on-chain `YES`, `NO`, or `VOID` vote during a 48-hour round. Three matching YES or NO votes finalize that winner; three matching VOID votes make the market `VOID`. If the first committee does not reach quorum, the replacement round takes a new candidate snapshot and excludes first-round resolvers when the eligible pool permits. Failure of the replacement round to reach quorum makes the market `VOID`. Both `FINALIZED` and `VOID` must expose the corresponding claim path.
 
 Direct voting authorizes `msg.sender` and does not require off-chain signature recovery, including for Coinbase Smart Wallet transactions. A future relayed-vote feature must support ECDSA for externally owned accounts and EIP-1271 for contract wallets. Team approval of this proposal, contract interfaces, exact VRF retry delay/configuration, settlement, payouts, and complete `VOID` accounting are deferred to Milestone 4.
 
@@ -146,26 +146,27 @@ The project should not be described as fully trustless or fully permissionless.
 
 ## Planned Market Lifecycle
 
-M3 currently creates markets directly in `OPEN`. Quotes and buys require `block.timestamp < tradingDeadline`, even if the stored state remains `OPEN`. The fuller lifecycle below is future design, not a set of implemented transitions; the current enum order remains the seven states in the approved M3 interface.
+M3 currently creates markets directly in `OPEN`. Quotes and buys require `block.timestamp < tradingDeadline`, even if the stored state remains `OPEN`. The fuller M4 lifecycle below is **proposed**, not implemented; the current seven-state M3 enum and numeric order remain the approved deployed interface. The detailed [target state diagram](../architecture-preview.md#market-state-machine) has the same routes. `CLAIMABLE` denotes claim eligibility here; the M4 interface still needs to decide whether it is a stored state or a view derived from `FINALIZED`/`VOID` and unclaimed balances.
 
 ```text
-CREATED
-  -> OPEN
-  -> CLOSED
-  -> PROPOSED
-  -> FINALIZED
-  -> CLAIMABLE
+REGISTERED FIXTURE -> user-funded OPEN market -> CLOSED at trading deadline
+  -> PROPOSED by authorized oracle
+      -> no challenge for proposed 24 hours -> FINALIZED (YES/NO) -> winning claims
+      -> challenged -> RESOLVER_SELECTION (round 1, fixed seven-day deadline)
+  -> ORACLE_TIMEOUT / unusable result -> RESOLVER_SELECTION (round 1)
+  -> canceled/no-contest -> VOID -> proposed 0.5 ACON/share claims
 
-Dispute path:
-
-PROPOSED
-  -> DISPUTED
-  -> RESOLVER_VOTING
-  -> FINALIZED
-  -> CLAIMABLE
+RESOLVER_SELECTION -> five selected by current VRF request -> RESOLVER_VOTING (48 hours)
+  -> three YES/NO votes -> FINALIZED -> winning claims
+  -> three VOID votes -> VOID -> proposed VOID claims
+  -> no quorum -> RESOLVER_RESELECTION (round 2, new fixed seven-day deadline)
+      -> five selected -> RESOLVER_REVOTE (48 hours)
+          -> three YES/NO votes -> FINALIZED -> winning claims
+          -> three VOID votes, or no quorum at deadline -> VOID -> proposed VOID claims
+  -> no valid committee by either selection deadline -> VOID -> proposed VOID claims
 ```
 
-Possible exceptional states include `POSTPONED`, `VOID`, and `ORACLE_TIMEOUT`.
+`POSTPONED` remains an exceptional case whose close/result treatment needs M4 interface approval. Expiry transitions require a callable on-chain action; a wall-clock deadline alone does not mutate contract storage.
 
 Important invariants:
 

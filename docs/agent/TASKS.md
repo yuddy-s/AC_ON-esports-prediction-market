@@ -71,7 +71,7 @@ Use the validated [`../../deployments/sepolia-m3.json`](../../deployments/sepoli
 
 ## Active Milestone 4 Feature-Complete Queue
 
-Status: **proposed assignments for team review**, not evidence that the features exist. The M3 queue above records completed or deferred M3 work. The [M4 milestone](milestones/MILESTONE_4.md) contains the complete ownership and test plan; the [M4 interface proposal](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md) is the approval gate. Public Sepolia application integration is an M4 target under the team's one-week schedule.
+Status: **proposed assignments for team review**, not evidence that the features exist. The M3 queue above records completed or deferred M3 work. The [M4 milestone](milestones/MILESTONE_4.md) contains the complete ownership and test plan; the [M4 interface proposal](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md) is the approval gate. Public Sepolia application integration is a proposed early M4 team target, pending explicit agreement; the course requires public deployment in M5.
 
 | Priority | Owner | Deliverable and acceptance evidence | Dependency | Status |
 |---|---|---|---|---|
