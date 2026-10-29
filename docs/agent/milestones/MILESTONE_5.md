@@ -4,7 +4,7 @@ Status: planned
 
 ## Course Goal
 
-Present integration test results, defects and fixes, and the deployment plan. The course places the public Ethereum Sepolia deployment in M5. The proposed M4 plan targets an earlier public application as an additional team goal, pending explicit team agreement; M5 repeats and hardens it if achieved, or completes it if still pending. M5 also delivers draft user/developer guides.
+Present integration test results, defects and fixes, and the deployment plan. Full public Vercel/Render/Supabase/Ethereum Sepolia application integration is an M4 stretch target and remains required in M5 if unfinished. M4 requires a new Sepolia contract deployment with focused transaction smoke, plus the complete local Anvil feature lifecycle. M5 repeats and hardens any early public deployment or completes it if still pending. M5 also delivers draft user/developer guides.
 
 ## Testing And Deployment Ownership
 

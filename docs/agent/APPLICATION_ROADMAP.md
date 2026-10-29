@@ -2,7 +2,7 @@
 
 This is the canonical implementation checklist for coding agents and team members. It records what exists, what remains, who owns each area, and whether work can proceed without another team decision. Detailed milestone scope remains in `milestones/` and current assignments remain in `TASKS.md`.
 
-Last reviewed: 2026-10-29 for the proposed Milestone 4 feature-complete plan. Current implementation evidence below remains the M3 baseline; M4 work is not yet implemented.
+Last reviewed: 2026-10-29 for the supplied Milestone 4 decision set. Current implementation evidence below remains the M3 baseline; M4 work is not yet implemented.
 
 PRs #10, #12-#20, and #22-#26 are merged into `dev`; PR #27 promoted the M3 snapshot to `main`. This includes the database/indexer/API foundation, approved M3 trading interface, bounded LMSR library, RPC/ABI worker, ACON token, guarded-buy market integration, transaction lookup, versioned deployment handoff, M3 frontend, and proposed Milestone 4 resolver decision record. ACON and PredictionMarket were deployed from `6e30d516669e51d7f3e4bff0d8670168da9b1f83`; market `0` and a ten-share YES buy are confirmed on Sepolia. The complete guarded-buy path was verified locally from a fresh browser through Anvil, the indexer, FastAPI, and back to the UI. Separately, a local Sepolia worker populated Supabase and passed the local API smoke check. Hosted worker/API/frontend acceptance remains pending.
 
@@ -17,13 +17,13 @@ The canonical M3 integration input is [`deployments/sepolia-m3.json`](../../depl
 - **Blocked**: implementation would guess an authoritative interface, secret, deployment, or protocol decision.
 - **Deferred**: intentionally outside the milestone named in the task, unless the team changes scope.
 
-## Active Milestone 4 Plan For Review
+## Active Milestone 4 Target Design
 
-The team proposes a feature-complete **public Sepolia** application within one week as an additional target; the syllabus requires M4 feature completeness and a testing/integration plan, while public hosting is an M5 deliverable. The M4 hosting target needs explicit team agreement in the discussion PR. This is a proposed schedule, not an implementation status. The [M4 milestone](milestones/MILESTONE_4.md) owns the detailed work distribution and full test plan; [the M4 interface proposal](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md) owns fixture, lifecycle, payout, resolver, event, and role decisions. The [active M4 queue](TASKS.md#active-milestone-4-feature-complete-queue) assigns dependent PRs to Benny, Matthew, Adriel, Yudhveer, and the team. No M4 ABI or resolver rule is frozen until the discussion PR records explicit approval.
+The supplied team decision set makes full public Vercel/Render/Supabase/Sepolia integration an **M4 stretch target**, not an M4 acceptance gate. M4 requires complete implemented features and normal/disputed/timeout/VOID/claim local Anvil flows, component tests, full test plan, final ABI/docs alignment, and fresh Sepolia contracts with focused transaction smoke. The [M4 milestone](milestones/MILESTONE_4.md) owns assignments and tests; [the M4 design decision](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md) owns target protocol rules. The [active queue](TASKS.md#active-milestone-4-feature-complete-queue) assigns dependent PRs. PR #28 must record approvers; exact ABI argument types/indexed fields remain to be frozen before code merges.
 
-Dependency order: validate PandaScore three-game fixture/results access and prediction-product terms; approve fixture registration, YES/NO mapping, separate registrar/proposer/administrator roles, sell/settlement accounting, and the resolver protocol; publish exact-build ABI/events; implement and test contracts, provider/oracle, indexer/API, and frontend in parallel; then integrate on Anvil and public Sepolia. The backend imports fixtures but does not create user markets. A restricted account registers selected verified fixtures on-chain, and users create markets from those registrations. The contract does not query the backend and cannot independently verify the source's truthfulness.
+Dependency order: build the required deterministic mock and manual JSON adapters with organizer evidence; enable optional PandaScore only after written use permission, without a paid plan; freeze exact ABI and Matthew's collateral proof; set up a 2-of-3 Safe, narrow registrar/proposer keys, VRF subscription, and at least ten resolver-only testnet addresses; implement contracts, oracle/indexer/API, and frontend; integrate on Anvil and smoke-test new Sepolia contracts. The backend imports fixtures but does not create user markets. The restricted registrar registers selected fixtures, one market per fixture, and users create markets. The contract cannot query the backend or verify source truth.
 
-The public-deployment work previously assigned to M5 is proposed as an earlier M4 team target, with M5 still responsible for completing or hardening it. This schedule does not convert unimplemented sells, oracle proposals, resolver voting, settlement, VOID, and claims into completed features. Every implementation PR must update its affected README, interface/API/deployment handoff, tests, and recovery docs. After review, align target architecture, diagrams, M5 timing, and presentation language without rewriting the approved M3 trading record.
+Full public integration may finish in M4 as a stretch result; otherwise M5 completes it. This does not convert unimplemented sells, oracle proposals, resolver voting, settlement, VOID, or claims into completed features. Every implementation PR updates its affected README, interface/API/deployment handoff, tests, and recovery docs. Preserve the approved M3 trading record.
 
 ## What An ABI Is
 
@@ -95,7 +95,7 @@ Verification confirmed that the Foundry invariant executed 256 runs and 128,000 
 6. **Done:** PRs #17 and #18 merged transaction lookup, freshness/replay checks, the versioned handoff validator, and the read-only live smoke command.
 7. **Done:** PR #19 published the validated Sepolia deployment manifest, exact-build ABIs, and guarded-buy evidence.
 8. **Done:** PR #20 integrated the M3 frontend and its quote/buy, position, indexed-data, and submitted/mined/indexed flows.
-9. **Done:** PR #22 merged the resolver protocol as a Milestone 4 proposal; it is not approved for implementation until the team records approval.
+9. **Done:** PR #22 merged an earlier resolver proposal; PR #28 contains the supplied M4 decision set. Record named approvers and freeze exact ABI types before dependent code merges.
 
 ### PR #16 source-interface consumer check
 
@@ -252,7 +252,7 @@ The implemented `getMarket` returns six fields, with the market ID supplied by i
 - [x] Deploy the tested ACON and M3 market contracts to Sepolia and publish their addresses/blocks.
 - [x] Execute and verify a live guarded buy, including exact payment, positions, confirmations, and `TradeExecuted` decoding.
 - [ ] In M4, implement oracle proposal/challenge state transitions.
-- [ ] After explicit team approval and the M4 ABI freeze, implement the proposed resolver protocol: multisignature-administered eligibility, snapshotted candidate pools, Chainlink VRF selection with stale-callback rejection, address-level conflict exclusions, two 48-hour voting rounds, three-of-five quorum, fixed seven-day committee-formation deadlines, and finalization.
+- [ ] After named PR approval and exact M4 ABI freeze, implement the decided resolver protocol: Safe-administered eligibility, snapshotted candidate pools, Chainlink VRF with stale-callback rejection, address-level conflicts, two 48-hour voting rounds, three-of-five quorum, fixed seven-day selection deadlines, and finalization/VOID.
 - [ ] In M4, implement settlement, VOID behavior, and single-claim payout protection.
 - [ ] Maintain unit/security tests, deployment tests, static checks, and contract CI.
 
@@ -297,7 +297,7 @@ Validation for the deployed `6e30d51` contract source includes Foundry format/bu
 
 The resolver committee is **not required for Yudhveer's Milestone 3 implementation**. Benny's Solidity contracts must authoritatively select resolvers, reject conflicts, count votes, apply quorum/timeouts, and finalize or void markets. Yudhveer later indexes those emitted facts and exposes them through FastAPI; PostgreSQL must never select a committee or decide an outcome.
 
-The proposed resolver design for Milestone 4 remains subject to explicit team approval, especially for the project-team multisignature administrator and Chainlink VRF dependency. Creator, proposer, challenger, trader, and position-holder addresses are excluded at the address level. Each selection round has a fixed seven-day deadline that retries cannot extend, snapshots its eligible candidate pool before its first request, and accepts only the current VRF request ID for the pending market and round before the deadline. Stale, duplicate, mismatched, and late callbacks make no state change. Three matching direct on-chain votes decide each 48-hour voting round; one replacement round is allowed before terminal `VOID`. Direct voting does not require signature recovery, while any future relayed voting must support ECDSA and EIP-1271. Implementation remains blocked on explicit protocol approval and the Milestone 4 contract/event ABI freeze.
+The supplied M4 design assigns administration to a 2-of-3 Sepolia Safe, uses Chainlink VRF v2.5 and test LINK, and excludes creator, fixture registrar, proposer, challenger, trader, position holder, and resolver admin addresses. Each selection round has a fixed seven-day deadline and candidate snapshot; 30-minute retries cannot extend it. Only the current request ID can install a committee; stale/duplicate/mismatched/late callbacks do nothing. Three matching direct votes in 48 hours finalize YES/NO or void on VOID; round 1 without quorum opens one replacement round and round 2 without quorum ends VOID. The team must record named approval and freeze exact contract/event ABI types before dependent implementation merges.
 
 For M3, Yudhveer may implement a deterministic mock `ResultProvider` boundary after the trading path is stable. A production esports provider, an outcome-signing service, challenges, and resolver execution remain M4 work.
 
@@ -307,7 +307,7 @@ Agents must stop and obtain a team decision before committing any of these as au
 
 - payment asset or token decimals;
 - a changed enum order, function signature, event signature, or numeric unit;
-- implementation of, or any authoritative change to, the proposed resolver eligibility, randomness, snapshot, request-identity, conflict, quorum, timeout, or fallback rules before team approval;
+- implementation of, or any authoritative change to, the decided resolver eligibility, randomness, snapshot, request-identity, conflict, quorum, timeout, or fallback rules before named PR approval and the exact ABI freeze;
 - which esports source is authoritative and what evidence/finality means;
 - private-key custody, signer permissions, or production secret placement;
 - a production migration or deployment requiring shared credentials.
