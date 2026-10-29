@@ -70,25 +70,33 @@ The FastAPI service runs from `backend/` and exposes indexed markets, trades, tr
 
 The sample matches are fake display data only. They are not on-chain markets and must not be treated as authoritative market state.
 
+## Milestone 4 Target Design
+
+Status: [team decision set supplied for PR #28](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md); no fixture registration, sell, proposal, challenge, resolver, settlement, or claim code is deployed. The [M4 owner/test plan](milestones/MILESTONE_4.md) requires local feature completeness and a fresh Sepolia contract smoke test; public Vercel/Render/Supabase integration is a stretch target and remains an M5 deliverable if unfinished.
+
+The fixture flow is deterministic mock or manual JSON fixture/result import with organizer evidence → restricted on-chain registration of selected fixture IDs and Team A/YES, Team B/NO → one user-funded market per registered fixture. The key is `keccak256(abi.encode(providerId, gameId, externalMatchId))`. A PandaScore adapter is optional only with written permission for this use; no paid plan is required. Importing a listing does not create a market. The contract checks its registry, so the registrar/source remain trusted inputs. The backend and PostgreSQL remain derived; users submit trades, challenges, resolver votes, and claims through wallets.
+
+The M4 design adds guarded LMSR sells rounded down with `minReturn`, 1 ACON per winning share, 0.5 ACON per outstanding share on VOID, separate 10 ACON challenge-bond accounting, and creator surplus only above claim reserves after settlement. Matthew must prove fixed-point solvency before payout code merges. A proposal is immutable and has a 24-hour challenge window. After exact events/reads freeze, the indexer/API will project sells, proposals, challenges, committees/votes, outcomes, and claims; contract reads remain authoritative for spendable and claimable amounts.
+
 ## Oracle
 
 Status: planned.
 
-No oracle service exists yet. Intended behavior: compare approved esports API results, propose outcomes on-chain when rules allow, route disagreements or timeouts to dispute/manual paths, and avoid unilateral settlement of disputed markets.
+No oracle service exists yet. M4 requires deterministic mock and manual JSON adapters with organizer evidence URL/hash; PandaScore is optional only after written permission. Result parsing is separate from a least-privilege on-chain proposer. Proposals are immutable; corrections use challenges. A proposer cannot settle a challenged market. Seven days without a proposal after the trading deadline enables anyone to start resolver selection.
 
 ## Resolver Protocol
 
-Status: proposed for team review; not approved or implemented.
+Status: decision set supplied for PR #28; not implemented. Approving members still need recording in the PR.
 
-Resolution remains authoritative on-chain. The proposal assigns an on-chain resolver allowlist to a project-team multisignature wallet and requires an event for every admission or removal. Registry changes apply to future committee selections; removal does not rewrite an active voting round. PostgreSQL may project registry, selection, vote, deadline, and outcome events, but it must never select resolvers or decide an outcome.
+Resolution remains authoritative on-chain. A 2-of-3 Sepolia Safe controlled by Benny, Matthew, and Adriel owns the allowlist, role recovery, and VRF subscription. Registry changes apply to future selections; removal does not rewrite an active round. PostgreSQL may project registry, selection, votes, deadlines, and outcomes, but never selects resolvers or decides outcomes.
 
-A challenged result or unusable oracle result opens the first committee-selection round. A first voting round without quorum opens one replacement selection round. Each selection round stores one fixed seven-day deadline when the round opens; retries cannot restart or extend that clock. Before the first VRF request, the contract snapshots the round's eligible, non-conflicted candidates. Registry changes after that snapshot apply only to later rounds, and retries reuse the same snapshot. The contract excludes the market creator, oracle proposer, challenger, and any address recorded on-chain as having traded in or holding a position in the market. These conflicts are enforceable only at the address level.
+A challenged result or seven days without any proposal opens round 1. Round 1 without quorum opens exactly one replacement round. Each selection round stores a fixed seven-day deadline and eligible-candidate snapshot; a retry after 30 minutes reuses both. Exclusions cover creator, fixture registrar, proposer, challenger, trader, position holder, resolver-admin address, and committee duplicates. Checks are address-level only. At least ten resolver-only testnet addresses are recommended; four humans control them, so this is address-level separation.
 
-Chainlink VRF on Sepolia selects five distinct addresses from the snapshot. The contract tracks one current request ID per market and round; a retry replaces that ID without changing the snapshot or deadline. A callback may install a committee only when its request ID, market, round, selection state, and deadline are all current. Superseded, duplicate, mismatched, or late callbacks emit an ignored-fulfillment event and make no state change. If no five-address snapshot or valid committee exists by the fixed deadline, any account may trigger `VOID`.
+Chainlink VRF v2.5 on Sepolia selects five distinct addresses using one random word, three block confirmations, and test LINK billing. The contract tracks one current request ID per market/round. Superseded, duplicate, mismatched, or late callbacks emit `VRFFulfillmentIgnored` without state change. If no valid committee exists by the fixed deadline, anyone may trigger `VOID`.
 
-Each selected resolver may cast one direct on-chain `YES`, `NO`, or `VOID` vote during a 48-hour round. Three matching votes finalize the result. If the first committee does not reach quorum, the replacement round takes a new candidate snapshot and excludes first-round resolvers when the eligible pool permits. Failure of the replacement round to reach quorum makes the market `VOID`.
+Each selected resolver casts one direct YES, NO, or VOID vote during a 48-hour period. Three matching YES or NO votes finalize the winner; three VOID votes make the market VOID. Round 2 takes a new snapshot and excludes round-1 resolvers if five alternatives exist; otherwise still-eligible round-1 addresses may be reused. No round-2 quorum leads to VOID. Both terminal states expose claims.
 
-Direct voting authorizes `msg.sender` and does not require off-chain signature recovery, including for Coinbase Smart Wallet transactions. A future relayed-vote feature must support ECDSA for externally owned accounts and EIP-1271 for contract wallets. Team approval of this proposal, contract interfaces, exact VRF retry delay/configuration, settlement, payouts, and complete `VOID` accounting are deferred to Milestone 4.
+Direct voting authorizes `msg.sender`; relayed voting and EIP-1271 are outside M4. Exact Solidity types/indexed event fields and Matthew's collateral proof still gate dependent implementation. The approved event/read categories are in the [M4 design decision](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md).
 
 ## Indexer
 
@@ -138,26 +146,26 @@ The project should not be described as fully trustless or fully permissionless.
 
 ## Planned Market Lifecycle
 
-M3 currently creates markets directly in `OPEN`. Quotes and buys require `block.timestamp < tradingDeadline`, even if the stored state remains `OPEN`. The fuller lifecycle below is future design, not a set of implemented transitions; the current enum order remains the seven states in the approved M3 interface.
+M3 creates markets directly in `OPEN` and checks the deadline without changing stored state. The decided M4 lifecycle below is **not implemented**; the current M3 enum remains the deployed interface. M4 stores only `OPEN`, `CLOSED`, `PROPOSED`, `DISPUTED`, `RESOLVER_SELECTION`, `RESOLVER_VOTING`, `FINALIZED`, and `VOID`, in that order. Resolver round 1/2 is stored separately. `CLAIMABLE` is a derived read, never a state. The [target diagram](../architecture-preview.md#market-state-machine) uses the same transitions.
 
 ```text
-CREATED
-  -> OPEN
-  -> CLOSED
-  -> PROPOSED
-  -> FINALIZED
-  -> CLAIMABLE
+REGISTERED FIXTURE -> one user-funded OPEN market -> CLOSED at deadline or evidenced early close
+  -> PROPOSED (immutable YES/NO/VOID and evidence; 24-hour challenge window)
+      -> no challenge -> FINALIZED (YES/NO) or VOID -> corresponding claims
+      -> first challenge + 10 ACON bond -> DISPUTED -> RESOLVER_SELECTION (round 1)
+  -> no proposal seven days after trading deadline -> RESOLVER_SELECTION (round 1)
 
-Dispute path:
-
-PROPOSED
-  -> DISPUTED
-  -> RESOLVER_VOTING
-  -> FINALIZED
-  -> CLAIMABLE
+RESOLVER_SELECTION (round 1 or 2; fixed seven-day deadline)
+  -> current VRF request selects five -> RESOLVER_VOTING (48 hours)
+  -> no valid committee by deadline -> VOID -> claims
+RESOLVER_VOTING
+  -> three YES/NO votes -> FINALIZED -> winning claims
+  -> three VOID votes -> VOID -> both-outcome claims
+  -> round 1 no quorum -> RESOLVER_SELECTION (round 2, new snapshot/deadline)
+  -> round 2 no quorum -> VOID -> both-outcome claims
 ```
 
-Possible exceptional states include `POSTPONED`, `VOID`, and `ORACLE_TIMEOUT`.
+Postponement is fixture metadata; it never reopens or extends trading. `ORACLE_TIMEOUT` and `POSTPONED` are not stored market states. Expiry transitions require a callable on-chain action; a wall-clock deadline alone does not mutate storage.
 
 Important invariants:
 
@@ -215,5 +223,5 @@ Contract setup and deployment commands are documented in `contracts/README.md`. 
 - Coinbase Smart Wallet connects and reads but cannot send Ethereum Sepolia transactions; use MetaMask for the hosted Sepolia demo. The local Anvil demo uses the development wallet.
 - The reproducible local cross-layer flow has been manually verified, but it is not yet an automated end-to-end CI job.
 - Local SQLite is suitable for the reproducible Anvil demo; PostgreSQL/Supabase preserves exact large-integer Sepolia projections and passed the local API smoke check.
-- Resolver randomness, address-level conflicts, quorum, snapshot, retry, and timeout/liveness behavior are proposed for Milestone 4; team approval, contracts, and the ABI remain outstanding.
+- Resolver randomness, address-level conflicts, quorum, snapshot, retry, and timeout/liveness behavior are part of the supplied M4 decision set; named PR approval, contracts, and exact ABI remain outstanding.
 - Backend sample-match data is fake/off-chain and exists only for Milestone 2 fallback display.

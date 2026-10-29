@@ -2,7 +2,7 @@
 
 Use this file to coordinate current work. Official course artifacts may live outside the repo, but this list records who owns each slice so agents do not duplicate or drift.
 
-## Course Artifact Assignments
+## Historical Milestone 2 Course Artifact Assignments
 
 | Owner | Area | Assignment | Repo Impact | Status |
 |---|---|---|---|---|
@@ -11,7 +11,7 @@ Use this file to coordinate current work. Official course artifacts may live out
 | Matthew | LMSR/requirements | Section 3 LMSR + liquidity funding rows, Section 2 trade sequence diagram, renumber requirements FR-01/NFR-01, claim-winnings story | Keep LMSR/trading assumptions aligned with future contract work. | assigned |
 | Yudhveer | architecture/backend/trust | Section 1 architecture diagram with on/off-chain labels, oracle and resolver separation, Section 2 resolution sequence diagram, Section 3 trust model, Section 4 backend/DB rows, branch protection | Keep architecture/trust/backend notes aligned with implementation. | assigned |
 
-## Milestone 2 Coding Queue
+## Historical Milestone 2 Coding Queue
 
 | Priority | Owner | Subsystem | Task | Dependencies | Status |
 |---|---|---|---|---|---|
@@ -26,7 +26,7 @@ Use this file to coordinate current work. Official course artifacts may live out
 | P1 | Yudhveer/Benny | oracle/indexer | Document or scaffold basic event/oracle boundary. | contract event plan | ready |
 | P1 | team | docs/demo | Keep README and Milestone 2 demo checklist current. | working prototype state | ready |
 
-## Done
+## Historical Milestone 2 Done
 
 | Owner | Subsystem | Task | Status |
 |---|---|---|---|
@@ -35,7 +35,7 @@ Use this file to coordinate current work. Official course artifacts may live out
 
 ## Product Ownership: Milestones 3-6
 
-These ownership areas remain stable through the final product so later milestones extend existing work instead of redistributing subsystems.
+These ownership areas remain stable through the final product. The active [Milestone 4 assignments](milestones/MILESTONE_4.md#work-distribution) below make the deliverables and handoffs more specific.
 
 | Owner | Primary product ownership | Testing and deployment ownership |
 |---|---|---|
@@ -45,9 +45,9 @@ These ownership areas remain stable through the final product so later milestone
 | Yudhveer | FastAPI, PostgreSQL, event indexer, oracle providers/signer operations, resolver projections/APIs, replay/reorganization recovery, and trust/security documentation. | Pytest and cross-layer integration coverage; Render/Supabase deployment. |
 | Team | ABI/event freezes, secrets policy, live demos, cross-layer acceptance, reports, and release validation. | Review required across subsystem boundaries. |
 
-## Milestone 3 MVP Queue
+## Historical Milestone 3 MVP Queue
 
-The guarded-buy implementation is complete and the full contract-to-indexer-to-API-to-frontend path has been verified on local Anvil. The remaining M3 integration task is to repeat that acceptance path with the hosted Sepolia worker, PostgreSQL/API services, and deployed frontend. Resolver protocol rules are recorded as a proposal in merged PR #22 and still require explicit team approval before the Milestone 4 contract/event ABI can freeze; full committee execution remains deferred until that milestone.
+The guarded-buy implementation is complete and the full contract-to-indexer-to-API-to-frontend path has been verified on local Anvil. The remaining M3 integration task is hosted Sepolia acceptance. PR #22 records the earlier resolver proposal; the M4 decision set in PR #28 supersedes it for target design. Exact M4 event/function ABI types and approval names still need recording before dependent code merges.
 
 The approved cross-layer freeze is documented in [`interfaces/M3_TRADING_INTERFACE.md`](interfaces/M3_TRADING_INTERFACE.md). Dependent contract, indexer, and frontend work must implement that interface or update the decision record through team review.
 
@@ -63,8 +63,23 @@ The approved cross-layer freeze is documented in [`interfaces/M3_TRADING_INTERFA
 | P0 | Adriel | frontend | Implement quote/buy and submitted/mined/indexed UI states. | published M3 addresses/ABIs and indexed backend endpoints | merged in PR #20; M3 ABI/config, quote/buy, positions, freshness guard, and transaction states verified in the local Anvil flow |
 | P1 | team | integration | Run the contract-to-indexer-to-API-to-frontend demo against the deployed M3 contracts. | hosted worker/API/frontend configuration | complete on local Anvil; hosted Sepolia acceptance remains pending |
 | P1 | Yudhveer | oracle | Add provider and least-privilege signer boundaries with deterministic mock tests. | proposal/challenge ABI | blocked |
-| P2 | Benny | resolver contracts | After approval, implement authoritative eligibility, snapshotted candidate pools, current-request-only Chainlink VRF selection, conflict checks, two 48-hour voting rounds, three-of-five quorum, fixed seven-day committee-formation deadlines, and finalization. | explicit approval of PR #22 protocol proposal and Milestone 4 ABI freeze | proposal under review; implementation deferred to Milestone 4 |
+| P2 | Benny | resolver contracts | Implement authoritative eligibility, snapshotted candidate pools, current-request-only Chainlink VRF selection, conflict checks, two 48-hour voting rounds, three-of-five quorum, fixed seven-day committee deadlines, and finalization. | PR #28 team approval record and exact M4 ABI freeze | M4 target decided; implementation pending |
 | P2 | Yudhveer | resolver backend | Index resolver events and expose committee, vote, quorum, and timeout status without making authoritative decisions. | resolver event interface | deferred to Milestone 4 |
 | P2 | team | CI/tests | Add a cross-layer integration job or reproducible local integration harness. | working vertical slice | reproducible local flow documented and manually verified; automated cross-layer CI remains a follow-up |
 
-Use the validated [`../../deployments/sepolia-m3.json`](../../deployments/sepolia-m3.json) for M3 addresses, blocks, versioned ABIs, and creation/trade transactions. The [deployment and live-buy evidence](../../contracts/deployments/sepolia-m3-2026-10-21/README.md) is published in PR #19. Market `0` closes for trading on **2026-10-28 at 17:01:12 UTC**. PR #20 updated the frontend to the M3 ABI and environment-driven addresses, including the six-output `getMarket` representation. Use MetaMask for Sepolia writes because Coinbase Smart Wallet does not support sending transactions on Ethereum Sepolia.
+Use the validated [`../../deployments/sepolia-m3.json`](../../deployments/sepolia-m3.json) for M3 addresses, blocks, versioned ABIs, and creation/trade transactions. The [deployment and live-buy evidence](../../contracts/deployments/sepolia-m3-2026-10-21/README.md) is published in PR #19. Market `0` stopped accepting trades on **2026-10-28 at 17:01:12 UTC**; use a newly funded market for any later trade demo. PR #20 updated the frontend to the M3 ABI and environment-driven addresses, including the six-output `getMarket` representation. Use MetaMask for Sepolia writes because Coinbase Smart Wallet does not support sending transactions on Ethereum Sepolia.
+
+## Active Milestone 4 Feature-Complete Queue
+
+Status: **M4 target assignments recorded; implementation pending**. The [M4 milestone](milestones/MILESTONE_4.md) contains detailed ownership/tests, and the [M4 design decision](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md) supplies target rules. PR #28 still needs approving names and an exact ABI freeze. Full public application integration is an M4 stretch target and remains required in M5 if unfinished.
+
+| Priority | Owner | Deliverable and acceptance evidence | Dependency | Status |
+|---|---|---|---|---|
+| P0 | Team | Record named approval of the supplied fixture, lifecycle, economics, challenge, resolver, hosting, and secrets decisions; freeze exact ABI argument types/indexed fields and deployment handoff. | VRF v2.5 test LINK/subscription, at least ten clean resolver addresses, 2-of-3 Safe, Matthew's liability proof | decision set supplied; named approval and ABI freeze pending |
+| P0 | Matthew | `quoteSell`/guarded-sell math with proceeds rounded down; collateral, winning/VOID reserves, 10 ACON bond separation, and creator-surplus invariants; review payout code. | M4 decision set and bounded LMSR | planned; not implemented |
+| P0 | Benny | One-market-per-fixture lifecycle, guarded sell, immutable YES/NO/VOID proposal, challenge bond, Safe-owned resolver registry/VRF v2.5/votes, finalization/VOID, single-use claims; publish exact ABI, Sepolia deployment/transaction smoke, Foundry evidence. | Named approval, exact ABI table, Matthew's accounting proof | planned; not implemented |
+| P0 | Yudhveer | Required deterministic mock and manual JSON fixture/result adapters with organizer evidence; optional PandaScore only with written permission; separate narrow registrar/proposer keys, audit/rotation, event projections/Alembic/API/history/portfolio, replay tests. Run one indexer locally and host Render/Supabase if stretch target lands. | Exact role/event ABI and deployment handoff | planned; not implemented |
+| P0 | Adriel | Multi-market fixture browsing/creation, guarded sell, portfolio, challenge, resolver vote, finalization/VOID and claim UI, wallet/freshness/error/component tests; Vercel deployment if hosting stretch lands. | Exact ABI, API/manifest, registered fixtures | planned; not implemented |
+| P0 | Team | Automated Anvil normal/disputed/timeout/VOID/claim paths, Sepolia contract deployment/transaction smoke, indexed API equality, docs, and rehearsal; full public cross-layer flow if stretch target lands. | Integrated subsystem PRs and funded eligible resolver addresses | planned; no M4 integration run yet |
+
+**Documentation on every code PR:** each owner updates the affected README, interface/API/deployment handoff, tests, and runbook. Update current-state architecture and top-level README only when the corresponding path is implemented and verified. The planning PR should reconcile target-design docs and M5 timing after team decisions, without changing M3 implementation claims.
