@@ -67,12 +67,19 @@ async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   return (await response.json()) as T;
 }
 
+// registration_request_status arrives with the registration API (#31); an
+// older backend omits it, which means no request.
+export function normalizeFixture(raw: Fixture): Fixture {
+  return { ...raw, registration_request_status: raw.registration_request_status ?? null };
+}
+
 // The API caps a page at 100; the M4 catalog is a short curated list.
 export async function fetchFixtures(signal?: AbortSignal): Promise<FixturePage> {
   if (FIXTURE_SOURCE === "mock") {
     return { items: MOCK_FIXTURES, total: MOCK_FIXTURES.length, limit: 100, offset: 0 };
   }
-  return getJson<FixturePage>("/api/fixtures?limit=100&offset=0", signal);
+  const page = await getJson<FixturePage>("/api/fixtures?limit=100&offset=0", signal);
+  return { ...page, items: page.items.map(normalizeFixture) };
 }
 
 // Resolves to null on 404 so the page can say "not found" instead of failing.
@@ -81,7 +88,7 @@ export async function fetchFixture(id: number, signal?: AbortSignal): Promise<Fi
   const response = await fetch(`${API_URL}/api/fixtures/${id}`, { signal });
   if (response.status === 404) return null;
   if (!response.ok) throw new Error(`/api/fixtures/${id} returned HTTP ${response.status}`);
-  return (await response.json()) as Fixture;
+  return normalizeFixture((await response.json()) as Fixture);
 }
 
 // All source observations, oldest first. A later observation can disagree
