@@ -72,10 +72,34 @@ export const MIN_LEAD_MINUTES = 30;
 
 export type Eligibility = { ok: true } | { ok: false; reason: string };
 
+// Terminal failures the backend lets a player re-authorize with a fresh
+// signature (registration_service.REAUTHORIZABLE_FAILURES). Submitted,
+// uncertain and confirmed jobs are never replaced.
+export const REAUTHORIZABLE_FAILURES = new Set([
+  "fixture_changed",
+  "fixture_ineligible",
+  "transaction_reverted",
+  "attempts_exhausted",
+]);
+
+export interface JobSummary {
+  status: RegistrationStatus;
+  error_code: string | null;
+}
+
+// Whether a new signed request is allowed given the fixture's current job.
+// The catalog only carries the job status, so a terminal failure needs the
+// job itself (its error_code) to decide.
+export function allowsNewRequest(status: RegistrationStatus | null, job: JobSummary | null | undefined): boolean {
+  if (status === null) return true;
+  if (status !== "terminal_failure") return false;
+  return job?.status === "terminal_failure" && job.error_code !== null && REAUTHORIZABLE_FAILURES.has(job.error_code);
+}
+
 // Mirrors the backend's registration preconditions so the UI can explain why
 // a fixture cannot be requested. The backend still re-checks everything.
-export function registrationEligibility(fixture: Fixture, nowMs: number): Eligibility {
-  if (fixture.registration_request_status !== null) {
+export function registrationEligibility(fixture: Fixture, nowMs: number, job?: JobSummary | null): Eligibility {
+  if (!allowsNewRequest(fixture.registration_request_status, job)) {
     return { ok: false, reason: "A registration request already exists for this fixture." };
   }
   if (fixture.match_status !== "scheduled") {
@@ -84,11 +108,12 @@ export function registrationEligibility(fixture: Fixture, nowMs: number): Eligib
   if (fixture.latest_result !== null) {
     return { ok: false, reason: "This match already has a recorded result." };
   }
-  if (!fixture.evidence_url || !fixture.evidence_hash) {
+  if (!fixture.evidence_url || !fixture.evidence_hash || fixture.team_a_id === fixture.team_b_id) {
     return { ok: false, reason: "This fixture has no organizer evidence." };
   }
+  // Strict, like the backend: a start exactly 30 minutes away is too near.
   const minutesLeft = (Date.parse(fixture.scheduled_start) - nowMs) / 60_000;
-  if (minutesLeft < MIN_LEAD_MINUTES) {
+  if (minutesLeft <= MIN_LEAD_MINUTES) {
     return { ok: false, reason: `Registration closes ${MIN_LEAD_MINUTES} minutes before the scheduled start.` };
   }
   return { ok: true };
