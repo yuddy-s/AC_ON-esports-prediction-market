@@ -144,7 +144,7 @@ def test_fresh_sqlite_database_upgrades_through_fixture_migration(tmp_path: Path
         tables = set(inspect(connection).get_table_names())
         revision = connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
     engine.dispose()
-    assert {"fixtures", "fixture_result_observations", "registration_challenges", "fixture_registration_jobs", "registration_job_events", "oracle_result_assessments", "markets", "trades"} <= tables
+    assert {"fixtures", "fixture_result_observations", "registration_challenges", "fixture_registration_jobs", "registration_job_events", "oracle_result_assessments", "oracle_proposal_intents", "oracle_proposal_events", "markets", "trades"} <= tables
     assert revision == "20261029_0004"
 
 

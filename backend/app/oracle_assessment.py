@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from app.models import Fixture, FixtureResultObservation, OracleResultAssessment
@@ -50,8 +50,14 @@ def assess_imported_results(session: Session, *, now: datetime | None = None) ->
         outcome = classify_result(fixture, observation)
         previous = session.scalar(
             select(OracleResultAssessment)
+            .join(FixtureResultObservation, OracleResultAssessment.observation_id == FixtureResultObservation.id)
             .where(OracleResultAssessment.fixture_id == fixture.id)
-            .order_by(OracleResultAssessment.id.desc())
+            .where(or_(
+                FixtureResultObservation.source_updated_at < observation.source_updated_at,
+                and_(FixtureResultObservation.source_updated_at == observation.source_updated_at,
+                     FixtureResultObservation.id < observation.id),
+            ))
+            .order_by(FixtureResultObservation.source_updated_at.desc(), FixtureResultObservation.id.desc())
             .limit(1)
         )
         session.add(OracleResultAssessment(
