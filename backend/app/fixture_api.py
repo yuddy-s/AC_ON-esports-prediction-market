@@ -44,6 +44,7 @@ class FixtureRead(BaseModel):
     source_updated_at: datetime
     imported_at: datetime
     latest_result: ResultObservationRead | None
+    registration_request_status: str | None
     authoritative: bool = False
 
 
@@ -122,6 +123,9 @@ def _fixture_read(session: Session, fixture: Fixture) -> FixtureRead:
         .order_by(FixtureResultObservation.source_updated_at.desc(), FixtureResultObservation.id.desc())
         .limit(1)
     )
+    registration_status = session.scalar(
+        select(FixtureRegistrationJob.status).where(FixtureRegistrationJob.fixture_id == fixture.id)
+    )
     return FixtureRead(
         id=fixture.id,
         provider_id=fixture.provider_id,
@@ -138,6 +142,7 @@ def _fixture_read(session: Session, fixture: Fixture) -> FixtureRead:
         source_updated_at=_aware(fixture.source_updated_at),
         imported_at=_aware(fixture.imported_at),
         latest_result=_result_read(latest) if latest else None,
+        registration_request_status=registration_status,
     )
 
 

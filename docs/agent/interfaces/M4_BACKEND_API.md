@@ -4,7 +4,7 @@ Status: **draft stacked PRs #30–#32**, 2026-10-30. These routes are off-chain 
 
 ## Fixture browsing
 
-- `GET /api/fixtures?game_id=valorant&match_status=scheduled&limit=50&offset=0` returns `{items,total,limit,offset}`. Each item has source identity, scheduled start, status, Team A/B IDs and names, evidence URL/hash, latest result, and `authoritative:false`.
+- `GET /api/fixtures?game_id=valorant&match_status=scheduled&limit=50&offset=0` returns `{items,total,limit,offset}`. Each item has source identity, scheduled start, status, Team A/B IDs and names, evidence URL/hash, latest result, nullable `registration_request_status`, and `authoritative:false`. That status describes the backend job, not independent chain proof.
 - `GET /api/fixtures/{id}` returns one item or 404. `GET /api/fixtures/{id}/results` returns append-only observations oldest first.
 - The catalog ID is an off-chain integer. It is **not** Benny's `bytes32` fixture key. Organizer evidence is imported by the operator; the API does not prove source truth.
 
@@ -21,4 +21,4 @@ EOA signatures are the M4 registration scope. Coinbase Smart Wallet can connect 
 
 ## Indexed market data
 
-The M4 market, history, resolution, committee, claim, and portfolio API shapes are pending the exact event ABI. They must include chain ID, contract address, ABI version, safe block, and freshness. All indexed values are derived; frontend contract reads decide spendable positions, claimability, and whether a write is currently valid. Do not use an off-chain job status or result assessment as a settlement result.
+`GET /api/indexer/status` now includes nullable `abi_version` alongside chain, contract, safe block, and freshness; compare all of them to the selected deployment. The M4 market, history, resolution, committee, claim, and portfolio API shapes are pending the exact event ABI. All indexed values are derived; frontend contract reads decide spendable positions, claimability, and whether a write is currently valid. Do not use an off-chain job status or result assessment as a settlement result.
