@@ -14,6 +14,7 @@ import {
   winnerName,
 } from "./fixtureStatus";
 import { shortenAddress } from "./format";
+import { RegistrationRequest } from "./RegistrationRequest";
 import { useNowSeconds } from "./useNow";
 
 export function FixtureDetail({ id }: { id: number }) {
@@ -105,6 +106,7 @@ function FixtureBody({
         {fixture.registration_request_status === null && !eligibility.ok && (
           <p className="mt-1 text-sm text-neutral-400">{eligibility.reason}</p>
         )}
+        <RegistrationRequest fixture={fixture} nowMs={now * 1000} />
         <button
           type="button"
           disabled
