@@ -60,3 +60,24 @@ export async function fetchRecentMarketTrades(
   const last = await getJson<TradePage>(`${path}?limit=${count}&offset=${first.total - count}`, signal);
   return { trades: last.items, total: last.total };
 }
+
+const PAGE = 100; // the API's maximum page size
+
+// Every indexed trade for a market, oldest first, for the price chart.
+// Stops after maxTrades so a very busy market cannot loop forever.
+export async function fetchAllMarketTrades(
+  marketId: bigint,
+  signal?: AbortSignal,
+  maxTrades = 2_000,
+): Promise<{ trades: IndexedTrade[]; total: number }> {
+  const path = `/api/markets/${marketId}/trades`;
+  const trades: IndexedTrade[] = [];
+  let total = 0;
+  do {
+    const page = await getJson<TradePage>(`${path}?limit=${PAGE}&offset=${trades.length}`, signal);
+    total = page.total;
+    trades.push(...page.items);
+    if (page.items.length === 0) break;
+  } while (trades.length < total && trades.length < maxTrades);
+  return { trades, total };
+}

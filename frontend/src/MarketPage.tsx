@@ -3,6 +3,7 @@ import { formatPercent, formatTokenAmount, shortenAddress } from "./format";
 import { isTradable, lmsrPrices } from "./lmsr";
 import { formatCountdown } from "./marketTime";
 import { MARKET_STATES } from "./predictionMarket";
+import { PriceChart } from "./PriceChart";
 import { RecentTrades } from "./RecentTrades";
 import { TradePanel } from "./TradePanel";
 import { Panel, PanelTitle, SplitBar, Stat, Tag } from "./ui";
@@ -40,6 +41,7 @@ function MarketBody({ market }: { market: Market }) {
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="flex flex-col gap-6">
+          <PriceChart marketId={market.id} />
           <Panel>
             <PanelTitle tag="Market" title="Details" />
             <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
