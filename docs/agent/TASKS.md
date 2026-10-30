@@ -73,6 +73,8 @@ Use the validated [`../../deployments/sepolia-m3.json`](../../deployments/sepoli
 
 Status: **M4 target approved in merged PR #28; implementation pending**. The [M4 milestone](milestones/MILESTONE_4.md) contains detailed ownership/tests, and the [M4 design decision](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md) supplies target rules. Exact ABI types/indexed fields still need a freeze. Full public application integration is an M4 stretch target and remains required in M5 if unfinished.
 
+For each owner, see [M4 Owner Handoffs And Roadblocks](milestones/MILESTONE_4.md#owner-handoffs-and-roadblocks) for what can start now, the specific artifact or access that blocks later work, and who must publish the handoff. A dependency below does not block the owner's independent preparation.
+
 | Priority | Owner | Deliverable and acceptance evidence | Dependency | Status |
 |---|---|---|---|---|
 | P0 | Team | Freeze exact ABI argument types/indexed fields and deployment handoff for the PR #28-approved fixture, lifecycle, economics, challenge, resolver, hosting, and secrets design. | VRF v2.5 test LINK/subscription, at least ten clean resolver addresses, 2-of-3 Safe, Matthew's liability proof | design approved; ABI freeze pending |
