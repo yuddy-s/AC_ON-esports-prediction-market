@@ -70,6 +70,46 @@ python -m scripts.seed_sample_matches
 
 The seed script creates the `sample_matches` table if needed and upserts three fake sample matches.
 
+## Milestone 4 Fixture Catalog (first backend slice)
+
+The fixture catalog is imported **off-chain source data**, not an on-chain registration or market. An operator imports a JSON file from `backend/` after `alembic upgrade head` has applied revision `20261029_0002` to the chosen database. Use a local database for development; do not point the importer at Supabase unintentionally. No PandaScore account, API token, registrar key, or M4 ABI is needed for this slice.
+
+```bash
+python -m scripts.import_fixtures path/to/fixtures.json --validate-only
+python -m scripts.import_fixtures path/to/fixtures.json
+```
+
+The file has `fixtures` and `results` arrays. A later file may contain only `results` for fixtures already imported. IDs are source identifiers, not the on-chain fixture key; Benny's exact `abi.encode` types remain to be frozen. Example **fictional** record:
+
+```json
+{
+  "fixtures": [{
+    "provider_id": "acon-mock", "game_id": "valorant", "external_match_id": "demo-1",
+    "scheduled_start": "2030-01-01T18:00:00Z", "match_status": "scheduled",
+    "team_a_id": "alpha", "team_a_name": "Mock Alpha",
+    "team_b_id": "bravo", "team_b_name": "Mock Bravo",
+    "evidence_url": "https://example.org/fictional-demo-schedule",
+    "evidence_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "source_updated_at": "2029-12-01T12:00:00Z"
+  }],
+  "results": [{
+    "provider_id": "acon-mock", "game_id": "valorant", "external_match_id": "demo-1",
+    "match_status": "completed", "winner_team_id": "alpha",
+    "source_updated_at": "2030-01-01T21:00:00Z",
+    "evidence_url": "https://example.org/fictional-demo-result",
+    "evidence_hash": "0x1111111111111111111111111111111111111111111111111111111111111111"
+  }]
+}
+```
+
+Results are append-only observations with their evidence reference and hash; importing the same file twice does not duplicate rows. A different result remains visible in `/api/fixtures/{id}/results` rather than silently replacing the earlier one. The importer checks the winner against the fixture's two team IDs; it does not independently verify an organizer or settle a market. The JSON source is operated by the team and is never accepted through a public write endpoint.
+
+- `GET /api/fixtures?game_id=valorant&match_status=scheduled&limit=50&offset=0` returns paginated fixture records.
+- `GET /api/fixtures/{id}` returns one fixture and its latest result observation, or 404.
+- `GET /api/fixtures/{id}/results` returns all source observations oldest first.
+
+All catalog responses are non-authoritative. Registration status, linked market, on-demand wallet requests, and result-proposer automation are later M4 PRs; the M3 market/trade indexer continues to use its existing deployment and ABI.
+
 ## Run Locally
 
 ```bash

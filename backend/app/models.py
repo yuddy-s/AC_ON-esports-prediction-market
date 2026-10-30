@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Integer, JSON, Numeric, String, Text, UniqueConstraint
+from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Index, Integer, JSON, Numeric, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -21,6 +21,53 @@ class SampleMatch(Base):
     yes_price: Mapped[float] = mapped_column(Numeric(6, 4), nullable=False)
     no_price: Mapped[float] = mapped_column(Numeric(6, 4), nullable=False)
     source_note: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+class Fixture(Base):
+    """Imported source data; never an authoritative on-chain registration."""
+
+    __tablename__ = "fixtures"
+    __table_args__ = (
+        UniqueConstraint("provider_id", "game_id", "external_match_id", name="uq_fixture_source_identity"),
+        Index("ix_fixtures_scheduled_start", "scheduled_start"),
+        Index("ix_fixtures_game_status", "game_id", "match_status"),
+        {"sqlite_autoincrement": True},
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    provider_id: Mapped[str] = mapped_column(String(80), nullable=False)
+    game_id: Mapped[str] = mapped_column(String(80), nullable=False)
+    external_match_id: Mapped[str] = mapped_column(String(160), nullable=False)
+    scheduled_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    match_status: Mapped[str] = mapped_column(String(32), nullable=False)
+    team_a_id: Mapped[str] = mapped_column(String(160), nullable=False)
+    team_a_name: Mapped[str] = mapped_column(String(160), nullable=False)
+    team_b_id: Mapped[str] = mapped_column(String(160), nullable=False)
+    team_b_name: Mapped[str] = mapped_column(String(160), nullable=False)
+    evidence_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    evidence_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    source_updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    imported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
+
+
+class FixtureResultObservation(Base):
+    """Append-only result source history; corrections do not rewrite earlier observations."""
+
+    __tablename__ = "fixture_result_observations"
+    __table_args__ = (
+        UniqueConstraint("fixture_id", "observation_hash", name="uq_fixture_result_observation_hash"),
+        {"sqlite_autoincrement": True},
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    fixture_id: Mapped[int] = mapped_column(ForeignKey("fixtures.id", ondelete="CASCADE"), nullable=False, index=True)
+    match_status: Mapped[str] = mapped_column(String(32), nullable=False)
+    winner_team_id: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    source_updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    evidence_url: Mapped[str] = mapped_column(Text, nullable=False)
+    evidence_hash: Mapped[str] = mapped_column(String(66), nullable=False)
+    observation_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    imported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
 
 
 class IndexedContract(Base):
