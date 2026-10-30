@@ -11,7 +11,8 @@ Keep this folder small. It should help agents pick the right slice of work witho
 - `ARCHITECTURE.md`: current repo state, target architecture, known gaps, and setup notes.
 - `TASKS.md`: current team assignments and coding-agent work queue.
 - [`milestones/MILESTONE_4.md`](milestones/MILESTONE_4.md): proposed feature-complete M4 ownership, dependencies, one-week sequence, and full test plan.
-- [`interfaces/M4_FEATURE_COMPLETE_INTERFACE.md`](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md): supplied M4 fixture/trading/lifecycle/resolver decision set; approving names and exact ABI types still need PR review, and **no M4 feature is implemented**.
+- [`interfaces/M4_FEATURE_COMPLETE_INTERFACE.md`](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md): decided M4 fixture/trading/lifecycle/resolver target; exact compiled ABI types and deployed behavior remain pending.
+- [`interfaces/M4_BACKEND_API.md`](interfaces/M4_BACKEND_API.md): draft frontend handoff for the stacked fixture catalog and EOA registration-request API.
 - `APPLICATION_ROADMAP.md`: canonical product checklist, blockers, ABI handoff, and remaining work by owner.
 - `DEPLOYMENT_RUNBOOK.md`: Supabase migrations plus Render API/indexer-worker deployment and recovery steps.
 - [`../../deployments/README.md`](../../deployments/README.md): public Sepolia handoff and versioned ABI convention.

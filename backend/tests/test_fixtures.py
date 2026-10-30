@@ -144,8 +144,8 @@ def test_fresh_sqlite_database_upgrades_through_fixture_migration(tmp_path: Path
         tables = set(inspect(connection).get_table_names())
         revision = connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
     engine.dispose()
-    assert {"fixtures", "fixture_result_observations", "markets", "trades"} <= tables
-    assert revision == "20261029_0002"
+    assert {"fixtures", "fixture_result_observations", "registration_challenges", "fixture_registration_jobs", "registration_job_events", "markets", "trades"} <= tables
+    assert revision == "20261029_0003"
 
 
 def test_existing_m3_contract_survives_fixture_migration(tmp_path: Path) -> None:
@@ -177,5 +177,5 @@ def test_existing_m3_contract_survives_fixture_migration(tmp_path: Path) -> None
     upgrade("head")
     with engine.connect() as connection:
         assert connection.execute(text("SELECT abi_version FROM indexed_contracts")).scalar_one() == "m3"
-        assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == "20261029_0002"
+        assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == "20261029_0003"
     engine.dispose()
