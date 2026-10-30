@@ -4,6 +4,7 @@ import { Badge } from "./Badge";
 import { SourceNote } from "./FixtureCatalog";
 import { fetchFixture, fetchFixtureResults, type Fixture, type ResultObservation } from "./fixturesApi";
 import {
+  allowsNewRequest,
   canCreateMarket,
   describeRegistration,
   gameLabel,
@@ -15,6 +16,7 @@ import {
 } from "./fixtureStatus";
 import { shortenAddress } from "./format";
 import { RegistrationRequest } from "./RegistrationRequest";
+import { fetchRegistration } from "./registrationApi";
 import { Panel, PanelTitle, Tag } from "./ui";
 import { useNowSeconds } from "./useNow";
 
@@ -61,7 +63,16 @@ function FixtureBody({
   const now = useNowSeconds(30_000);
   const teams = outcomeTeams(fixture);
   const registration = describeRegistration(fixture.registration_request_status);
-  const eligibility = registrationEligibility(fixture, now * 1000);
+  // The catalog only carries the job status; a terminal failure needs the
+  // job's error_code to know whether a fresh signed request is allowed.
+  const failed = fixture.registration_request_status === "terminal_failure";
+  const job = useQuery({
+    queryKey: ["fixture-registration", fixture.id],
+    queryFn: ({ signal }) => fetchRegistration(fixture.id, signal),
+    enabled: FIXTURE_SOURCE === "api" && failed,
+    refetchInterval: 15_000,
+  });
+  const eligibility = registrationEligibility(fixture, now * 1000, job.data);
 
   return (
     <>
@@ -94,10 +105,17 @@ function FixtureBody({
           </div>
           <h2 className="font-display text-lg font-semibold uppercase tracking-wide text-paper">Registration</h2>
           <p className="text-sm text-cream">{registration.detail}</p>
-          {fixture.registration_request_status === null && !eligibility.ok && (
+          {failed && job.data && (
+            <p className="text-sm text-sand">
+              {allowsNewRequest(fixture.registration_request_status, job.data)
+                ? "This failure can be retried with a new signed request."
+                : "This failure needs a team operator before anyone can request again."}
+            </p>
+          )}
+          {allowsNewRequest(fixture.registration_request_status, job.data) && !eligibility.ok && (
             <p className="text-sm text-sand">{eligibility.reason}</p>
           )}
-          <RegistrationRequest fixture={fixture} nowMs={now * 1000} />
+          <RegistrationRequest fixture={fixture} job={job.data} nowMs={now * 1000} />
           <div className="border-t border-bronze/40 pt-3">
             <button type="button" disabled title="Needs the M4 contract" className="btn-gold w-full">
               {canCreateMarket(fixture.registration_request_status) ? "Create market" : "Create market · after registration"}

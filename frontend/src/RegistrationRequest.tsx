@@ -4,7 +4,7 @@ import { useAccount, useSignMessage } from "wagmi";
 import { CHAIN, FIXTURE_SOURCE } from "./config";
 import { isUserRejection } from "./errors";
 import type { Fixture } from "./fixturesApi";
-import { registrationEligibility } from "./fixtureStatus";
+import { registrationEligibility, type JobSummary } from "./fixtureStatus";
 import {
   createRegistrationChallenge,
   describeRegistrationError,
@@ -23,19 +23,20 @@ const COINBASE_CONNECTOR_ID = "coinbaseWalletSDK";
 
 // Asks the backend's registrar to register this fixture on-chain. The player
 // signs a message, not a transaction: no gas, and no market is created yet.
-export function RegistrationRequest({ fixture, nowMs }: { fixture: Fixture; nowMs: number }) {
+export function RegistrationRequest({ fixture, job, nowMs }: { fixture: Fixture; job: JobSummary | null | undefined; nowMs: number }) {
   const { address, connector, chainId } = useAccount();
   const { signMessageAsync } = useSignMessage();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>({ kind: "idle" });
 
-  if (fixture.registration_request_status !== null && step.kind !== "done") return null;
   if (step.kind === "done") {
     return <p className="text-sm text-win">Request sent. The registration status above updates as the registrar works.</p>;
   }
 
-  const eligibility = registrationEligibility(fixture, nowMs);
+  // Also covers a recoverable terminal failure, which accepts a fresh signature.
+  const eligibility = registrationEligibility(fixture, nowMs, job);
   if (!eligibility.ok) return null;
+  const retrying = fixture.registration_request_status === "terminal_failure";
 
   let blocker: string | null = null;
   if (FIXTURE_SOURCE === "mock") blocker = "Registration requests need the backend (mock fixtures are read-only).";
@@ -61,6 +62,7 @@ export function RegistrationRequest({ fixture, nowMs }: { fixture: Fixture; nowM
       setStep({ kind: "done" });
       await queryClient.invalidateQueries({ queryKey: ["fixture"] });
       await queryClient.invalidateQueries({ queryKey: ["fixtures"] });
+      await queryClient.invalidateQueries({ queryKey: ["fixture-registration"] });
     } catch (error) {
       if (isUserRejection(error)) {
         setStep({ kind: "error", message: "You rejected the signature. Nothing was sent.", canRetry: true });
@@ -83,7 +85,7 @@ export function RegistrationRequest({ fixture, nowMs }: { fixture: Fixture; nowM
         disabled={!canClick}
         className="btn-ghost w-full border-gold py-2.5 text-gold hover:bg-gold hover:text-ink-900"
       >
-        {busy ? "Requesting…" : "Request on-chain registration"}
+        {busy ? "Requesting…" : retrying ? "Request registration again" : "Request on-chain registration"}
       </button>
       <p className="mt-1.5 text-xs text-dust">
         You sign a message (free). The team's registrar then registers the fixture on-chain.

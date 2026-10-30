@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Fixture, RegistrationStatus } from "./fixturesApi";
 import {
+  allowsNewRequest,
   canCreateMarket,
   describeRegistration,
   outcomeTeams,
@@ -68,9 +69,22 @@ describe("registrationEligibility", () => {
     expect(registrationEligibility(fixture(), anHourBefore)).toEqual({ ok: true });
   });
 
-  it("closes 30 minutes before the scheduled start", () => {
-    expect(registrationEligibility(fixture(), startMs - 30 * 60_000).ok).toBe(true);
+  it("closes 30 minutes before the scheduled start, exactly like the backend", () => {
+    expect(registrationEligibility(fixture(), startMs - 30 * 60_000 - 1).ok).toBe(true);
+    expect(registrationEligibility(fixture(), startMs - 30 * 60_000).ok).toBe(false);
     expect(registrationEligibility(fixture(), startMs - 29 * 60_000).ok).toBe(false);
+  });
+
+  it("accepts a fresh request after a recoverable terminal failure", () => {
+    const failed = fixture({ registration_request_status: "terminal_failure" });
+    expect(registrationEligibility(failed, anHourBefore, { status: "terminal_failure", error_code: "fixture_changed" })).toEqual({ ok: true });
+    expect(registrationEligibility(failed, anHourBefore, { status: "terminal_failure", error_code: "attempts_exhausted" }).ok).toBe(true);
+  });
+
+  it("still blocks a terminal failure the backend will not re-authorize, or before the job has loaded", () => {
+    const failed = fixture({ registration_request_status: "terminal_failure" });
+    expect(registrationEligibility(failed, anHourBefore, { status: "terminal_failure", error_code: "registration_conflict" }).ok).toBe(false);
+    expect(registrationEligibility(failed, anHourBefore, undefined).ok).toBe(false);
   });
 
   it("rejects fixtures that are not scheduled, have a result, lack evidence, or were already requested", () => {
@@ -101,5 +115,24 @@ describe("outcomeTeams and winnerName", () => {
     expect(winnerName(fixture(), "bravo")).toBe("Mock Bravo");
     expect(winnerName(fixture(), null)).toBeNull();
     expect(winnerName(fixture(), "someone-else")).toBeNull();
+  });
+});
+
+describe("allowsNewRequest", () => {
+  it("never replaces submitted, uncertain or confirmed jobs", () => {
+    for (const status of ["queued", "submitted", "submission_unknown", "confirmed", "awaiting_abi"] as const) {
+      expect(allowsNewRequest(status, { status, error_code: "fixture_changed" })).toBe(false);
+    }
+  });
+
+  it("allows a first request and the four re-authorizable failures", () => {
+    expect(allowsNewRequest(null, null)).toBe(true);
+    for (const code of ["fixture_changed", "fixture_ineligible", "transaction_reverted", "attempts_exhausted"]) {
+      expect(allowsNewRequest("terminal_failure", { status: "terminal_failure", error_code: code })).toBe(true);
+    }
+  });
+
+  it("uses the job's own status if it changed since the catalog was read", () => {
+    expect(allowsNewRequest("terminal_failure", { status: "queued", error_code: null })).toBe(false);
   });
 });
