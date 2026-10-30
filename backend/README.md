@@ -90,6 +90,8 @@ Migration `20261029_0004` adds append-only result assessments. After importing r
 
 The same draft migration also stores one proposal intent per `(chain_id, contract_address, market_id)` and append-only attempt events. `app.oracle_worker` defines a mockable closed-market gateway and bounded state machine. It chooses the latest assessment only after a gateway reports a closed, unproposed market. A new observation after intent creation pauses a not-yet-submitted intent for review, even if the suggested outcome is unchanged. A known pre-submission outage may retry; an uncertain submission is quarantined. A successful receipt is insufficient to report `confirmed` without a matching chain read after the confirmation depth. No public route can choose an outcome.
 
+The M3 indexer rebuild test now proves imported fixtures, registration jobs/audit, assessments, and oracle intents/audit survive a replay; the derived M3 market/trade rows are recreated. M4 event tables and decoder changes still need the compiled ABI, and their rebuild coverage must be added with the actual event fixtures.
+
 The automatic production proposer is still gated on the M4 event/ABI freeze: it must link registered fixtures to confirmed M4 markets, check the chain's closed/proposed state before every submission or retry, then use a separate least-privilege proposer key. The mock gateway is exercised by tests; no production gateway, loop, or signer key is configured. Corrections after an immutable on-chain proposal require the challenge/resolver path.
 
 ```bash
