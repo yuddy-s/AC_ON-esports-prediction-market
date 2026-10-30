@@ -1,4 +1,5 @@
 from collections.abc import Generator
+from datetime import UTC, datetime
 import json
 import os
 from pathlib import Path
@@ -17,7 +18,7 @@ from app.database import Base, get_session
 from app.fixture_data import FixtureImportDocument, deterministic_mock, load_manual_json
 from app.fixture_service import FixtureImportError, import_document
 from app.main import app
-from app.models import Fixture, FixtureResultObservation
+from app.models import Fixture, FixtureRegistrationJob, FixtureResultObservation
 
 
 @pytest.fixture()
@@ -130,6 +131,23 @@ def test_result_only_import_updates_catalog_status_without_mutating_schedule(ses
     repeated = import_document(session, FixtureImportDocument.model_validate(document))
     assert repeated.fixtures_unchanged == 1
     assert repeated.results_unchanged == 1
+def test_confirmed_registration_freezes_start_time(session: Session) -> None:
+    document = deterministic_mock().model_dump(mode="json")
+    document["fixtures"][0]["match_status"] = "scheduled"
+    document["results"] = []
+    import_document(session, FixtureImportDocument.model_validate(document))
+    session.flush()
+    now = datetime.now(UTC)
+    session.add(FixtureRegistrationJob(
+        fixture_id=1, requested_by="0x" + "44" * 20, chain_id=11155111,
+        status="confirmed", fixture_snapshot={}, attempts=1, created_at=now, updated_at=now,
+    ))
+    session.commit()
+    changed = document
+    changed["fixtures"][0]["scheduled_start"] = "2030-01-02T18:00:00Z"
+    changed["fixtures"][0]["source_updated_at"] = "2030-01-01T22:00:00Z"
+    with pytest.raises(FixtureImportError, match="scheduled start is frozen"):
+        import_document(session, FixtureImportDocument.model_validate(changed))
 
 
 def test_record_validation_rejects_ambiguous_teams_and_naive_times() -> None:
@@ -202,7 +220,7 @@ def test_fresh_sqlite_database_upgrades_through_fixture_migration(tmp_path: Path
         revision = connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
     engine.dispose()
     assert {"fixtures", "fixture_result_observations", "registration_challenges", "fixture_registration_jobs", "registration_job_events", "oracle_result_assessments", "oracle_proposal_intents", "oracle_proposal_events", "markets", "trades"} <= tables
-    assert revision == "20261029_0004"
+    assert revision == "20261030_0005"
 
 
 def test_existing_m3_contract_survives_fixture_migration(tmp_path: Path) -> None:
@@ -234,5 +252,5 @@ def test_existing_m3_contract_survives_fixture_migration(tmp_path: Path) -> None
     upgrade("head")
     with engine.connect() as connection:
         assert connection.execute(text("SELECT abi_version FROM indexed_contracts")).scalar_one() == "m3"
-        assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == "20261029_0004"
+        assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == "20261030_0005"
     engine.dispose()

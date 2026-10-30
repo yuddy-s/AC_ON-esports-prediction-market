@@ -148,6 +148,34 @@ def test_database_constraint_prevents_two_jobs_for_one_fixture(session: Session)
     assert session.scalar(select(func.count()).select_from(FixtureRegistrationJob)) == 1
 
 
+def test_terminal_fixture_change_can_be_reauthorized_without_losing_audit(session: Session) -> None:
+    first_wallet = Account.create()
+    second_wallet = Account.create()
+    now = datetime(2029, 12, 1, tzinfo=UTC)
+    nonce, signature = _signed_request(session, first_wallet, now=now)
+    job = request_registration(session, 1, first_wallet.address, nonce, signature, 11155111, now=now)
+    activate_registration_job(session, job.id, now=now)
+    fixture = session.get(Fixture, 1)
+    assert fixture is not None
+    fixture.team_a_name = "Updated Team Name"
+    session.commit()
+    process_registration_job(session, job.id, FakeRegistrationGateway(), now=now)
+    assert job.status == "terminal_failure" and job.error_code == "fixture_changed"
+    first_snapshot = job.fixture_snapshot.copy()
+    session.commit()
+
+    new_nonce, new_signature = _signed_request(session, second_wallet, now=now + timedelta(minutes=1))
+    renewed = request_registration(session, 1, second_wallet.address, new_nonce, new_signature, 11155111,
+                                   now=now + timedelta(minutes=1))
+    session.commit()
+    assert renewed.id == job.id
+    assert renewed.status == "awaiting_abi" and renewed.transaction_hash is None
+    assert renewed.fixture_snapshot != first_snapshot
+    events = session.scalars(select(RegistrationJobEvent).order_by(RegistrationJobEvent.id)).all()
+    assert events[0].fixture_snapshot == first_snapshot
+    assert events[-1].fixture_snapshot == renewed.fixture_snapshot
+
+
 class FakeRegistrationGateway:
     def __init__(self) -> None:
         self.state = "absent"

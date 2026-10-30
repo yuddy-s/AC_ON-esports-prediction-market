@@ -118,6 +118,7 @@ class RegistrationJobEvent(Base):
     status: Mapped[str] = mapped_column(String(32), nullable=False)
     error_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
     transaction_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    fixture_snapshot: Mapped[dict[str, object] | None] = mapped_column(JSON, nullable=True)
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 

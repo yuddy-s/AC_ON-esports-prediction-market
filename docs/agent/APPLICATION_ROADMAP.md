@@ -27,6 +27,8 @@ Backend review stack: PR #30 merged the curated fixture/result catalog. Draft PR
 
 The next stacked API branch adds nullable registration-request status to fixture catalog/detail reads and exposes the active ABI version through `/api/indexer/status`. It does not infer an on-chain fixture-to-market link, portfolio, or claimability from source data.
 
+The following recovery branch keeps historical registrar snapshots when a terminal job is reauthorized and prevents source imports from changing registered Team A/B IDs or start time. These changes are off-chain safeguards; an M4 chain gateway and ABI remain pending.
+
 Dependency order: build the required deterministic mock and manual JSON adapters with organizer evidence; enable optional PandaScore only after written use permission, without a paid plan; freeze exact ABI and Matthew's collateral proof; set up a 2-of-3 Safe, narrow registrar/proposer keys, VRF subscription, and at least ten resolver-only testnet addresses; implement contracts, oracle/indexer/API, and frontend; integrate on Anvil and smoke-test new Sepolia contracts. The backend imports fixtures but does not create user markets. The restricted registrar registers selected fixtures, one market per fixture, and users create markets. The contract cannot query the backend or verify source truth.
 
 Full public integration may finish in M4 as a stretch result; otherwise M5 completes it. This does not convert unimplemented sells, oracle proposals, resolver voting, settlement, VOID, or claims into completed features. Every implementation PR updates its affected README, interface/API/deployment handoff, tests, and recovery docs. Preserve the approved M3 trading record.
