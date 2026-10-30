@@ -72,7 +72,7 @@ The sample matches are fake display data only. They are not on-chain markets and
 
 ## Milestone 4 Target Design
 
-Status: [team decision set supplied for PR #28](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md); no fixture registration, sell, proposal, challenge, resolver, settlement, or claim code is deployed. The [M4 owner/test plan](milestones/MILESTONE_4.md) requires local feature completeness and a fresh Sepolia contract smoke test; public Vercel/Render/Supabase integration is a stretch target and remains an M5 deliverable if unfinished.
+Status: [target design approved and merged in PR #28](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md); no fixture registration, sell, proposal, challenge, resolver, settlement, or claim code is deployed. The [M4 owner/test plan](milestones/MILESTONE_4.md) requires local feature completeness and a fresh Sepolia contract smoke test; public Vercel/Render/Supabase integration is a stretch target and remains an M5 deliverable if unfinished.
 
 The fixture flow is deterministic mock or manual JSON fixture/result import with organizer evidence → restricted on-chain registration of selected fixture IDs and Team A/YES, Team B/NO → one user-funded market per registered fixture. The key is `keccak256(abi.encode(providerId, gameId, externalMatchId))`. A PandaScore adapter is optional only with written permission for this use; no paid plan is required. Importing a listing does not create a market. The contract checks its registry, so the registrar/source remain trusted inputs. The backend and PostgreSQL remain derived; users submit trades, challenges, resolver votes, and claims through wallets.
 
@@ -86,7 +86,7 @@ No oracle service exists yet. M4 requires deterministic mock and manual JSON ada
 
 ## Resolver Protocol
 
-Status: decision set supplied for PR #28; not implemented. Approving members still need recording in the PR.
+Status: target design approved in merged PR #28; not implemented. Exact ABI types still need a freeze.
 
 Resolution remains authoritative on-chain. A 2-of-3 Sepolia Safe controlled by Benny, Matthew, and Adriel owns the allowlist, role recovery, and VRF subscription. Registry changes apply to future selections; removal does not rewrite an active round. PostgreSQL may project registry, selection, votes, deadlines, and outcomes, but never selects resolvers or decides outcomes.
 
@@ -223,5 +223,5 @@ Contract setup and deployment commands are documented in `contracts/README.md`. 
 - Coinbase Smart Wallet connects and reads but cannot send Ethereum Sepolia transactions; use MetaMask for the hosted Sepolia demo. The local Anvil demo uses the development wallet.
 - The reproducible local cross-layer flow has been manually verified, but it is not yet an automated end-to-end CI job.
 - Local SQLite is suitable for the reproducible Anvil demo; PostgreSQL/Supabase preserves exact large-integer Sepolia projections and passed the local API smoke check.
-- Resolver randomness, address-level conflicts, quorum, snapshot, retry, and timeout/liveness behavior are part of the supplied M4 decision set; named PR approval, contracts, and exact ABI remain outstanding.
+- Resolver randomness, address-level conflicts, quorum, snapshot, retry, and timeout/liveness behavior are part of the PR #28-approved M4 design; contracts and exact ABI remain outstanding.
 - Backend sample-match data is fake/off-chain and exists only for Milestone 2 fallback display.
