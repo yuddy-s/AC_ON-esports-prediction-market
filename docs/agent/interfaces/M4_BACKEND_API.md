@@ -1,6 +1,6 @@
 # M4 Backend to Frontend Handoff
 
-Status: **draft stacked PRs #30–#32**, 2026-10-30. These routes are off-chain source data and request tracking. On-chain M4 registration, market linkage, and result proposals require Benny's compiled ABI and deployment. Keep the [M3 trading interface](M3_TRADING_INTERFACE.md) as the deployed baseline.
+Status: **stacked review PRs #30–#34**, 2026-10-30. These routes are off-chain source data and request tracking. On-chain M4 registration, market linkage, and result proposals require Benny's compiled ABI and deployment. Keep the [M3 trading interface](M3_TRADING_INTERFACE.md) as the deployed baseline.
 
 ## Fixture browsing
 
@@ -11,7 +11,7 @@ Status: **draft stacked PRs #30–#32**, 2026-10-30. These routes are off-chain 
 ## Player-driven registration
 
 1. With an EOA wallet on the configured chain, call `POST /api/fixtures/{id}/registration-challenges` with `{"wallet_address":"0x..."}`. The response contains `nonce`, `message`, `expires_at`, and `chain_id`. The challenge lasts five minutes. Sign the exact `message` using EIP-191 `personal_sign`; do not reconstruct its fields in the browser. It binds the fixture source identity and a SHA-256 snapshot of teams, start time, and evidence.
-2. Call `POST /api/fixtures/{id}/registration-requests` with `wallet_address`, `nonce`, and the `0x` signature. A valid request returns HTTP 202 and a job. The same nonce cannot be used twice; a changed, already-resulted, or too-near fixture is rejected. Only one registration request is stored per fixture.
+2. Call `POST /api/fixtures/{id}/registration-requests` with `wallet_address`, `nonce`, and the `0x` signature. A valid request returns HTTP 202 and a job. The same nonce cannot be used twice; a changed, already-resulted, or too-near fixture is rejected. Only one active job is stored per fixture. After certain terminal failures, a fresh signed challenge may reauthorize that job while its earlier audit remains intact; submitted/uncertain/confirmed jobs cannot be replaced.
 3. Poll `GET /api/fixtures/{id}/registration`; `null` means no request. `awaiting_abi`, `queued`, `retryable_failure`, `submitted`, and `submission_unknown` mean the player **cannot create a market yet**. `terminal_failure` needs operator resolution. Only `confirmed` means a registrar gateway matched the on-chain fixture after the configured confirmation depth. The present draft returns `awaiting_abi` and performs no chain write.
 4. Once registered, the player separately signs the contract's market-creation and funding transaction. The backend never submits that user transaction. The M4 ABI and frontend contract read must establish that the fixture is still available and has no market.
 

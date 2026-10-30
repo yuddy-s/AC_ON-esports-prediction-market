@@ -21,6 +21,7 @@ CHALLENGE_LIFETIME = timedelta(minutes=5)
 MINIMUM_START_BUFFER = timedelta(minutes=30)
 MAX_CHALLENGES_PER_DAY = 12
 MAX_JOBS_PER_WALLET_PER_DAY = 3
+REAUTHORIZABLE_FAILURES = {"fixture_changed", "fixture_ineligible", "transaction_reverted", "attempts_exhausted"}
 
 
 class RegistrationError(ValueError):
@@ -91,6 +92,17 @@ def _message(fixture: Fixture, snapshot: dict[str, object], wallet: str, chain_i
     )
 
 
+def _existing_job(session: Session, fixture_id: int, *, lock: bool = False) -> FixtureRegistrationJob | None:
+    statement = select(FixtureRegistrationJob).where(FixtureRegistrationJob.fixture_id == fixture_id)
+    if lock:
+        statement = statement.with_for_update()
+    return session.scalar(statement)
+
+
+def _allows_new_authorization(job: FixtureRegistrationJob | None) -> bool:
+    return job is None or (job.status == "terminal_failure" and job.error_code in REAUTHORIZABLE_FAILURES)
+
+
 def cleanup_expired_challenges(session: Session, *, now: datetime | None = None) -> int:
     """Retain challenges for one day after expiry, then remove stale auth material."""
     now = now or datetime.now(UTC)
@@ -108,7 +120,7 @@ def create_challenge(
     wallet = _address(wallet_address)
     fixture = _eligible(session, fixture_id, now)
     cleanup_expired_challenges(session, now=now)
-    if session.scalar(select(FixtureRegistrationJob.id).where(FixtureRegistrationJob.fixture_id == fixture_id)) is not None:
+    if not _allows_new_authorization(_existing_job(session, fixture_id)):
         raise RegistrationError("already_requested", "Fixture registration has already been requested", 409)
     since = now - timedelta(days=1)
     recent = session.scalar(select(func.count()).select_from(RegistrationChallenge).where(
@@ -161,22 +173,36 @@ def request_registration(
     fixture = _eligible(session, fixture_id, now)
     if fixture_snapshot(fixture) != challenge.fixture_snapshot:
         raise RegistrationError("fixture_changed", "Fixture changed after the message was signed; request a new challenge", 409)
-    if session.scalar(select(FixtureRegistrationJob.id).where(FixtureRegistrationJob.fixture_id == fixture_id)) is not None:
+    existing_job = _existing_job(session, fixture_id, lock=True)
+    if not _allows_new_authorization(existing_job):
         raise RegistrationError("already_requested", "Fixture registration has already been requested", 409)
     since = now - timedelta(days=1)
-    recent = session.scalar(select(func.count()).select_from(FixtureRegistrationJob).where(
-        FixtureRegistrationJob.requested_by == wallet,
-        FixtureRegistrationJob.created_at >= since,
+    recent = session.scalar(select(func.count()).select_from(RegistrationChallenge).where(
+        RegistrationChallenge.wallet_address == wallet,
+        RegistrationChallenge.consumed_at >= since,
     )) or 0
     if recent >= MAX_JOBS_PER_WALLET_PER_DAY:
         raise RegistrationError("rate_limited", "Too many registration requests", 429)
     challenge.consumed_at = now
-    job = FixtureRegistrationJob(
-        fixture_id=fixture_id, requested_by=wallet, chain_id=chain_id,
-        status="awaiting_abi", fixture_snapshot=challenge.fixture_snapshot,
-        attempts=0, created_at=now, updated_at=now,
-    )
-    session.add(job)
+    if existing_job is None:
+        job = FixtureRegistrationJob(
+            fixture_id=fixture_id, requested_by=wallet, chain_id=chain_id,
+            status="awaiting_abi", fixture_snapshot=challenge.fixture_snapshot,
+            attempts=0, created_at=now, updated_at=now,
+        )
+        session.add(job)
+    else:
+        job = existing_job
+        job.requested_by = wallet
+        job.chain_id = chain_id
+        job.fixture_snapshot = challenge.fixture_snapshot
+        job.status = "awaiting_abi"
+        job.transaction_hash = None
+        job.error_code = None
+        job.attempts = 0
+        job.next_attempt_at = None
+        job.updated_at = now
     session.flush()
-    session.add(RegistrationJobEvent(job_id=job.id, status=job.status, recorded_at=now))
+    session.add(RegistrationJobEvent(job_id=job.id, status=job.status,
+                                     fixture_snapshot=job.fixture_snapshot, recorded_at=now))
     return job
