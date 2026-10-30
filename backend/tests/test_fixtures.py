@@ -124,6 +124,23 @@ def test_fixture_catalog_api_and_result_history(session: Session) -> None:
         app.dependency_overrides.clear()
 
 
+def test_fixture_api_database_failure_is_not_an_empty_catalog() -> None:
+    class BrokenSession:
+        def scalar(self, *_args, **_kwargs):
+            raise RuntimeError("simulated database outage")
+
+    def override():
+        yield BrokenSession()
+
+    app.dependency_overrides[get_session] = override
+    try:
+        with TestClient(app, raise_server_exceptions=False) as client:
+            response = client.get("/api/fixtures")
+            assert response.status_code == 500
+    finally:
+        app.dependency_overrides.clear()
+
+
 def test_fresh_sqlite_database_upgrades_through_fixture_migration(tmp_path: Path) -> None:
     database_path = tmp_path / "migration.db"
     backend_dir = Path(__file__).resolve().parents[1]
