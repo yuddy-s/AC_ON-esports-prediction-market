@@ -2,12 +2,16 @@ import type { ReactNode } from "react";
 import type { Tone } from "./fixtureStatus";
 
 const TONES: Record<Tone, string> = {
-  neutral: "bg-neutral-800 text-neutral-300",
-  good: "bg-emerald-950 text-emerald-300",
-  warn: "bg-amber-950 text-amber-300",
-  bad: "bg-red-950 text-red-300",
+  neutral: "border-bronze text-sand",
+  good: "border-win/60 text-win",
+  warn: "border-gold/60 text-gold",
+  bad: "border-signal/70 text-signal",
 };
 
 export function Badge({ tone, children }: { tone: Tone; children: ReactNode }) {
-  return <span className={`rounded px-2 py-0.5 text-xs ${TONES[tone]}`}>{children}</span>;
+  return (
+    <span className={`inline-flex items-center border px-1.5 py-0.5 font-display text-[10px] font-semibold uppercase tracking-[0.14em] ${TONES[tone]}`}>
+      {children}
+    </span>
+  );
 }

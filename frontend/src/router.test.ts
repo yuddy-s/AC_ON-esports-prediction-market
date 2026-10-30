@@ -1,11 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { fixtureHref, parseRoute } from "./router";
+import { fixtureHref, marketHref, parseRoute } from "./router";
 
 describe("parseRoute", () => {
   it("opens the markets page by default", () => {
     expect(parseRoute("")).toEqual({ page: "markets" });
     expect(parseRoute("#/")).toEqual({ page: "markets" });
     expect(parseRoute("#/markets")).toEqual({ page: "markets" });
+  });
+
+  it("parses a market page", () => {
+    expect(parseRoute("#/markets/3")).toEqual({ page: "market", id: 3n });
+    expect(parseRoute(marketHref(12n))).toEqual({ page: "market", id: 12n });
   });
 
   it("parses the fixture catalog and a fixture detail page", () => {

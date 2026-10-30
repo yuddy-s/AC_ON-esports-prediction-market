@@ -1,3 +1,42 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-ink-800 font-sans text-cream antialiased;
+    /* Faint broadcast scanlines over the slide-deck brown. */
+    background-image: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.12) 0 1px, transparent 1px 4px);
+  }
+  ::selection {
+    @apply bg-gold text-ink-900;
+  }
+}
+
+@layer components {
+  /* HUD panel: cut top-right and bottom-left corners. */
+  .hud {
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+  }
+  .hud-sm {
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+  .label {
+    @apply font-display text-[11px] font-semibold uppercase tracking-[0.18em] text-sand;
+  }
+  .field {
+    @apply w-full border border-bronze bg-ink-900 px-3 py-2 font-mono text-base text-paper outline-none focus:border-gold;
+  }
+  .btn-gold {
+    @apply hud-sm bg-gold px-4 py-2.5 font-display text-sm font-bold uppercase tracking-wider text-ink-900 hover:bg-paper disabled:cursor-not-allowed disabled:bg-ink-600 disabled:text-dust;
+  }
+  .btn-ghost {
+    @apply border border-bronze px-3 py-1.5 font-display text-xs font-semibold uppercase tracking-wider text-cream hover:border-gold hover:text-gold disabled:opacity-40;
+  }
+  .link {
+    @apply text-gold underline decoration-gold/40 underline-offset-2 hover:decoration-gold;
+  }
+}
