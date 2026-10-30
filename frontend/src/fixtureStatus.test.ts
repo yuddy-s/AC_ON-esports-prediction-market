@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Fixture, RegistrationStatus } from "./fixturesApi";
+import { normalizeFixture, type Fixture, type RegistrationStatus } from "./fixturesApi";
 import {
   allowsNewRequest,
   canCreateMarket,
@@ -134,5 +134,13 @@ describe("allowsNewRequest", () => {
 
   it("uses the job's own status if it changed since the catalog was read", () => {
     expect(allowsNewRequest("terminal_failure", { status: "queued", error_code: null })).toBe(false);
+  });
+});
+
+describe("normalizeFixture", () => {
+  it("treats a missing registration status (backend before #31) as no request", () => {
+    const { registration_request_status: _omitted, ...older } = fixture();
+    expect(normalizeFixture(older as Fixture).registration_request_status).toBeNull();
+    expect(normalizeFixture(fixture({ registration_request_status: "queued" })).registration_request_status).toBe("queued");
   });
 });
