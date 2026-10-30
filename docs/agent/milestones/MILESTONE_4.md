@@ -10,9 +10,9 @@ Draft PR #32 adds deterministic off-chain YES/NO/VOID result assessments, correc
 
 Backend branch tests cover fixture imports, EOA request replay/expiry, immutable snapshots, duplicate/rate limits, mock registrar/proposer retries, uncertain submission, correction review, migration upgrades, and preservation of source/signer records during an M3 indexer rebuild. The full M4 event decoder, API, and Anvil/Sepolia acceptance rows below remain pending.
 
-The following API branch exposes off-chain registration-request status in fixture reads and the active worker ABI version in indexer status. Market linkage, resolution, claims, and portfolio reads remain dependent on confirmed M4 events and contract reads.
+Draft PR #33 exposes off-chain registration-request status in fixture reads and the active worker ABI version in indexer status. Market linkage, resolution, claims, and portfolio reads remain dependent on confirmed M4 events and contract reads.
 
-The registration recovery branch allows a fresh signed authorization after a recoverable terminal failure without deleting the earlier audit snapshot. It freezes source Team A/B IDs after results and freezes registered IDs/start time after confirmed registration. Unknown submissions still require manual reconciliation before any retry.
+Draft PR #34 allows a fresh signed authorization after a recoverable terminal failure without deleting the earlier audit snapshot. It freezes source Team A/B IDs after results and freezes registered IDs/start time after confirmed registration. Unknown submissions still require manual reconciliation before any retry. PRs #30–#34 are stacked review branches and are not merged M4 acceptance evidence.
 
 ## Course Goal And Acceptance
 

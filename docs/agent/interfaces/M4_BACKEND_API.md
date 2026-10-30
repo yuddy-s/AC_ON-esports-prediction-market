@@ -1,6 +1,6 @@
 # M4 Backend to Frontend Handoff
 
-Status: **draft stacked PRs #30–#32**, 2026-10-30. These routes are off-chain source data and request tracking. On-chain M4 registration, market linkage, and result proposals require Benny's compiled ABI and deployment. Keep the [M3 trading interface](M3_TRADING_INTERFACE.md) as the deployed baseline.
+Status: **stacked review PRs #30–#34**, 2026-10-30. These routes are off-chain source data and request tracking. On-chain M4 registration, market linkage, and result proposals require Benny's compiled ABI and deployment. Keep the [M3 trading interface](M3_TRADING_INTERFACE.md) as the deployed baseline.
 
 ## Fixture browsing
 
