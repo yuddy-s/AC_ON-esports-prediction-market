@@ -73,6 +73,11 @@ def import_document(session: Session, document: FixtureImportDocument) -> Import
                 raise FixtureImportError(f"conflicting fixture update at the same source time: {record.identity}")
             unchanged += 1
             continue
+        has_result = session.scalar(select(FixtureResultObservation.id).where(
+            FixtureResultObservation.fixture_id == fixture.id
+        )) is not None
+        if has_result and (record.team_a_id != fixture.team_a_id or record.team_b_id != fixture.team_b_id):
+            raise FixtureImportError(f"team mapping is frozen after a result: {record.identity}")
         for name, value in values.items():
             setattr(fixture, name, value)
         updated += 1

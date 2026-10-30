@@ -79,7 +79,7 @@ def _fixture_read(session: Session, fixture: Fixture) -> FixtureRead:
         game_id=fixture.game_id,
         external_match_id=fixture.external_match_id,
         scheduled_start=_aware(fixture.scheduled_start),
-        match_status=fixture.match_status,
+        match_status=latest.match_status if latest is not None else fixture.match_status,
         team_a_id=fixture.team_a_id,
         team_a_name=fixture.team_a_name,
         team_b_id=fixture.team_b_id,
@@ -100,11 +100,21 @@ def list_fixtures(
     offset: int = Query(default=0, ge=0),
     session: Session = Depends(get_session),
 ) -> FixtureListResponse:
+    # A result may arrive in a result-only import. Its latest observation is
+    # the catalog's effective status even when the schedule row is unchanged.
+    latest_result_status = (
+        select(FixtureResultObservation.match_status)
+        .where(FixtureResultObservation.fixture_id == Fixture.id)
+        .order_by(FixtureResultObservation.source_updated_at.desc(), FixtureResultObservation.id.desc())
+        .limit(1)
+        .correlate(Fixture)
+        .scalar_subquery()
+    )
     filters = []
     if game_id is not None:
         filters.append(Fixture.game_id == game_id)
     if match_status is not None:
-        filters.append(Fixture.match_status == match_status)
+        filters.append(func.coalesce(latest_result_status, Fixture.match_status) == match_status)
     total = session.scalar(select(func.count()).select_from(Fixture).where(*filters)) or 0
     fixtures = session.scalars(
         select(Fixture).where(*filters).order_by(Fixture.scheduled_start, Fixture.id).offset(offset).limit(limit)

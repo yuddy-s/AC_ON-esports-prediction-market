@@ -92,6 +92,46 @@ def test_import_rejects_stale_and_conflicting_fixture_updates(session: Session) 
         import_document(session, FixtureImportDocument.model_validate(conflicting))
 
 
+def test_result_freezes_team_ids_after_newer_fixture_update(session: Session) -> None:
+    original = deterministic_mock()
+    import_document(session, original)
+    session.commit()
+
+    newer = original.model_dump(mode="json")
+    newer["fixtures"][0]["source_updated_at"] = "2030-01-02T00:00:00Z"
+    newer["fixtures"][0]["team_a_id"] = "other"
+    with pytest.raises(FixtureImportError, match="team mapping is frozen"):
+        import_document(session, FixtureImportDocument.model_validate(newer))
+    session.rollback()
+    assert session.scalar(select(Fixture.team_a_id)) == "alpha"
+
+
+def test_result_only_import_updates_catalog_status_without_mutating_schedule(session: Session) -> None:
+    document = deterministic_mock().model_dump(mode="json")
+    document["fixtures"][0]["match_status"] = "scheduled"
+    import_document(session, FixtureImportDocument.model_validate(document))
+    session.commit()
+
+    def override() -> Generator[Session, None, None]:
+        yield session
+
+    app.dependency_overrides[get_session] = override
+    try:
+        with TestClient(app) as client:
+            assert client.get("/api/fixtures?match_status=scheduled").json()["total"] == 0
+            finished = client.get("/api/fixtures?match_status=completed").json()
+            assert finished["total"] == 1
+            assert finished["items"][0]["match_status"] == "completed"
+    finally:
+        app.dependency_overrides.clear()
+
+    # Importing the same source file remains idempotent: the fixture's source
+    # schedule row was not silently rewritten by the result observation.
+    repeated = import_document(session, FixtureImportDocument.model_validate(document))
+    assert repeated.fixtures_unchanged == 1
+    assert repeated.results_unchanged == 1
+
+
 def test_record_validation_rejects_ambiguous_teams_and_naive_times() -> None:
     document = deterministic_mock().model_dump(mode="json")
     document["fixtures"][0]["team_b_id"] = "alpha"

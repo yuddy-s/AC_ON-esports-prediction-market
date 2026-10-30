@@ -102,7 +102,7 @@ The file has `fixtures` and `results` arrays. A later file may contain only `res
 }
 ```
 
-Results are append-only observations with their evidence reference and hash; importing the same file twice does not duplicate rows. A different result remains visible in `/api/fixtures/{id}/results` rather than silently replacing the earlier one. The importer checks the winner against the fixture's two team IDs; it does not independently verify an organizer or settle a market. The JSON source is operated by the team and is never accepted through a public write endpoint.
+Results are append-only observations with their evidence reference and hash; importing the same file twice does not duplicate rows. A different result remains visible in `/api/fixtures/{id}/results` rather than silently replacing the earlier one. Catalog `match_status` and its filter use the latest result observation when one exists, including after a result-only import; the original fixture schedule row stays intact. The importer checks the winner against the fixture's two team IDs and freezes those IDs after any result, so later fixture updates cannot remap that winner. It does not independently verify an organizer or settle a market. The JSON source is operated by the team and is never accepted through a public write endpoint.
 
 - `GET /api/fixtures?game_id=valorant&match_status=scheduled&limit=50&offset=0` returns paginated fixture records.
 - `GET /api/fixtures/{id}` returns one fixture and its latest result observation, or 404.
