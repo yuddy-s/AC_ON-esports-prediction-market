@@ -47,4 +47,17 @@ export const DEMO_MARKET_ID = BigInt(import.meta.env.VITE_DEMO_MARKET_ID ?? "0")
 // FastAPI backend (indexed markets/trades). Optional until the indexer runs.
 export const API_URL = (import.meta.env.VITE_API_URL ?? "").replace(/\/+$/, "");
 
+// Where the fixture catalog comes from: "api" (backend /api/fixtures) or
+// "mock" (fictional fixtures bundled with the frontend, no backend needed).
+// Defaults to the API when VITE_API_URL is set.
+export type FixtureSource = "api" | "mock";
+
+function readFixtureSource(value: string | undefined): FixtureSource {
+  if (value === undefined || value === "") return API_URL ? "api" : "mock";
+  if (value === "api" || value === "mock") return value;
+  throw new Error(`VITE_FIXTURE_SOURCE must be "api" or "mock", got "${value}"`);
+}
+
+export const FIXTURE_SOURCE = readFixtureSource(import.meta.env.VITE_FIXTURE_SOURCE);
+
 export const EXPLORER_URL = CHAIN.blockExplorers?.default.url;
