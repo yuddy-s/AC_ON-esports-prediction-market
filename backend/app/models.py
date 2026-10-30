@@ -135,6 +135,46 @@ class OracleResultAssessment(Base):
     assessed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
+class OracleProposalIntent(Base):
+    """One immutable assessed result selected for a specific on-chain market."""
+
+    __tablename__ = "oracle_proposal_intents"
+    __table_args__ = (
+        UniqueConstraint("chain_id", "contract_address", "market_id", name="uq_oracle_intent_market"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    chain_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    contract_address: Mapped[str] = mapped_column(String(42), nullable=False)
+    market_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    fixture_id: Mapped[int] = mapped_column(ForeignKey("fixtures.id"), nullable=False)
+    observation_id: Mapped[int] = mapped_column(ForeignKey("fixture_result_observations.id"), nullable=False)
+    outcome: Mapped[str] = mapped_column(String(8), nullable=False)
+    evidence_url: Mapped[str] = mapped_column(Text, nullable=False)
+    evidence_hash: Mapped[str] = mapped_column(String(66), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    transaction_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    error_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False)
+    next_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    correction_observation_id: Mapped[int | None] = mapped_column(ForeignKey("fixture_result_observations.id"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class OracleProposalEvent(Base):
+    """Append-only signer intent/attempt history, retained across projection rebuilds."""
+
+    __tablename__ = "oracle_proposal_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    intent_id: Mapped[int] = mapped_column(ForeignKey("oracle_proposal_intents.id"), nullable=False, index=True)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    error_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    transaction_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
 class IndexedContract(Base):
     __tablename__ = "indexed_contracts"
     __table_args__ = (
