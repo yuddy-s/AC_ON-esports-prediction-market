@@ -104,6 +104,7 @@ def test_empty_projection_endpoints(client_and_session: tuple[TestClient, sessio
 
     assert status.status_code == 200
     assert status.json()["configured"] is False
+    assert status.json()["abi_version"] is None
     assert status.json()["authoritative"] is False
     assert status.json()["updated_at"] is None
     assert markets.status_code == 200
@@ -145,6 +146,7 @@ def test_market_detail_trade_history_and_indexer_lag(
     assert trades.json()["items"][0]["shares"] == "1000000000000000000"
     assert trades.json()["items"][0]["authoritative"] is False
     assert status.json()["configured"] is True
+    assert status.json()["abi_version"] == "test"
     assert status.json()["lag_blocks"] == 3
     assert status.json()["next_block"] == 121
     assert status.json()["updated_at"] is not None

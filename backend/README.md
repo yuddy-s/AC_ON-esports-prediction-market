@@ -124,7 +124,7 @@ The file has `fixtures` and `results` arrays. A later file may contain only `res
 
 Results are append-only observations with their evidence reference and hash; importing the same file twice does not duplicate rows. A different result remains visible in `/api/fixtures/{id}/results` rather than silently replacing the earlier one. The importer checks the winner against the fixture's two team IDs; it does not independently verify an organizer or settle a market. The JSON source is operated by the team and is never accepted through a public write endpoint.
 
-- `GET /api/fixtures?game_id=valorant&match_status=scheduled&limit=50&offset=0` returns paginated fixture records.
+- `GET /api/fixtures?game_id=valorant&match_status=scheduled&limit=50&offset=0` returns paginated fixture records, including nullable `registration_request_status`. This is an off-chain job status; only a future confirmed on-chain check can make it `confirmed`.
 - `GET /api/fixtures/{id}` returns one fixture and its latest result observation, or 404.
 - `GET /api/fixtures/{id}/results` returns all source observations oldest first.
 
@@ -163,6 +163,8 @@ After the wallet reports a successful mined `buy`, poll `GET /api/trades/by-tran
 `items` contains all confirmed `TradeExecuted` projections for that transaction on the active indexed contract, ordered by block and log index. Each item has the same fields as `/api/markets/{market_id}/trades`, including `market_id`, `transaction_hash`, `log_index`, and `authoritative: false`. HTTP 200 with an empty list means no matching trade has been indexed; it can also mean the indexer is not configured, the transaction is still inside the confirmation window, the transaction did not emit a trade, or the frontend is using another contract deployment. Do not interpret an empty list alone as a failed or pending wallet transaction.
 
 `GET /api/indexer/status` includes `configured`, `chain_id`, `contract_address`, `latest_observed_block`, `last_safe_block`, `lag_blocks`, and `updated_at`. `updated_at` is the checkpoint's last update in UTC ISO 8601 format, or `null` before a head has been observed. Each successful head observation refreshes it, even if a later indexing range fails. Compare the status chain and contract with the wallet transaction, check that `updated_at` is recent, and wait until `last_safe_block` reaches the receipt block. If the trade lookup is still empty after that, inspect the receipt and its logs. A healthy two-confirmation worker normally has nonzero `lag_blocks`; zero lag alone does not prove that the worker is current. Database failures return a server error from indexed read endpoints rather than an empty trade list.
+
+The status response also includes nullable `abi_version` from the active indexed contract. It is `null` when no worker has registered a contract; a frontend should compare a configured version with the deployed handoff before treating indexed results as belonging to its selected contract.
 
 ## Frontend Integration
 
