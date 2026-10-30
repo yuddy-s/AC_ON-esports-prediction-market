@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.fixture_data import FixtureImportDocument, FixtureRecord, ResultRecord
-from app.models import Fixture, FixtureResultObservation
+from app.models import Fixture, FixtureRegistrationJob, FixtureResultObservation
 
 
 class FixtureImportError(ValueError):
@@ -73,6 +73,15 @@ def import_document(session: Session, document: FixtureImportDocument) -> Import
                 raise FixtureImportError(f"conflicting fixture update at the same source time: {record.identity}")
             unchanged += 1
             continue
+        registration = session.scalar(select(FixtureRegistrationJob).where(FixtureRegistrationJob.fixture_id == fixture.id))
+        has_result = session.scalar(select(FixtureResultObservation.id).where(
+            FixtureResultObservation.fixture_id == fixture.id
+        )) is not None
+        team_ids_changed = (record.team_a_id != fixture.team_a_id or record.team_b_id != fixture.team_b_id)
+        if team_ids_changed and (has_result or (registration is not None and registration.status == "confirmed")):
+            raise FixtureImportError(f"team mapping is frozen after a result or confirmed registration: {record.identity}")
+        if registration is not None and registration.status == "confirmed" and record.scheduled_start != _utc(fixture.scheduled_start):
+            raise FixtureImportError(f"scheduled start is frozen after confirmed registration: {record.identity}")
         for name, value in values.items():
             setattr(fixture, name, value)
         updated += 1

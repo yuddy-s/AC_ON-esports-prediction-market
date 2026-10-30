@@ -42,7 +42,7 @@ def _transition(
     job.updated_at = now
     session.add(RegistrationJobEvent(
         job_id=job.id, status=status, error_code=error_code,
-        transaction_hash=job.transaction_hash, recorded_at=now,
+        transaction_hash=job.transaction_hash, fixture_snapshot=job.fixture_snapshot, recorded_at=now,
     ))
 
 
