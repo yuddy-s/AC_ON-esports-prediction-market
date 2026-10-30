@@ -2,7 +2,7 @@
 
 This is the canonical implementation checklist for coding agents and team members. It records what exists, what remains, who owns each area, and whether work can proceed without another team decision. Detailed milestone scope remains in `milestones/` and current assignments remain in `TASKS.md`.
 
-Last reviewed: 2026-10-29 for the supplied Milestone 4 decision set. Current implementation evidence below remains the M3 baseline; M4 work is not yet implemented.
+Last reviewed: 2026-10-30. The M3 baseline is deployed; M4 backend fixture and request work is in review branches, not yet integrated into `dev`.
 
 PRs #10, #12-#20, and #22-#26 are merged into `dev`; PR #27 promoted the M3 snapshot to `main`. This includes the database/indexer/API foundation, approved M3 trading interface, bounded LMSR library, RPC/ABI worker, ACON token, guarded-buy market integration, transaction lookup, versioned deployment handoff, M3 frontend, and proposed Milestone 4 resolver decision record. ACON and PredictionMarket were deployed from `6e30d516669e51d7f3e4bff0d8670168da9b1f83`; market `0` and a ten-share YES buy are confirmed on Sepolia. The complete guarded-buy path was verified locally from a fresh browser through Anvil, the indexer, FastAPI, and back to the UI. Separately, a local Sepolia worker populated Supabase and passed the local API smoke check. Hosted worker/API/frontend acceptance remains pending.
 
@@ -18,6 +18,8 @@ The canonical M3 integration input is [`deployments/sepolia-m3.json`](../../depl
 - **Deferred**: intentionally outside the milestone named in the task, unless the team changes scope.
 
 ## Active Milestone 4 Target Design
+
+Backend review stack: PR #30 adds the curated fixture/result catalog and is awaiting team review; draft PR #31 adds EOA-signed registration requests, immutable fixture snapshots, and an ABI-independent mock registrar state machine. Draft PR #32 adds off-chain result assessments. These branches do not submit an M4 registrar or proposer transaction. Their local tests are evidence for the off-chain slices only. See the [frontend API handoff](interfaces/M4_BACKEND_API.md) for the request/status contract.
 
 The supplied team decision set makes full public Vercel/Render/Supabase/Sepolia integration an **M4 stretch target**, not an M4 acceptance gate. M4 requires complete implemented features and normal/disputed/timeout/VOID/claim local Anvil flows, component tests, full test plan, final ABI/docs alignment, and fresh Sepolia contracts with focused transaction smoke. The [M4 milestone](milestones/MILESTONE_4.md) owns assignments and tests; [the M4 design decision](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md) owns target protocol rules. The [active queue](TASKS.md#active-milestone-4-feature-complete-queue) assigns dependent PRs. PR #28 must record approvers; exact ABI argument types/indexed fields remain to be frozen before code merges.
 

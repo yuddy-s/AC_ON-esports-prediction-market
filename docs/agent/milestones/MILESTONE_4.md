@@ -4,6 +4,8 @@ Status: team M4 decision set documented for PR #28 review; M4 implementation is 
 
 Backend implementation is starting as stacked review PRs: the fixture catalog and append-only result observations are in PR #30; the signed registration request and status API are on its child branch. The latter stores an `awaiting_abi` job only. It does not register a fixture on-chain or allow market creation yet. Adriel can integrate the catalog and EIP-191 signing request, but should enable market creation only after the future registrar worker verifies a confirmed M4 registration. The exact registrar transaction requires Benny's compiled M4 ABI and fixture-key encoding details.
 
+Draft PR #31 also stores an immutable signed fixture snapshot and provides a mock-gateway registrar state machine with audit transitions, safe pre-submission retries, and uncertain-submission quarantine. This is an off-chain implementation boundary: no live signer or confirmed M4 registration is configured. The [draft API handoff](../interfaces/M4_BACKEND_API.md) specifies EOA-only message signing and frontend polling.
+
 ## Course Goal And Acceptance
 
 Demonstrate the complete planned feature set, explain trade-offs, present a full testing and integration plan, and deliver final-design documentation. M4 acceptance requires complete normal, disputed, timeout, VOID, and claim journeys locally on Anvil; component tests; a documented full test plan; final ABI/design alignment; and a fresh Sepolia contract deployment with focused transaction smoke tests. Full public Vercel/Render/Supabase/Sepolia integration is an M4 stretch target, with unfinished hosting due in M5. Local Anvil exercises time-dependent paths that cannot finish during a short live demo.
