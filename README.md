@@ -32,7 +32,7 @@ Milestone 3 is focused on one guarded YES/NO buy end to end: quote → wallet bu
 - The full M3 quote-to-buy-to-indexer-to-frontend flow works on a local Anvil chain; the contracts are live on Sepolia but the hosted indexer/API is not yet. The old M2 address is not an M3 deployment.
 - ACON is the test-only payment/collateral token; Sepolia ETH pays gas. Sells and payouts are not part of this implementation.
 - The approved Milestone 3 decisions are recorded in [`docs/agent/interfaces/M3_TRADING_INTERFACE.md`](docs/agent/interfaces/M3_TRADING_INTERFACE.md). The [contracts README](contracts/README.md) documents the implemented ABI and remaining handoff review.
-- The [Milestone 4 feature-complete plan](docs/agent/milestones/MILESTONE_4.md) and [proposed interface](docs/agent/interfaces/M4_FEATURE_COMPLETE_INTERFACE.md) assign the next work for team review. They do not describe deployed M4 behavior.
+- The [Milestone 4 feature-complete plan](docs/agent/milestones/MILESTONE_4.md) and [PR #28-approved target design](docs/agent/interfaces/M4_FEATURE_COMPLETE_INTERFACE.md) assign the next work. They do not describe deployed M4 behavior; exact ABI types and implementation remain pending.
 
 ## Quick Start (macOS / Linux)
 
@@ -311,4 +311,4 @@ On 2026-10-22, `npm audit --omit=dev` reported **25 production dependency findin
 
 ## Notes
 
-- The proposed Milestone 4 resolver design uses direct on-chain votes authorized by `msg.sender`, including Coinbase Smart Wallet transactions. It remains subject to explicit team approval. If relayed signed votes are added later, contract-wallet signatures must use EIP-1271 rather than relying only on `ecrecover`.
+- The PR #28-approved Milestone 4 resolver design uses direct on-chain votes authorized by `msg.sender`. On Sepolia, resolver writes use MetaMask or another supported injected wallet because Coinbase Smart Wallet currently cannot submit transactions there. Relayed voting is outside M4; if added later, contract-wallet signatures must use EIP-1271 rather than relying only on `ecrecover`.

@@ -180,7 +180,7 @@ Neither `POSTPONED` nor `ORACLE_TIMEOUT` is a stored market state. Each selectio
 - If no valid committee exists by a selection round's fixed deadline, any account may trigger `VOID`. A replacement voting round that ends without quorum also becomes `VOID`.
 - Direct voting relies on transaction sender authorization. A future relayed-vote path must support both ECDSA and EIP-1271 signatures.
 
-These are the supplied M4 design decisions, not deployed behavior. Exact Solidity ABI types/indexed fields, contracts, and complete payout accounting remain to be implemented and tested. PR #28 must record approving members before it leaves Draft.
+These are the PR #28-approved M4 design decisions, not deployed behavior. Exact Solidity ABI types/indexed fields, contracts, and complete payout accounting remain to be implemented and tested.
 
 ## Trust Model
 
