@@ -256,6 +256,8 @@ def test_registration_api_returns_job_status(session: Session) -> None:
             assert job.status_code == 202
             assert job.json()["status"] == "awaiting_abi"
             assert client.get("/api/fixtures/1/registration").json()["id"] == job.json()["id"]
+            assert client.get("/api/fixtures/1").json()["registration_request_status"] == "awaiting_abi"
+            assert client.get("/api/fixtures").json()["items"][0]["registration_request_status"] == "awaiting_abi"
             assert client.post("/api/fixtures/1/registration-requests", json={
                 "wallet_address": wallet.address, "nonce": challenge["nonce"], "signature": signature,
             }).status_code == 409
