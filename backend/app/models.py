@@ -82,6 +82,7 @@ class RegistrationChallenge(Base):
     chain_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     nonce_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
+    fixture_snapshot: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -98,11 +99,26 @@ class FixtureRegistrationJob(Base):
     requested_by: Mapped[str] = mapped_column(String(42), nullable=False)
     chain_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False)
+    fixture_snapshot: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False)
     transaction_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
     error_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
     attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    next_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class RegistrationJobEvent(Base):
+    """Append-only transitions and failures for the narrow registrar worker."""
+
+    __tablename__ = "registration_job_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey("fixture_registration_jobs.id"), nullable=False, index=True)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    error_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    transaction_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
 class IndexedContract(Base):

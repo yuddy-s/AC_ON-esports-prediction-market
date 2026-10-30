@@ -80,6 +80,7 @@ class RegistrationJobRead(BaseModel):
     transaction_hash: str | None
     error_code: str | None
     attempts: int
+    next_attempt_at: datetime | None
     created_at: datetime
     updated_at: datetime
 
@@ -93,6 +94,7 @@ def _job_read(job: FixtureRegistrationJob) -> RegistrationJobRead:
         id=job.id, fixture_id=job.fixture_id, requested_by=job.requested_by,
         chain_id=job.chain_id, status=job.status, transaction_hash=job.transaction_hash,
         error_code=job.error_code, attempts=job.attempts,
+        next_attempt_at=_aware(job.next_attempt_at) if job.next_attempt_at else None,
         created_at=_aware(job.created_at), updated_at=_aware(job.updated_at),
     )
 

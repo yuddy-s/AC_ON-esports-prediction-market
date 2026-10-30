@@ -25,6 +25,7 @@ def upgrade() -> None:
         sa.Column("chain_id", sa.BigInteger(), nullable=False),
         sa.Column("nonce_hash", sa.String(64), nullable=False),
         sa.Column("message", sa.Text(), nullable=False),
+        sa.Column("fixture_snapshot", sa.JSON(), nullable=False),
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("consumed_at", sa.DateTime(timezone=True), nullable=True),
@@ -39,16 +40,30 @@ def upgrade() -> None:
         sa.Column("requested_by", sa.String(42), nullable=False),
         sa.Column("chain_id", sa.BigInteger(), nullable=False),
         sa.Column("status", sa.String(32), nullable=False),
+        sa.Column("fixture_snapshot", sa.JSON(), nullable=False),
         sa.Column("transaction_hash", sa.String(66), nullable=True),
         sa.Column("error_code", sa.String(80), nullable=True),
         sa.Column("attempts", sa.Integer(), nullable=False),
+        sa.Column("next_attempt_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.UniqueConstraint("fixture_id", name="uq_fixture_registration_job"),
     )
+    op.create_table(
+        "registration_job_events",
+        sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True),
+        sa.Column("job_id", sa.Integer(), sa.ForeignKey("fixture_registration_jobs.id"), nullable=False),
+        sa.Column("status", sa.String(32), nullable=False),
+        sa.Column("error_code", sa.String(80), nullable=True),
+        sa.Column("transaction_hash", sa.String(66), nullable=True),
+        sa.Column("recorded_at", sa.DateTime(timezone=True), nullable=False),
+    )
+    op.create_index("ix_registration_job_events_job_id", "registration_job_events", ["job_id"])
 
 
 def downgrade() -> None:
+    op.drop_index("ix_registration_job_events_job_id", table_name="registration_job_events")
+    op.drop_table("registration_job_events")
     op.drop_table("fixture_registration_jobs")
     op.drop_index("ix_registration_challenges_wallet_address", table_name="registration_challenges")
     op.drop_index("ix_registration_challenges_fixture_id", table_name="registration_challenges")
