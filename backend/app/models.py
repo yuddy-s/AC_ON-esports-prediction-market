@@ -121,6 +121,20 @@ class RegistrationJobEvent(Base):
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
+class OracleResultAssessment(Base):
+    """Append-only source assessment, never an on-chain proposal or settlement."""
+
+    __tablename__ = "oracle_result_assessments"
+    __table_args__ = (UniqueConstraint("observation_id", name="uq_oracle_assessment_observation"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    fixture_id: Mapped[int] = mapped_column(ForeignKey("fixtures.id"), nullable=False, index=True)
+    observation_id: Mapped[int] = mapped_column(ForeignKey("fixture_result_observations.id"), nullable=False)
+    outcome: Mapped[str] = mapped_column(String(8), nullable=False)
+    conflicts_with_prior: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    assessed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
 class IndexedContract(Base):
     __tablename__ = "indexed_contracts"
     __table_args__ = (

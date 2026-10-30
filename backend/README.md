@@ -84,6 +84,12 @@ The player selects a **scheduled, curated** catalog fixture with two distinct te
 
 The request is only permission for the narrow registrar to register a verified fixture. The player must sign a **separate market creation and funding transaction** after the registration is confirmed. The backend never creates or funds the player's market. Before exposing these POST endpoints publicly, configure an edge rate limit and bot protection in addition to the per-wallet database limits; arbitrary new addresses can otherwise consume challenge storage.
 
+### Result assessment (non-signing oracle slice)
+
+Migration `20261029_0004` adds append-only result assessments. After importing result observations, an operator can run `python -m scripts.assess_results` against the intended database. Each observation maps Team A to YES, Team B to NO, and canceled/tied/no-contest/unsupported to VOID. A corrected observation creates a new row; changed outcomes are flagged for challenge review. Re-running the command is idempotent. These rows are **source assessments**, not on-chain proposals, market outcomes, or proof that a result is true.
+
+The automatic proposer is still gated on the M4 event/ABI freeze: it must link registered fixtures to confirmed M4 markets, check the chain's closed/proposed state before every submission or retry, then use a separate least-privilege proposer key. It must retain intent, transaction, retry, and key-rotation audit history. No public API accepts a caller-chosen outcome for signing, and this branch loads no signer key. Corrections after an immutable on-chain proposal require the challenge/resolver path.
+
 ```bash
 python -m scripts.import_fixtures path/to/fixtures.json --validate-only
 python -m scripts.import_fixtures path/to/fixtures.json
