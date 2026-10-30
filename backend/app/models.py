@@ -70,6 +70,41 @@ class FixtureResultObservation(Base):
     imported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
 
 
+class RegistrationChallenge(Base):
+    """A short-lived, single-use EOA authorization for requesting fixture registration."""
+
+    __tablename__ = "registration_challenges"
+    __table_args__ = (UniqueConstraint("nonce_hash", name="uq_registration_nonce_hash"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    fixture_id: Mapped[int] = mapped_column(ForeignKey("fixtures.id"), nullable=False, index=True)
+    wallet_address: Mapped[str] = mapped_column(String(42), nullable=False, index=True)
+    chain_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    nonce_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class FixtureRegistrationJob(Base):
+    """Off-chain request; registered status requires a confirmed on-chain receipt."""
+
+    __tablename__ = "fixture_registration_jobs"
+    __table_args__ = (UniqueConstraint("fixture_id", name="uq_fixture_registration_job"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    fixture_id: Mapped[int] = mapped_column(ForeignKey("fixtures.id"), nullable=False)
+    requested_by: Mapped[str] = mapped_column(String(42), nullable=False)
+    chain_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    transaction_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    error_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
 class IndexedContract(Base):
     __tablename__ = "indexed_contracts"
     __table_args__ = (

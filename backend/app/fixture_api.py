@@ -5,10 +5,14 @@ from datetime import UTC, datetime
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.database import get_session
 from app.models import Fixture, FixtureResultObservation
+from app.models import FixtureRegistrationJob
+from app.registration_service import RegistrationError, create_challenge, request_registration
+from app.config import get_settings
 
 
 router = APIRouter(prefix="/api/fixtures", tags=["fixtures"])
@@ -48,6 +52,49 @@ class FixtureListResponse(BaseModel):
     total: int
     limit: int
     offset: int
+
+
+class ChallengeCreate(BaseModel):
+    wallet_address: str
+
+
+class ChallengeRead(BaseModel):
+    nonce: str
+    message: str
+    expires_at: datetime
+    chain_id: int
+
+
+class RegistrationCreate(BaseModel):
+    wallet_address: str
+    nonce: str
+    signature: str
+
+
+class RegistrationJobRead(BaseModel):
+    id: int
+    fixture_id: int
+    requested_by: str
+    chain_id: int
+    status: str
+    transaction_hash: str | None
+    error_code: str | None
+    attempts: int
+    created_at: datetime
+    updated_at: datetime
+
+
+def _registration_error(exc: RegistrationError) -> HTTPException:
+    return HTTPException(status_code=exc.status_code, detail={"code": exc.code, "message": str(exc)})
+
+
+def _job_read(job: FixtureRegistrationJob) -> RegistrationJobRead:
+    return RegistrationJobRead(
+        id=job.id, fixture_id=job.fixture_id, requested_by=job.requested_by,
+        chain_id=job.chain_id, status=job.status, transaction_hash=job.transaction_hash,
+        error_code=job.error_code, attempts=job.attempts,
+        created_at=_aware(job.created_at), updated_at=_aware(job.updated_at),
+    )
 
 
 def _aware(value: datetime) -> datetime:
@@ -135,3 +182,51 @@ def list_fixture_results(fixture_id: int, session: Session = Depends(get_session
         .order_by(FixtureResultObservation.source_updated_at, FixtureResultObservation.id)
     ).all()
     return [_result_read(observation) for observation in observations]
+
+
+@router.post("/{fixture_id}/registration-challenges", response_model=ChallengeRead, status_code=201)
+def create_registration_challenge(
+    fixture_id: int, body: ChallengeCreate, session: Session = Depends(get_session),
+) -> ChallengeRead:
+    settings = get_settings()
+    try:
+        challenge, nonce = create_challenge(
+            session, fixture_id, body.wallet_address, settings.indexer_chain_id, settings.frontend_origin,
+        )
+        session.commit()
+    except RegistrationError as exc:
+        session.rollback()
+        raise _registration_error(exc) from exc
+    except IntegrityError as exc:
+        session.rollback()
+        raise HTTPException(status_code=409, detail={"code": "registration_conflict", "message": "Registration state changed; retry"}) from exc
+    return ChallengeRead(
+        nonce=nonce, message=challenge.message,
+        expires_at=_aware(challenge.expires_at), chain_id=challenge.chain_id,
+    )
+
+
+@router.post("/{fixture_id}/registration-requests", response_model=RegistrationJobRead, status_code=202)
+def create_registration_request(
+    fixture_id: int, body: RegistrationCreate, session: Session = Depends(get_session),
+) -> RegistrationJobRead:
+    try:
+        job = request_registration(
+            session, fixture_id, body.wallet_address, body.nonce, body.signature, get_settings().indexer_chain_id,
+        )
+        session.commit()
+    except RegistrationError as exc:
+        session.rollback()
+        raise _registration_error(exc) from exc
+    except IntegrityError as exc:
+        session.rollback()
+        raise HTTPException(status_code=409, detail={"code": "already_requested", "message": "Fixture registration has already been requested"}) from exc
+    return _job_read(job)
+
+
+@router.get("/{fixture_id}/registration", response_model=RegistrationJobRead | None)
+def get_registration(fixture_id: int, session: Session = Depends(get_session)) -> RegistrationJobRead | None:
+    if session.get(Fixture, fixture_id) is None:
+        raise HTTPException(status_code=404, detail="Fixture not found")
+    job = session.scalar(select(FixtureRegistrationJob).where(FixtureRegistrationJob.fixture_id == fixture_id))
+    return _job_read(job) if job else None

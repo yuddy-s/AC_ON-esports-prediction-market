@@ -72,7 +72,17 @@ The seed script creates the `sample_matches` table if needed and upserts three f
 
 ## Milestone 4 Fixture Catalog (first backend slice)
 
-The fixture catalog is imported **off-chain source data**, not an on-chain registration or market. An operator imports a JSON file from `backend/` after `alembic upgrade head` has applied revision `20261029_0002` to the chosen database. Use a local database for development; do not point the importer at Supabase unintentionally. No PandaScore account, API token, registrar key, or M4 ABI is needed for this slice.
+The fixture catalog is imported **off-chain source data**, not an on-chain registration or market. An operator imports a JSON file from `backend/` after `alembic upgrade head` has applied the fixture migration (`20261029_0002`) to the chosen database. Use a local database for development; do not point the importer at Supabase unintentionally. No PandaScore account, API token, registrar key, or M4 ABI is needed for this slice.
+
+The next migration, `20261029_0003`, adds registration request tracking. Applying `alembic upgrade head` on the stacked registration branch reaches this revision. No hosted database has been migrated by this branch.
+
+### Signed registration request (ABI-gated slice)
+
+The player selects a **scheduled, curated** catalog fixture with two distinct teams, source evidence, no recorded result, and at least 30 minutes until the scheduled start. The frontend calls `POST /api/fixtures/{id}/registration-challenges` with `{"wallet_address":"0x..."}` and receives a five-minute EIP-191 message, nonce, chain ID, and expiry. The player signs that exact message with an EOA wallet. The frontend then calls `POST /api/fixtures/{id}/registration-requests` with `wallet_address`, `nonce`, and `signature`. The server recovers the signer, checks the chain/fixture/expiry, consumes the challenge once, and stores at most one request per fixture. A wallet is limited to 12 challenges and 3 registration requests per rolling day. Errors include a stable `detail.code`.
+
+`GET /api/fixtures/{id}/registration` returns the job or `null`. Jobs currently report `awaiting_abi`; that means **no on-chain registration has occurred**. The UI must not offer market creation until a future registrar worker verifies the registration transaction and reports a confirmed on-chain status. This branch does not load a registrar key, send a transaction, derive Benny's exact fixture-key bytes, or alter the M3 worker. The production registrar gateway and confirmed status require Benny's compiled M4 ABI, exact call types, role grant, contract address, and deployment block. Contract wallets are not supported by this EOA signature flow.
+
+The request is only permission for the narrow registrar to register a verified fixture. The player must sign a **separate market creation and funding transaction** after the registration is confirmed. The backend never creates or funds the player's market. Before exposing these POST endpoints publicly, configure an edge rate limit and bot protection in addition to the per-wallet database limits; arbitrary new addresses can otherwise consume challenge storage.
 
 ```bash
 python -m scripts.import_fixtures path/to/fixtures.json --validate-only
