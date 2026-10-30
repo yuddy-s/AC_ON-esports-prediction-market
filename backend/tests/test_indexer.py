@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -6,9 +7,17 @@ from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.database import Base
+from app.fixture_data import deterministic_mock
+from app.fixture_service import import_document
 from app.indexer.provider import ChainLog
 from app.indexer.service import EventIndexer, IndexerConfig, IndexerProjectionError, IndexerReorganizationError
-from app.models import IndexedContract, IndexedMarket, IndexedTrade, IndexerCheckpoint, ProcessedLog
+from app.models import (
+    Fixture, FixtureRegistrationJob, IndexedContract, IndexedMarket, IndexedTrade,
+    IndexerCheckpoint, OracleProposalEvent, OracleProposalIntent, OracleResultAssessment,
+    ProcessedLog, RegistrationJobEvent,
+)
+from app.oracle_assessment import assess_imported_results
+from app.registration_service import fixture_snapshot
 
 
 CHAIN_ID = 11155111
@@ -346,6 +355,43 @@ def test_restart_rejects_changed_abi_version_for_registered_contract(session: Se
     checkpoint = session.scalar(select(IndexerCheckpoint))
     assert checkpoint is not None
     assert checkpoint.next_block == 2
+
+
+def test_rebuild_preserves_fixture_and_signer_audit_records(session: Session) -> None:
+    import_document(session, deterministic_mock())
+    assess_imported_results(session)
+    fixture = session.get(Fixture, 1)
+    assert fixture is not None
+    now = datetime(2030, 1, 2, tzinfo=UTC)
+    registration = FixtureRegistrationJob(
+        fixture_id=fixture.id, requested_by="0x" + "44" * 20, chain_id=CHAIN_ID,
+        status="awaiting_abi", fixture_snapshot=fixture_snapshot(fixture), attempts=0,
+        created_at=now, updated_at=now,
+    )
+    session.add(registration)
+    session.flush()
+    session.add(RegistrationJobEvent(job_id=registration.id, status="awaiting_abi", recorded_at=now))
+    intent = OracleProposalIntent(
+        chain_id=CHAIN_ID, contract_address=CONTRACT, market_id=0,
+        fixture_id=fixture.id, observation_id=1, outcome="YES",
+        evidence_url="https://example.org/evidence", evidence_hash="0x" + "11" * 32,
+        status="queued", attempts=0, created_at=now, updated_at=now,
+    )
+    session.add(intent)
+    session.flush()
+    session.add(OracleProposalEvent(intent_id=intent.id, status="queued", recorded_at=now))
+    session.commit()
+
+    provider = FakeProvider(2, [market_created(1), trade_executed(2)])
+    service = indexer(provider)
+    service.sync_once(session)
+    service.rebuild(session)
+
+    for model in (Fixture, FixtureRegistrationJob, RegistrationJobEvent, OracleResultAssessment,
+                  OracleProposalIntent, OracleProposalEvent):
+        assert session.scalar(select(func.count()).select_from(model)) == 1
+    assert session.scalar(select(func.count()).select_from(IndexedMarket)) == 1
+    assert session.scalar(select(func.count()).select_from(IndexedTrade)) == 1
 
 
 def _projection_snapshot(session: Session) -> tuple[object, ...]:

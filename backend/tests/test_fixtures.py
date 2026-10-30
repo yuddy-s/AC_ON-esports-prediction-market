@@ -124,6 +124,23 @@ def test_fixture_catalog_api_and_result_history(session: Session) -> None:
         app.dependency_overrides.clear()
 
 
+def test_fixture_api_database_failure_is_not_an_empty_catalog() -> None:
+    class BrokenSession:
+        def scalar(self, *_args, **_kwargs):
+            raise RuntimeError("simulated database outage")
+
+    def override():
+        yield BrokenSession()
+
+    app.dependency_overrides[get_session] = override
+    try:
+        with TestClient(app, raise_server_exceptions=False) as client:
+            response = client.get("/api/fixtures")
+            assert response.status_code == 500
+    finally:
+        app.dependency_overrides.clear()
+
+
 def test_fresh_sqlite_database_upgrades_through_fixture_migration(tmp_path: Path) -> None:
     database_path = tmp_path / "migration.db"
     backend_dir = Path(__file__).resolve().parents[1]
@@ -144,8 +161,8 @@ def test_fresh_sqlite_database_upgrades_through_fixture_migration(tmp_path: Path
         tables = set(inspect(connection).get_table_names())
         revision = connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
     engine.dispose()
-    assert {"fixtures", "fixture_result_observations", "registration_challenges", "fixture_registration_jobs", "registration_job_events", "markets", "trades"} <= tables
-    assert revision == "20261029_0003"
+    assert {"fixtures", "fixture_result_observations", "registration_challenges", "fixture_registration_jobs", "registration_job_events", "oracle_result_assessments", "oracle_proposal_intents", "oracle_proposal_events", "markets", "trades"} <= tables
+    assert revision == "20261029_0004"
 
 
 def test_existing_m3_contract_survives_fixture_migration(tmp_path: Path) -> None:
@@ -177,5 +194,5 @@ def test_existing_m3_contract_survives_fixture_migration(tmp_path: Path) -> None
     upgrade("head")
     with engine.connect() as connection:
         assert connection.execute(text("SELECT abi_version FROM indexed_contracts")).scalar_one() == "m3"
-        assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == "20261029_0003"
+        assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == "20261029_0004"
     engine.dispose()

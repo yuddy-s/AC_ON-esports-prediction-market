@@ -84,6 +84,16 @@ The player selects a **scheduled, curated** catalog fixture with two distinct te
 
 The request is only permission for the narrow registrar to register a verified fixture. The player must sign a **separate market creation and funding transaction** after the registration is confirmed. The backend never creates or funds the player's market. Before exposing these POST endpoints publicly, configure an edge rate limit and bot protection in addition to the per-wallet database limits; arbitrary new addresses can otherwise consume challenge storage.
 
+### Result assessment (non-signing oracle slice)
+
+Migration `20261029_0004` adds append-only result assessments. After importing result observations, an operator can run `python -m scripts.assess_results` against the intended database. Each observation maps Team A to YES, Team B to NO, and canceled/tied/no-contest/unsupported to VOID. A corrected observation creates a new row; changed outcomes are flagged for challenge review. Re-running the command is idempotent. These rows are **source assessments**, not on-chain proposals, market outcomes, or proof that a result is true.
+
+The same draft migration also stores one proposal intent per `(chain_id, contract_address, market_id)` and append-only attempt events. `app.oracle_worker` defines a mockable closed-market gateway and bounded state machine. It chooses the latest assessment only after a gateway reports a closed, unproposed market. A new observation after intent creation pauses a not-yet-submitted intent for review, even if the suggested outcome is unchanged. A known pre-submission outage may retry; an uncertain submission is quarantined. A successful receipt is insufficient to report `confirmed` without a matching chain read after the confirmation depth. No public route can choose an outcome.
+
+The M3 indexer rebuild test now proves imported fixtures, registration jobs/audit, assessments, and oracle intents/audit survive a replay; the derived M3 market/trade rows are recreated. M4 event tables and decoder changes still need the compiled ABI, and their rebuild coverage must be added with the actual event fixtures.
+
+The automatic production proposer is still gated on the M4 event/ABI freeze: it must link registered fixtures to confirmed M4 markets, check the chain's closed/proposed state before every submission or retry, then use a separate least-privilege proposer key. The mock gateway is exercised by tests; no production gateway, loop, or signer key is configured. Corrections after an immutable on-chain proposal require the challenge/resolver path.
+
 ```bash
 python -m scripts.import_fixtures path/to/fixtures.json --validate-only
 python -m scripts.import_fixtures path/to/fixtures.json
