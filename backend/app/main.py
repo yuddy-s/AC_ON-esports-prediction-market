@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.database import Base, engine, get_session
+from app.fixture_api import router as fixture_router
 from app.indexed_api import router as indexed_router
 from app.models import SampleMatch
 from app.schemas import HealthResponse, SampleMatchRead
@@ -26,6 +27,7 @@ app.add_middleware(
 )
 
 app.include_router(indexed_router)
+app.include_router(fixture_router)
 
 
 @app.get("/health", response_model=HealthResponse)
