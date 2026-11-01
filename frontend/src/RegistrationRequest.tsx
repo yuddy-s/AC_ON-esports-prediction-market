@@ -30,7 +30,7 @@ export function RegistrationRequest({ fixture, job, nowMs }: { fixture: Fixture;
   const [step, setStep] = useState<Step>({ kind: "idle" });
 
   if (step.kind === "done") {
-    return <p className="mt-2 text-sm text-emerald-300">Request sent. The registration status above updates as the registrar works.</p>;
+    return <p className="text-sm text-win">Request sent. The registration status above updates as the registrar works.</p>;
   }
 
   // Also covers a recoverable terminal failure, which accepts a fresh signature.
@@ -78,21 +78,21 @@ export function RegistrationRequest({ fixture, job, nowMs }: { fixture: Fixture;
   const canClick = blocker === null && !busy && (step.kind !== "error" || step.canRetry);
 
   return (
-    <div className="mt-3">
+    <div>
       <button
         type="button"
         onClick={request}
         disabled={!canClick}
-        className="w-full rounded bg-amber-400 px-3 py-2 text-sm font-semibold text-neutral-900 hover:bg-amber-300 disabled:bg-neutral-800 disabled:text-neutral-500"
+        className="btn-ghost w-full border-gold py-2.5 text-gold hover:bg-gold hover:text-ink-900"
       >
         {busy ? "Requesting…" : retrying ? "Request registration again" : "Request on-chain registration"}
       </button>
-      <p className="mt-1 text-xs text-neutral-500">
+      <p className="mt-1.5 text-xs text-dust">
         You sign a message (free). The team's registrar then registers the fixture on-chain.
       </p>
-      {blocker && <p className="mt-1 text-sm text-amber-300">{blocker}</p>}
-      {step.kind === "busy" && <p className="mt-1 text-sm text-neutral-300">{step.message}</p>}
-      {step.kind === "error" && <p className="mt-1 text-sm text-red-400">{step.message}</p>}
+      {blocker && <p className="mt-1 text-sm text-gold">{blocker}</p>}
+      {step.kind === "busy" && <p className="mt-1 text-sm text-cream">{step.message}</p>}
+      {step.kind === "error" && <p className="mt-1 text-sm text-signal">{step.message}</p>}
     </div>
   );
 }
