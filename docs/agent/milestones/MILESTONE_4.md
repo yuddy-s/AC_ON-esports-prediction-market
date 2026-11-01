@@ -2,6 +2,8 @@
 
 **Provider decision pending:** Yudhveer is adding a PandaScore REST adapter for Valorant, CS2, and Rainbow Six Siege to the backend work. Live ingestion and proposal use require a team-reviewed provider-use and result-verification decision. Until approved, the manual JSON/mock path below remains the accepted source path; the adapter's implementation or tests do not imply a working live account.
 
+Draft PR #39 contains the adapter and offline tests. A live account check, permitted-use decision, and independent result-verification rule remain outstanding. PandaScore ingestion does not itself confirm a fixture on-chain or authorize settlement.
+
 Status: M4 target design approved and merged in PR #28; implementation is pending. See [the M4 design decision](../interfaces/M4_FEATURE_COMPLETE_INTERFACE.md). The deployed M3 guarded-buy implementation remains the current baseline.
 
 Backend implementation is starting as stacked review PRs: the fixture catalog and append-only result observations are in PR #30; the signed registration request and status API are on its child branch. The latter stores an `awaiting_abi` job only. It does not register a fixture on-chain or allow market creation yet. Adriel can integrate the catalog and EIP-191 signing request, but should enable market creation only after the future registrar worker verifies a confirmed M4 registration. The exact registrar transaction requires Benny's compiled M4 ABI and fixture-key encoding details.

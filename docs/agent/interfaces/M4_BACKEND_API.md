@@ -1,5 +1,7 @@
 # M4 Backend to Frontend Handoff
 
+Provider update proposed in draft PR #39: `provider_id=pandascore` fixtures and result observations may enter the same catalog after permitted operator ingestion. They remain non-authoritative. A PandaScore result is not an on-chain proposal, and the current proposer worker refuses to create an intent from PandaScore-only evidence. The UI should show the source and update time, never infer settlement or claimability from a provider result.
+
 Status: **stacked review PRs #30–#34**, 2026-10-30. These routes are off-chain source data and request tracking. On-chain M4 registration, market linkage, and result proposals require Benny's compiled ABI and deployment. Keep the [M3 trading interface](M3_TRADING_INTERFACE.md) as the deployed baseline.
 
 ## Fixture browsing
