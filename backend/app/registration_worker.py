@@ -1,6 +1,7 @@
 """ABI-independent registrar state machine. No production signer is configured here."""
 
 from datetime import UTC, datetime, timedelta
+import re
 from typing import Literal, Protocol
 
 from sqlalchemy import select
@@ -126,10 +127,10 @@ def process_registration_job(
     except SubmissionUncertain:
         _transition(session, job, "submission_unknown", now, error_code="manual_reconciliation_required")
         return job
-    if not (isinstance(transaction_hash, str) and transaction_hash.startswith("0x") and len(transaction_hash) == 66):
+    if not (isinstance(transaction_hash, str) and re.fullmatch(r"0x[0-9a-fA-F]{64}", transaction_hash)):
         _transition(session, job, "submission_unknown", now, error_code="invalid_transaction_hash")
         return job
-    _transition(session, job, "submitted", now, transaction_hash=transaction_hash,
+    _transition(session, job, "submitted", now, transaction_hash=transaction_hash.lower(),
                 next_attempt_at=now + timedelta(seconds=30))
     return job
 

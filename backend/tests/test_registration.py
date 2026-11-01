@@ -155,6 +155,7 @@ class FakeRegistrationGateway:
         self.submit_calls = 0
         self.fail_before_submit = False
         self.uncertain_submit = False
+        self.transaction_hash = "0x" + "ab" * 32
 
     def registration_state(self, _snapshot):
         return self.state
@@ -168,7 +169,7 @@ class FakeRegistrationGateway:
             raise GatewayUnavailable("offline")
         if self.uncertain_submit:
             raise SubmissionUncertain("unknown")
-        return "0x" + "ab" * 32
+        return self.transaction_hash
 
 
 def _activated_job(session: Session, *, now: datetime) -> FixtureRegistrationJob:
@@ -222,6 +223,30 @@ def test_uncertain_submission_requires_manual_reconciliation(session: Session) -
     assert job.status == "submission_unknown" and job.transaction_hash is None
     process_registration_job(session, job.id, gateway, now=now + timedelta(hours=1))
     assert gateway.submit_calls == 1
+
+
+@pytest.mark.parametrize("bad_hash", ["0x" + "zz" * 32, "0x" + "ab" * 31, "0x" + "ab" * 33, "ab" * 32])
+def test_worker_quarantines_invalid_transaction_hash(session: Session, bad_hash: str) -> None:
+    now = datetime(2029, 12, 1, tzinfo=UTC)
+    job = _activated_job(session, now=now)
+    gateway = FakeRegistrationGateway()
+    gateway.transaction_hash = bad_hash
+    process_registration_job(session, job.id, gateway, now=now)
+    assert job.status == "submission_unknown"
+    assert job.error_code == "invalid_transaction_hash"
+    assert job.transaction_hash is None
+    process_registration_job(session, job.id, gateway, now=now + timedelta(minutes=1))
+    assert gateway.submit_calls == 1
+
+
+def test_worker_normalizes_valid_transaction_hash(session: Session) -> None:
+    now = datetime(2029, 12, 1, tzinfo=UTC)
+    job = _activated_job(session, now=now)
+    gateway = FakeRegistrationGateway()
+    gateway.transaction_hash = "0x" + "AB" * 32
+    process_registration_job(session, job.id, gateway, now=now)
+    assert job.status == "submitted"
+    assert job.transaction_hash == "0x" + "ab" * 32
 
 
 def test_worker_rechecks_snapshot_and_ineligibility_before_submission(session: Session) -> None:
