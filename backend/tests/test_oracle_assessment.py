@@ -138,6 +138,32 @@ def test_pandascore_observation_cannot_create_automatic_proposal(session: Sessio
     assert intent.evidence_hash == "0x" + "bb" * 32
 
 
+def test_corrected_pandascore_result_needs_its_own_review(session: Session) -> None:
+    fixture = session.get(Fixture, 1)
+    assert fixture is not None
+    fixture.provider_id = "pandascore"
+    assess_imported_results(session)
+    review_result(session, 1, reviewer="operator", approved=True,
+                  evidence_url="https://organizer.example/match/1/result",
+                  evidence_hash="0x" + "bb" * 32)
+
+    corrected = deterministic_mock().model_dump(mode="json")
+    corrected["fixtures"] = []
+    corrected["results"][0]["provider_id"] = "pandascore"
+    corrected["results"][0]["winner_team_id"] = "bravo"
+    corrected["results"][0]["source_updated_at"] = "2030-01-01T22:00:00Z"
+    corrected["results"][0]["evidence_hash"] = "0x" + "cc" * 32
+    import_document(session, FixtureImportDocument.model_validate(corrected))
+    assess_imported_results(session)
+    gateway = FakeOracleGateway()
+    assert plan_proposal(session, gateway.market, gateway) is None
+    review_result(session, 2, reviewer="operator", approved=True,
+                  evidence_url="https://organizer.example/match/1/correction",
+                  evidence_hash="0x" + "dd" * 32)
+    intent = plan_proposal(session, gateway.market, gateway)
+    assert intent is not None and intent.outcome == "NO"
+
+
 def test_oracle_run_selects_observed_result_and_requires_chain_match(session: Session) -> None:
     gateway = FakeOracleGateway()
     now = datetime(2030, 1, 2, tzinfo=UTC)
