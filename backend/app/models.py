@@ -46,6 +46,9 @@ class Fixture(Base):
     team_b_name: Mapped[str] = mapped_column(String(160), nullable=False)
     evidence_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     evidence_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    curated_evidence_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    curated_evidence_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    curated_identity_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     source_updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     imported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
 
@@ -68,6 +71,148 @@ class FixtureResultObservation(Base):
     evidence_hash: Mapped[str] = mapped_column(String(66), nullable=False)
     observation_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     imported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
+
+
+class FixtureReviewEvent(Base):
+    """Append-only operator curation; source imports cannot grant approval."""
+
+    __tablename__ = "fixture_review_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    fixture_id: Mapped[int] = mapped_column(ForeignKey("fixtures.id"), nullable=False, index=True)
+    reviewer: Mapped[str] = mapped_column(String(120), nullable=False)
+    approved: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    identity_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    evidence_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    evidence_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    reviewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class ResultReviewEvent(Base):
+    """Append-only decision for one exact provider result observation."""
+
+    __tablename__ = "result_review_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    observation_id: Mapped[int] = mapped_column(ForeignKey("fixture_result_observations.id"), nullable=False, index=True)
+    reviewer: Mapped[str] = mapped_column(String(120), nullable=False)
+    approved: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    evidence_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    evidence_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    reviewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class RegistrationChallenge(Base):
+    """A short-lived, single-use EOA authorization for requesting fixture registration."""
+
+    __tablename__ = "registration_challenges"
+    __table_args__ = (UniqueConstraint("nonce_hash", name="uq_registration_nonce_hash"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    fixture_id: Mapped[int] = mapped_column(ForeignKey("fixtures.id"), nullable=False, index=True)
+    wallet_address: Mapped[str] = mapped_column(String(42), nullable=False, index=True)
+    chain_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    nonce_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    fixture_snapshot: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class FixtureRegistrationJob(Base):
+    """Off-chain request; registered status requires a confirmed on-chain receipt."""
+
+    __tablename__ = "fixture_registration_jobs"
+    __table_args__ = (UniqueConstraint("fixture_id", name="uq_fixture_registration_job"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    fixture_id: Mapped[int] = mapped_column(ForeignKey("fixtures.id"), nullable=False)
+    requested_by: Mapped[str] = mapped_column(String(42), nullable=False)
+    authorization_challenge_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    authorization_nonce_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    authorization_message_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    chain_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    fixture_snapshot: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False)
+    transaction_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    error_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    next_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class RegistrationJobEvent(Base):
+    """Append-only transitions and failures for the narrow registrar worker."""
+
+    __tablename__ = "registration_job_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey("fixture_registration_jobs.id"), nullable=False, index=True)
+    requested_by: Mapped[str | None] = mapped_column(String(42), nullable=True)
+    challenge_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    nonce_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    message_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    error_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    transaction_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    fixture_snapshot: Mapped[dict[str, object] | None] = mapped_column(JSON, nullable=True)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class OracleResultAssessment(Base):
+    """Append-only source assessment, never an on-chain proposal or settlement."""
+
+    __tablename__ = "oracle_result_assessments"
+    __table_args__ = (UniqueConstraint("observation_id", name="uq_oracle_assessment_observation"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    fixture_id: Mapped[int] = mapped_column(ForeignKey("fixtures.id"), nullable=False, index=True)
+    observation_id: Mapped[int] = mapped_column(ForeignKey("fixture_result_observations.id"), nullable=False)
+    outcome: Mapped[str] = mapped_column(String(8), nullable=False)
+    conflicts_with_prior: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    assessed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class OracleProposalIntent(Base):
+    """One immutable assessed result selected for a specific on-chain market."""
+
+    __tablename__ = "oracle_proposal_intents"
+    __table_args__ = (
+        UniqueConstraint("chain_id", "contract_address", "market_id", name="uq_oracle_intent_market"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    chain_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    contract_address: Mapped[str] = mapped_column(String(42), nullable=False)
+    market_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    fixture_id: Mapped[int] = mapped_column(ForeignKey("fixtures.id"), nullable=False)
+    observation_id: Mapped[int] = mapped_column(ForeignKey("fixture_result_observations.id"), nullable=False)
+    outcome: Mapped[str] = mapped_column(String(8), nullable=False)
+    evidence_url: Mapped[str] = mapped_column(Text, nullable=False)
+    evidence_hash: Mapped[str] = mapped_column(String(66), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    transaction_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    error_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False)
+    next_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    correction_observation_id: Mapped[int | None] = mapped_column(ForeignKey("fixture_result_observations.id"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class OracleProposalEvent(Base):
+    """Append-only signer intent/attempt history, retained across projection rebuilds."""
+
+    __tablename__ = "oracle_proposal_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    intent_id: Mapped[int] = mapped_column(ForeignKey("oracle_proposal_intents.id"), nullable=False, index=True)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    error_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    transaction_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
 class IndexedContract(Base):

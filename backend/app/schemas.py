@@ -85,6 +85,7 @@ class IndexerStatusResponse(BaseModel):
     configured: bool
     chain_id: int
     contract_address: str | None
+    abi_version: str | None
     deployment_block: int | None
     latest_observed_block: int | None
     last_safe_block: int | None

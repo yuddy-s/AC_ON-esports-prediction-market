@@ -1,6 +1,8 @@
 # Milestone 4 Feature-Complete Design Decision
 
-Status: **target design approved and merged in PR #28 on 2026-10-29; local contract draft available for review**. Matthew's GitHub approval and Yudhveer's confirmation established the decision set. These rules define target behavior; exact Solidity types, indexed event fields, and compiled ABI remain an implementation freeze gate. The [current contract draft](CONTRACT_ABI.md) records locally verified behavior and Benny's explicit implementation clarifications; it is not team approval or a deployed release. The [M3 interface](M3_TRADING_INTERFACE.md) describes the historical deployment; the current source updates the product in place and requires a fresh deployment and manifest.
+> **Provider amendment implemented but gated:** PR #39 merged the PandaScore fixture/result adapter and independent-review workflow. Live ingestion remains disabled until written permission and team approval confirm this educational test-token use. PandaScore responses alone are not independent organizer evidence and cannot trigger automatic proposals.
+
+Status: **target design approved and merged in PR #28 on 2026-10-29; locally verified contract and backend slices are available for final integration**. Matthew's economic proof/invariants are included in PR #37's combined contract head, whose [exact-build ABI](CONTRACT_ABI.md), event fixtures, verification record, and deployment tooling are under final consumer review. PRs #30–#34 and #39 provide the off-chain catalog and guarded registrar/proposer workflows. None of this is a deployed M4 release: fresh Sepolia deployment, role/VRF handoff, frontend/backend contract integration, and cross-layer acceptance remain required. The [M3 interface](M3_TRADING_INTERFACE.md) describes the historical live baseline.
 
 ## Fixture and result source
 
