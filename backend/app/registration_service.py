@@ -184,9 +184,13 @@ def request_registration(
     if recent >= MAX_JOBS_PER_WALLET_PER_DAY:
         raise RegistrationError("rate_limited", "Too many registration requests", 429)
     challenge.consumed_at = now
+    message_hash = hashlib.sha256(challenge.message.encode()).hexdigest()
     if existing_job is None:
         job = FixtureRegistrationJob(
             fixture_id=fixture_id, requested_by=wallet, chain_id=chain_id,
+            authorization_challenge_id=challenge.id,
+            authorization_nonce_hash=challenge.nonce_hash,
+            authorization_message_hash=message_hash,
             status="awaiting_abi", fixture_snapshot=challenge.fixture_snapshot,
             attempts=0, created_at=now, updated_at=now,
         )
@@ -194,6 +198,9 @@ def request_registration(
     else:
         job = existing_job
         job.requested_by = wallet
+        job.authorization_challenge_id = challenge.id
+        job.authorization_nonce_hash = challenge.nonce_hash
+        job.authorization_message_hash = message_hash
         job.chain_id = chain_id
         job.fixture_snapshot = challenge.fixture_snapshot
         job.status = "awaiting_abi"
@@ -204,5 +211,7 @@ def request_registration(
         job.updated_at = now
     session.flush()
     session.add(RegistrationJobEvent(job_id=job.id, status=job.status,
+                                     requested_by=wallet, challenge_id=challenge.id,
+                                     nonce_hash=challenge.nonce_hash, message_hash=message_hash,
                                      fixture_snapshot=job.fixture_snapshot, recorded_at=now))
     return job

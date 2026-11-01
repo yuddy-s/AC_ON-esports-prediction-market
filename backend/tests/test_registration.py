@@ -1,5 +1,6 @@
 from collections.abc import Generator
 from datetime import UTC, datetime, timedelta
+import hashlib
 import os
 from pathlib import Path
 
@@ -153,6 +154,11 @@ def test_terminal_fixture_change_can_be_reauthorized_without_losing_audit(sessio
     second_wallet = Account.create()
     now = datetime(2029, 12, 1, tzinfo=UTC)
     nonce, signature = _signed_request(session, first_wallet, now=now)
+    first_nonce_hash = hashlib.sha256(nonce.encode()).hexdigest()
+    first_challenge = session.scalar(select(RegistrationChallenge).where(RegistrationChallenge.nonce_hash == first_nonce_hash))
+    assert first_challenge is not None
+    first_challenge_id = first_challenge.id
+    first_message_hash = hashlib.sha256(first_challenge.message.encode()).hexdigest()
     job = request_registration(session, 1, first_wallet.address, nonce, signature, 11155111, now=now)
     activate_registration_job(session, job.id, now=now)
     fixture = session.get(Fixture, 1)
@@ -165,6 +171,7 @@ def test_terminal_fixture_change_can_be_reauthorized_without_losing_audit(sessio
     session.commit()
 
     new_nonce, new_signature = _signed_request(session, second_wallet, now=now + timedelta(minutes=1))
+    second_nonce_hash = hashlib.sha256(new_nonce.encode()).hexdigest()
     renewed = request_registration(session, 1, second_wallet.address, new_nonce, new_signature, 11155111,
                                    now=now + timedelta(minutes=1))
     session.commit()
@@ -174,6 +181,24 @@ def test_terminal_fixture_change_can_be_reauthorized_without_losing_audit(sessio
     events = session.scalars(select(RegistrationJobEvent).order_by(RegistrationJobEvent.id)).all()
     assert events[0].fixture_snapshot == first_snapshot
     assert events[-1].fixture_snapshot == renewed.fixture_snapshot
+    assert all(event.requested_by == first_wallet.address for event in events[:-1])
+    assert all(event.challenge_id == first_challenge_id for event in events[:-1])
+    assert all(event.nonce_hash == first_nonce_hash for event in events[:-1])
+    assert all(event.message_hash == first_message_hash for event in events[:-1])
+    assert events[-1].requested_by == second_wallet.address
+    assert events[-1].challenge_id != first_challenge_id
+    assert events[-1].nonce_hash == second_nonce_hash
+    assert renewed.authorization_challenge_id == events[-1].challenge_id
+    assert renewed.authorization_nonce_hash == second_nonce_hash
+
+    cleanup_expired_challenges(session, now=now + timedelta(days=2))
+    session.commit()
+    assert session.scalar(select(func.count()).select_from(RegistrationChallenge)) == 0
+    retained = session.scalars(select(RegistrationJobEvent).order_by(RegistrationJobEvent.id)).all()
+    assert retained[0].requested_by == first_wallet.address
+    assert retained[0].challenge_id == first_challenge_id
+    assert retained[0].nonce_hash == first_nonce_hash
+    assert retained[-1].requested_by == second_wallet.address
 
 
 class FakeRegistrationGateway:

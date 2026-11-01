@@ -217,9 +217,13 @@ def test_fresh_sqlite_database_upgrades_through_fixture_migration(tmp_path: Path
         from sqlalchemy import inspect, text
 
         tables = set(inspect(connection).get_table_names())
+        job_columns = {column["name"] for column in inspect(connection).get_columns("fixture_registration_jobs")}
+        audit_columns = {column["name"] for column in inspect(connection).get_columns("registration_job_events")}
         revision = connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
     engine.dispose()
     assert {"fixtures", "fixture_result_observations", "registration_challenges", "fixture_registration_jobs", "registration_job_events", "oracle_result_assessments", "oracle_proposal_intents", "oracle_proposal_events", "markets", "trades"} <= tables
+    assert {"authorization_challenge_id", "authorization_nonce_hash", "authorization_message_hash"} <= job_columns
+    assert {"requested_by", "challenge_id", "nonce_hash", "message_hash", "fixture_snapshot"} <= audit_columns
     assert revision == "20261030_0005"
 
 

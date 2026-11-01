@@ -43,6 +43,8 @@ def _transition(
     job.updated_at = now
     session.add(RegistrationJobEvent(
         job_id=job.id, status=status, error_code=error_code,
+        requested_by=job.requested_by, challenge_id=job.authorization_challenge_id,
+        nonce_hash=job.authorization_nonce_hash, message_hash=job.authorization_message_hash,
         transaction_hash=job.transaction_hash, fixture_snapshot=job.fixture_snapshot, recorded_at=now,
     ))
 
