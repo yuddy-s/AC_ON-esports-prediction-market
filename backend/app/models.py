@@ -97,6 +97,9 @@ class FixtureRegistrationJob(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     fixture_id: Mapped[int] = mapped_column(ForeignKey("fixtures.id"), nullable=False)
     requested_by: Mapped[str] = mapped_column(String(42), nullable=False)
+    authorization_challenge_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    authorization_nonce_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    authorization_message_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     chain_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False)
     fixture_snapshot: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False)
@@ -115,9 +118,14 @@ class RegistrationJobEvent(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     job_id: Mapped[int] = mapped_column(ForeignKey("fixture_registration_jobs.id"), nullable=False, index=True)
+    requested_by: Mapped[str | None] = mapped_column(String(42), nullable=True)
+    challenge_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    nonce_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    message_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     status: Mapped[str] = mapped_column(String(32), nullable=False)
     error_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
     transaction_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    fixture_snapshot: Mapped[dict[str, object] | None] = mapped_column(JSON, nullable=True)
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
