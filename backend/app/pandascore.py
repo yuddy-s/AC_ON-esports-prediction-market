@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 import hashlib
 import json
+import re
 from typing import Literal
 
 import httpx
@@ -15,8 +16,14 @@ from app.fixture_data import FixtureImportDocument, FixtureRecord, ResultRecord
 
 Game = Literal["valorant", "cs2", "r6siege"]
 GAME_PATH = {"valorant": "valorant", "cs2": "csgo", "r6siege": "r6siege"}
+GAME_SLUGS = {
+    "valorant": {"valorant"},
+    "cs2": {"cs-go", "cs2", "csgo"},
+    "r6siege": {"r6-siege", "r6siege", "rainbow-six-siege"},
+}
 PROVIDER_ID = "pandascore"
 API_BASE = "https://api.pandascore.co"
+MATCH_ID = re.compile(r"^[0-9]+$")
 
 
 class PandaScoreError(RuntimeError):
@@ -133,6 +140,26 @@ class PandaScoreClient:
     def __exit__(self, *_args: object) -> None:
         self.close()
 
+    def _get(self, path: str, params: dict[str, int] | None = None) -> tuple[object, str | None]:
+        try:
+            response = self.client.get(
+                self.base_url + path,
+                headers={"Authorization": f"Bearer {self.token}", "Accept": "application/json"},
+                params=params,
+            )
+        except httpx.RequestError as exc:
+            raise PandaScoreError("PandaScore transport unavailable") from exc
+        if response.status_code == 429:
+            raise PandaScoreRateLimited("PandaScore rate limit reached")
+        if response.status_code in (401, 403):
+            raise PandaScoreError("PandaScore account lacks access")
+        if response.status_code >= 400:
+            raise PandaScoreError(f"PandaScore HTTP {response.status_code}")
+        try:
+            return response.json(), response.headers.get("X-Rate-Limit-Remaining")
+        except ValueError as exc:
+            raise PandaScoreError("PandaScore response is not JSON") from exc
+
     def fetch(self, game: Game, *, include_past: bool = True) -> FixtureImportDocument:
         if game not in GAME_PATH:
             raise ValueError("unsupported PandaScore game")
@@ -141,24 +168,9 @@ class PandaScoreClient:
         for category in categories:
             path = f"/{GAME_PATH[game]}/matches/{category}"
             for page in range(1, self.max_pages + 1):
-                try:
-                    response = self.client.get(
-                        self.base_url + path,
-                        headers={"Authorization": f"Bearer {self.token}", "Accept": "application/json"},
-                        params={"page[size]": self.page_size, "page[number]": page},
-                    )
-                except httpx.RequestError as exc:
-                    raise PandaScoreError("PandaScore transport unavailable") from exc
-                if response.status_code == 429:
-                    raise PandaScoreRateLimited("PandaScore rate limit reached")
-                if response.status_code in (401, 403):
-                    raise PandaScoreError("PandaScore account lacks access")
-                if response.status_code >= 400:
-                    raise PandaScoreError(f"PandaScore HTTP {response.status_code}")
-                try:
-                    rows = response.json()
-                except ValueError as exc:
-                    raise PandaScoreError("PandaScore response is not JSON") from exc
+                rows, remaining = self._get(
+                    path, {"page[size]": self.page_size, "page[number]": page}
+                )
                 if not isinstance(rows, list):
                     raise PandaScoreError("PandaScore response is not a match list")
                 for raw in rows:
@@ -173,10 +185,25 @@ class PandaScoreClient:
                         raise PandaScoreError("conflicting match versions at the same source time")
                 if len(rows) < self.page_size:
                     break
-                if response.headers.get("X-Rate-Limit-Remaining") == "0":
+                if remaining == "0":
                     raise PandaScoreRateLimited("PandaScore request budget exhausted")
         ordered = [by_id[key] for key in sorted(by_id, key=int)]
         return FixtureImportDocument(
             fixtures=[item[0] for item in ordered],
             results=[item[1] for item in ordered if item[1] is not None],
         )
+
+    def fetch_match(self, game: Game, external_match_id: str) -> FixtureImportDocument:
+        """Refresh one tracked match even after it falls off recent result pages."""
+        if game not in GAME_PATH or not MATCH_ID.fullmatch(external_match_id):
+            raise ValueError("invalid game or PandaScore match ID")
+        raw, _remaining = self._get(f"/matches/{external_match_id}")
+        videogame = raw.get("videogame") if isinstance(raw, dict) else None
+        slug = videogame.get("slug") if isinstance(videogame, dict) else None
+        if slug not in GAME_SLUGS[game]:
+            raise PandaScoreError("requested match belongs to a different or unknown game")
+        normalized = normalize_match(raw, game)
+        if normalized is None or normalized[0].external_match_id != external_match_id:
+            raise PandaScoreError("requested match lacks usable identity, teams, or schedule")
+        fixture, result = normalized
+        return FixtureImportDocument(fixtures=[fixture], results=[result] if result else [])

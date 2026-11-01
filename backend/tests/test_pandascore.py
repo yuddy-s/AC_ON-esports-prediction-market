@@ -22,6 +22,7 @@ def match(match_id: int, *, status: str = "not_started", winner_id: int | None =
           modified_at: str = "2030-01-01T10:00:00Z", **changes: object) -> dict[str, object]:
     record = {
         "id": match_id, "status": status, "winner_id": winner_id,
+        "videogame": {"slug": "valorant"},
         "scheduled_at": "2030-01-02T18:00:00Z", "modified_at": modified_at,
         "draw": False, "forfeit": False,
         "opponents": [
@@ -83,6 +84,24 @@ def test_provider_errors_are_explicit() -> None:
     provider = client_for(lambda _request: httpx.Response(200, json={"bad": "shape"}))
     with pytest.raises(PandaScoreError, match="match list"):
         provider.fetch("cs2")
+
+
+def test_exact_match_refresh_covers_old_tracked_results() -> None:
+    seen = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request.url.path)
+        return httpx.Response(200, json=match(42, status="finished", winner_id=10,
+                                            modified_at="2030-01-03T10:00:00Z"))
+
+    provider = client_for(handler)
+    document = provider.fetch_match("valorant", "42")
+    assert seen == ["/matches/42"]
+    assert document.results[0].winner_team_id == "10"
+    with pytest.raises(ValueError, match="invalid game"):
+        provider.fetch_match("valorant", "../../42")
+    with pytest.raises(PandaScoreError, match="different or unknown game"):
+        provider.fetch_match("cs2", "42")
 
 
 def test_rate_budget_stops_before_second_page() -> None:
