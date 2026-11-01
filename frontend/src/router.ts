@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 
-// Minimal hash router (#/fixtures, #/fixtures/3). Hash URLs work on any static
+// Minimal hash router (#/markets/0, #/fixtures, #/fixtures/3). Hash URLs work on any static
 // host, including Vercel, without rewrite rules.
 export type Route =
   | { page: "markets" }
+  | { page: "market"; id: bigint }
   | { page: "fixtures" }
   | { page: "fixture"; id: number }
   | { page: "not-found" };
@@ -11,10 +12,16 @@ export type Route =
 export function parseRoute(hash: string): Route {
   const path = hash.replace(/^#/, "").replace(/\/+$/, "") || "/";
   if (path === "/" || path === "/markets") return { page: "markets" };
+  const market = /^\/markets\/(\d+)$/.exec(path);
+  if (market) return { page: "market", id: BigInt(market[1]) };
   if (path === "/fixtures") return { page: "fixtures" };
   const fixture = /^\/fixtures\/(\d+)$/.exec(path);
   if (fixture) return { page: "fixture", id: Number(fixture[1]) };
   return { page: "not-found" };
+}
+
+export function marketHref(id: bigint): string {
+  return `#/markets/${id}`;
 }
 
 export function fixtureHref(id: number): string {

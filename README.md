@@ -105,7 +105,7 @@ Copy `frontend/.env.example` to `frontend/.env.local` (gitignored) and fill it i
 | `VITE_CHAIN` | `sepolia` (default) for the real demo, `anvil` for a local chain on `127.0.0.1:8545` |
 | `VITE_PREDICTION_MARKET_ADDRESS` | `PredictionMarket` address from the deployment handoff |
 | `VITE_ACON_TOKEN_ADDRESS` | ACON token address from the deployment handoff |
-| `VITE_DEMO_MARKET_ID` | Market shown on the page (default `0`) |
+| `VITE_DEMO_MARKET_ID` | Featured market, listed first on the markets page (default `0`) |
 | `VITE_API_URL` | FastAPI backend, e.g. `http://localhost:8000`; used for the "indexed" step |
 | `VITE_ANVIL_ACCOUNT` | Optional: which default Anvil account the local test wallet uses (default account #0) |
 | `VITE_FIXTURE_SOURCE` | Optional: `api` reads the fixture catalog from the backend's `/api/fixtures` (default when `VITE_API_URL` is set); `mock` shows fictional fixtures bundled with the frontend |

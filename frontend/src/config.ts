@@ -61,3 +61,5 @@ function readFixtureSource(value: string | undefined): FixtureSource {
 export const FIXTURE_SOURCE = readFixtureSource(import.meta.env.VITE_FIXTURE_SOURCE);
 
 export const EXPLORER_URL = CHAIN.blockExplorers?.default.url;
+
+export const NETWORK_LABEL = CHAIN_MODE === "anvil" ? "Anvil local" : "Sepolia testnet";
