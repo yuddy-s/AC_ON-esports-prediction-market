@@ -17,7 +17,7 @@ also requires frontend, backend, oracle/indexer and cross-layer evidence from th
 | Token/trading/math tests | 16 real-token market integration, 9 mathematical-pricing tests, 4 ACON, 20 historical LMSR deterministic/fuzz, 1 grouped historical invariant suite |
 | Independent pricing references | 72 mathematical trade vectors checked for both outcomes/directions, 85 correction bounds; generated reference results agree at 160/220 decimal digits |
 | Fuzz/invariant runs | 256 runs per fuzz test; grouped LMSR invariant 256 runs × 500 calls = 128,000 calls, zero reverts |
-| Local Anvil | **Six journeys, 101 successful transactions**, real ACON/pricing/registry/market, explicit mock coordinator |
+| Local Anvil | **Six journeys, 104 successful transactions**, including a captured failed VRF request and recovery; real ACON/pricing/registry/market, explicit mock coordinator |
 | ABI/event handoff | Four exact JSON ABI exports, source/dependency/runtime-template hashes, generated reference and required event examples validate |
 | Static analysis | Slither 0.11.3: **0 high, 7 medium, 14 low**; `--fail-high` passes with findings retained below |
 
@@ -73,8 +73,10 @@ draft artifacts. Two extra blocks are mined and all receipt blocks are checked a
 
 1. Fund/create, buy both sides, sell with exact proceeds, early close, propose YES, wait 24 hours,
    finalize, claim winning shares, withdraw remaining creator surplus.
-2. Challenge NO, request randomness, retry after 30 minutes, ignore the superseded callback,
-   install the current committee, three YES votes, refund the changed-outcome bond, claim.
+2. Challenge NO, force the mock coordinator's first request to fail and capture the market's
+   `ResolverSelectionRequestFailed` log, recover after 30 minutes, retry again and ignore the
+   superseded callback, install the current committee, three YES votes, refund the changed-outcome
+   bond, claim. Both retries retain the original frozen candidate pool and selection deadline.
 3. Propose VOID, wait the same challenge period, combine YES and NO holdings into one payout.
 4. Seven days without a proposal, permissionless resolver selection, quorum and claim.
 5. No first-round quorum, replacement committee, second voting deadline, VOID and claim.
@@ -83,6 +85,25 @@ draft artifacts. Two extra blocks are mined and all receipt blocks are checked a
 Final market collateral, challenge escrow and the contract's ACON balance all reconcile to zero
 after these journeys' claims/surplus withdrawals. This is a contract-level transaction test, not
 frontend/backend integration or proof of real Chainlink/Safe behavior.
+
+### Failed-request event handoff
+
+`deployments/event-fixtures.anvil.json` includes a real Anvil receipt log for
+`ResolverSelectionRequestFailed(uint256,uint8,bytes32,uint256)`. The coordinator reverts with
+the mock's `RequestFailed()` error; the market catches it, so the outer transaction succeeds
+and its failure event persists. The smoke checks:
+
+- the emitter, signature topic, indexed market ID and round;
+- `reasonHash = keccak256` of the actual mock error's ABI encoding;
+- `retryAfter = failure block timestamp + 1800` and the fixed seven-day selection deadline;
+- a frozen candidate pool with no active request after failure, followed by successful recovery.
+
+The exporter now requires this event during both generation and `--check`. The previous fixture
+set was explicitly tested and rejected with `Missing required event examples:
+ResolverSelectionRequestFailed`; the regenerated set passes. Its ABI SHA-256 is computed from
+the compiled `PredictionMarket.abi.json` and checked against `build.json`, alongside topic/data
+decoding. The focused Foundry tests `testRequestFailureKeepsSnapshotAndCanRetryAtThirtyMinutes`
+and `testRetryFailureAlsoInvalidatesOlderOutstandingRequest` also passed for this handoff update.
 
 ## Security and correctness coverage
 
@@ -172,8 +193,10 @@ smoke uses ten addresses, not an unbounded-pool gas guarantee.
 
 The existing contract build/test check now also validates the exact handoff and runs disposable
 Anvil journeys. A separate analysis job runs pinned Slither and coverage and uploads their reports.
-PR #37's original CI passed. The commands above have been rerun locally for the rounding correction;
-**the correction has not yet been published for a new hosted CI run**.
+PR #37's original CI passed, and the rounding correction was published at `28fa936`. This
+failed-request fixture update has been validated locally and still needs publication and hosted
+CI. Final source/build digest pinning remains pending PR #38 reconciliation and team approval;
+regenerate and recheck the handoff if that reconciliation changes the source or ABI.
 
 Before M4 release: record Matthew's economics/payout approval and consumer ABI freeze; verify
 the team Safe, ten real resolver-only wallets and funded Safe-owned subscription; deploy fresh

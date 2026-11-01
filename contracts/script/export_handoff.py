@@ -15,6 +15,7 @@ CONTRACTS = ("PredictionMarket", "ResolverRegistry", "MarketPricing", "ACONTestT
 REQUIRED_EVENTS = {
     "FixtureRegistered", "MarketCreated", "TradeExecuted", "SellExecuted", "MarketClosed",
     "OutcomeProposed", "OutcomeChallenged", "ResolverSelectionRequested", "ResolverCommitteeSelected",
+    "ResolverSelectionRequestFailed",
     "VRFFulfillmentIgnored", "ResolverVoteCast", "MarketFinalized", "MarketVoided", "PayoutClaimed", "CreatorSurplusWithdrawn",
 }
 
@@ -123,7 +124,8 @@ def export(check=False):
         assert fixtures["chain_id"] == 31337
         assert fixtures["abi_sha256"] == metadata["PredictionMarket"]["abi_sha256"], "Event fixtures use stale ABI"
         events = {entry["name"]: entry for entry in abis["PredictionMarket"] if entry["type"] == "event"}
-        assert REQUIRED_EVENTS <= {entry["event_name"] for entry in fixtures["fixtures"]}, "Missing required event example"
+        missing_events = REQUIRED_EVENTS - {entry["event_name"] for entry in fixtures["fixtures"]}
+        assert not missing_events, f"Missing required event examples: {', '.join(sorted(missing_events))}"
         for sample in fixtures["fixtures"]:
             event = events[sample["event_name"]]
             signature = event["name"] + "(" + ",".join(canonical(field) for field in event["inputs"]) + ")"
@@ -153,7 +155,8 @@ def export(check=False):
             decoded = decode_event_data(entry, log)
             fixtures.append({"event_name": entry["name"], "signature": signature, "raw_log": log,
                              "nonindexed_values_in_abi_order": decoded})
-        assert REQUIRED_EVENTS <= {entry["event_name"] for entry in fixtures}, "Missing required event example"
+        missing_events = REQUIRED_EVENTS - {entry["event_name"] for entry in fixtures}
+        assert not missing_events, f"Missing required event examples: {', '.join(sorted(missing_events))}"
         (destination / "event-fixtures.anvil.json").write_text(json.dumps({"chain_id": 31337,
             "source": "Local contract-only Anvil smoke; VRF is an explicit mock, not live Chainlink",
             "abi_sha256": metadata["PredictionMarket"]["abi_sha256"], "fixtures": fixtures}, indent=2) + "\n")

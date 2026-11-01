@@ -10,7 +10,8 @@
   Runtime hashes describe compiler templates with immutable placeholders, not live bytecode hashes.
   Deployment addresses are null until a real deployment is recorded in a versioned manifest.
 - `event-fixtures.anvil.json`: real local receipt logs, canonical signatures and decoded nonindexed
-  values for required events. Chain ID is **31337** and VRF is an explicit mock.
+  values for required events, including a captured `ResolverSelectionRequestFailed` followed by
+  successful retry recovery. Chain ID is **31337** and VRF is an explicit mock.
 - `anvil-summary.json`: six contract journeys and their transaction/confirmation summary.
 
 See the [ABI guide](../docs/agent/interfaces/CONTRACT_ABI.md),
@@ -31,6 +32,8 @@ python3 script/export_handoff.py --check
 Regenerate after source/configuration changes, review the resulting ABI/source differences and
 obtain consumer/accounting approval. `--check` verifies exact ABI/source/runtime hashes, generated
 reference and event examples; it does not establish approval or a live deployment.
+The failed-request example is mandatory: generation and `--check` reject a fixture set that
+omits it. Final ABI/source digest pinning remains a team approval gate after PR #38 reconciliation.
 
 ## Live deployment records
 

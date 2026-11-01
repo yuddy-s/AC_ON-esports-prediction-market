@@ -154,7 +154,7 @@ def run(url, output):
 
     def challenge(market_id):
         h.send(h.challenger, market, "challengeOutcome(uint256,bytes32)", market_id, evidence)
-        h.send(h.admin, market, "requestResolverSelection(uint256)", market_id)
+        return h.send(h.admin, market, "requestResolverSelection(uint256)", market_id)
 
     def fulfill(market_id, round_id):
         info = h.round_data(market, market_id, round_id)
@@ -187,16 +187,45 @@ def run(url, output):
 
     disputed = create(1); buy(disputed, 0, 10 * 10**18); close(disputed); propose(disputed, 1)
     bond_before = h.number(token, "balanceOf(address)", h.challenger)
-    challenge(disputed)
-    original_round = h.round_data(market, disputed, 1)
+    h.send(h.admin, coordinator, "setFailure(bool)", "true")
+    failed_receipt = challenge(disputed)
+    failed_round = h.round_data(market, disputed, 1)
+    assert int(h.market_data(market, disputed)[4]) == 4
+    assert failed_round[4] is True and failed_round[5] is False and failed_round[6] is False
+    assert len(failed_round[7]) == len(resolvers)
+
+    # The coordinator reverts, but the successful outer transaction captures the market's failure event.
+    failure_topic = h.tool("cast", "keccak", "ResolverSelectionRequestFailed(uint256,uint8,bytes32,uint256)")
+    failure_logs = [log for log in failed_receipt["logs"]
+                    if log["address"].lower() == market.lower() and log["topics"][0] == failure_topic]
+    assert len(failure_logs) == 1, "Missing captured VRF request-failure event"
+    failure_log = failure_logs[0]
+    assert len(failure_log["topics"]) == 3
+    assert int(failure_log["topics"][1], 16) == disputed and int(failure_log["topics"][2], 16) == 1
+    reason_hash, retry_after = h.decode("f()(bytes32,uint256)", failure_log["data"])
+    assert reason_hash == h.tool("cast", "keccak", h.calldata("RequestFailed()"))
+    failed_block = h.rpc("eth_getBlockByHash", [failed_receipt["blockHash"], False])
+    failed_at = int(failed_block["timestamp"], 16)
+    assert int(failed_round[2]) == failed_at
+    assert int(retry_after) == failed_at + 30 * 60
+    assert int(failed_round[0]) == failed_at + 7 * 86400
+
+    h.send(h.admin, coordinator, "setFailure(bool)", "false")
     h.advance(30 * 60)
     h.send(h.admin, market, "retryResolverSelection(uint256)", disputed)
-    assert h.round_data(market, disputed, 1)[0] == original_round[0]
+    original_round = h.round_data(market, disputed, 1)
+    assert original_round[4] is True and original_round[5] is True
+    assert original_round[0] == failed_round[0] and original_round[7] == failed_round[7]
+    h.advance(30 * 60)
+    h.send(h.admin, market, "retryResolverSelection(uint256)", disputed)
+    retried_round = h.round_data(market, disputed, 1)
+    assert retried_round[0] == failed_round[0] and retried_round[7] == failed_round[7]
+    assert retried_round[5] is True and retried_round[3] != original_round[3]
     h.send(h.admin, coordinator, "fulfill(address,uint256,uint256)", market, int(original_round[3]), 999)
     assert int(h.market_data(market, disputed)[4]) == 4
     vote_quorum(disputed, fulfill(disputed, 1), 0)
     assert h.number(token, "balanceOf(address)", h.challenger) == bond_before
-    claim(disputed, 10 * 10**18); results.append("disputed result, VRF retry/stale callback, committee, three votes, bond refund, claim")
+    claim(disputed, 10 * 10**18); results.append("disputed result, captured VRF request failure, recovery/retry/stale callback, committee, three votes, bond refund, claim")
 
     voided = create(2); buy(voided, 0, 6 * 10**18); buy(voided, 1, 4 * 10**18)
     close(voided); propose(voided, 2); h.advance(86400)
