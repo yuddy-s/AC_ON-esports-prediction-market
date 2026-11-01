@@ -3,16 +3,19 @@ from pathlib import Path
 
 import httpx
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
 
 from app.database import Base
+from app.database import get_session
 from app.fixture_curation import review_fixture
 from app.fixture_data import FixtureImportDocument
 from app.fixture_service import import_document
 from app.models import Fixture, FixtureResultObservation, FixtureReviewEvent
 from app.pandascore import PandaScoreClient, PandaScoreError, PandaScoreRateLimited, normalize_match
 from app.registration_service import RegistrationError, create_challenge
+from app.main import app
 
 
 def match(match_id: int, *, status: str = "not_started", winner_id: int | None = None,
@@ -134,6 +137,12 @@ def test_provider_listing_cannot_bypass_registrar_curation(tmp_path: Path) -> No
     with Session(engine, autoflush=False) as session:
         import_document(session, provider.fetch("valorant"))
         session.commit()
+        app.dependency_overrides[get_session] = lambda: session
+        try:
+            with TestClient(app) as api:
+                assert api.get("/api/fixtures/1").json()["registration_eligible"] is False
+        finally:
+            app.dependency_overrides.clear()
         with pytest.raises(RegistrationError) as exc:
             create_challenge(session, 1, "0x" + "11" * 20, 11155111,
                              "http://localhost:5173", now=datetime(2029, 12, 31, tzinfo=UTC))
@@ -146,6 +155,12 @@ def test_provider_listing_cannot_bypass_registrar_curation(tmp_path: Path) -> No
                        evidence_url="https://organizer.example/match/9",
                        evidence_hash="0x" + "ab" * 32)
         session.commit()
+        app.dependency_overrides[get_session] = lambda: session
+        try:
+            with TestClient(app) as api:
+                assert api.get("/api/fixtures/1").json()["registration_eligible"] is True
+        finally:
+            app.dependency_overrides.clear()
         challenge, _nonce = create_challenge(
             session, 1, "0x" + "11" * 20, 11155111,
             "http://localhost:5173", now=datetime(2029, 12, 31, tzinfo=UTC),

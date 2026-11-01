@@ -84,6 +84,8 @@ Provider-only result observations must not become on-chain proposals without the
 
 Fetched PandaScore fixtures start catalog-only: registration challenges return `fixture_unreviewed`. An operator may review a selected match and independent organizer evidence from `backend/` with `python -m scripts.review_fixture <catalog-id> --reviewer <operator-id> --approve --evidence-url <organizer-url> --evidence-hash <0x-sha256>`. Use `--revoke` to remove current approval. Migration `20261101_0006` stores the current approval and append-only review events. The approval is bound to the fixture identity, team order, and scheduled start; a later change to those fields requires a fresh review. Approval does not submit an on-chain transaction. Check `DATABASE_URL` before the operator command, and keep it out of public API routes. The registrar worker still needs the frozen ABI and a matching chain read before it may report `confirmed`.
 
+Fixture catalog/detail responses expose `registration_eligible` as an off-chain precheck. It is false for unreviewed or stale PandaScore listings and can change before a challenge is signed; it never means that on-chain registration is complete.
+
 The next migration, `20261029_0003`, adds registration request tracking. Applying `alembic upgrade head` on the stacked registration branch reaches this revision. No hosted database has been migrated by this branch.
 
 ### Signed registration request (ABI-gated slice)

@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.database import get_session
 from app.models import Fixture, FixtureResultObservation
 from app.models import FixtureRegistrationJob
-from app.registration_service import RegistrationError, create_challenge, request_registration
+from app.registration_service import RegistrationError, _eligible, create_challenge, request_registration
 from app.config import get_settings
 
 
@@ -45,6 +45,7 @@ class FixtureRead(BaseModel):
     imported_at: datetime
     latest_result: ResultObservationRead | None
     registration_request_status: str | None
+    registration_eligible: bool
     authoritative: bool = False
 
 
@@ -126,6 +127,11 @@ def _fixture_read(session: Session, fixture: Fixture) -> FixtureRead:
     registration_status = session.scalar(
         select(FixtureRegistrationJob.status).where(FixtureRegistrationJob.fixture_id == fixture.id)
     )
+    try:
+        _eligible(session, fixture.id, datetime.now(UTC))
+        registration_eligible = True
+    except RegistrationError:
+        registration_eligible = False
     return FixtureRead(
         id=fixture.id,
         provider_id=fixture.provider_id,
@@ -143,6 +149,7 @@ def _fixture_read(session: Session, fixture: Fixture) -> FixtureRead:
         imported_at=_aware(fixture.imported_at),
         latest_result=_result_read(latest) if latest else None,
         registration_request_status=registration_status,
+        registration_eligible=registration_eligible,
     )
 
 
