@@ -92,6 +92,10 @@ def plan_proposal(session: Session, market: ClosedMarketRef, gateway: OracleGate
     fixture = session.get(Fixture, market.fixture_id)
     if fixture is None:
         return None
+    # PandaScore observations are provider evidence only. Until the team approves
+    # independent organizer verification, they cannot authorize a signer intent.
+    if fixture.provider_id == "pandascore":
+        return None
     assessment = _latest_assessment(session, fixture.id)
     if assessment is None:
         return None

@@ -74,6 +74,14 @@ The seed script creates the `sample_matches` table if needed and upserts three f
 
 The fixture catalog is imported **off-chain source data**, not an on-chain registration or market. An operator imports a JSON file from `backend/` after `alembic upgrade head` has applied the fixture migration (`20261029_0002`) to the chosen database. Use a local database for development; do not point the importer at Supabase unintentionally. No PandaScore account, API token, registrar key, or M4 ABI is needed for this slice.
 
+### PandaScore provider adapter (review branch)
+
+`app.pandascore` normalizes PandaScore's Valorant, Counter-Strike, and Rainbow Six Siege upcoming/past match pages into the same fixture/result document as the manual adapter. It uses a server-side Bearer token, bounded pagination, the provider's remaining-request header, and explicit failures for denied access, rate limits, and malformed responses. Missing teams, timestamps, and ambiguous winners produce no guessed result. A canceled forfeit with a winner also produces no result until reviewed. The source URL and SHA-256 of the provider record are evidence **of what PandaScore returned**, not independent organizer confirmation. Imported data remains non-authoritative.
+
+The proposed M4 requirement is to implement and validate this real provider adapter. The approved design currently makes PandaScore optional; the team must approve that change and confirm permitted use before live polling. Live calls are disabled unless `PANDASCORE_USE_APPROVED=true` and `PANDASCORE_API_TOKEN` are set privately. From `backend/`, run `python -m scripts.import_pandascore valorant --validate-only` to inspect normalization, or omit `--validate-only` to import into the configured database; use `cs2`, `r6siege`, or `all` as the game. `--max-pages` bounds each upcoming/past query. Check `DATABASE_URL` before an import. Never put the token in a frontend variable, URL, log, or committed file. This command is operator-run, not a public API endpoint or automatic market creator.
+
+Provider-only result observations must not become on-chain proposals without the approved source-verification policy. The proposer integration must require independent organizer evidence or an explicitly reviewed result before signing. During provider outages, retain earlier observations, show their timestamps, and stop new proposals rather than inventing results. The deterministic mock and manual JSON importer remain available for tests and controlled recovery.
+
 The next migration, `20261029_0003`, adds registration request tracking. Applying `alembic upgrade head` on the stacked registration branch reaches this revision. No hosted database has been migrated by this branch.
 
 ### Signed registration request (ABI-gated slice)

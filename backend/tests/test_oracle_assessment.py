@@ -111,6 +111,16 @@ class FakeOracleGateway:
         return self.transaction_hash
 
 
+def test_pandascore_observation_cannot_create_automatic_proposal(session: Session) -> None:
+    fixture = session.get(Fixture, 1)
+    assert fixture is not None
+    fixture.provider_id = "pandascore"
+    assess_imported_results(session)
+    gateway = FakeOracleGateway()
+    assert plan_proposal(session, gateway.market, gateway) is None
+    assert session.scalar(select(OracleProposalIntent)) is None
+
+
 def test_oracle_run_selects_observed_result_and_requires_chain_match(session: Session) -> None:
     gateway = FakeOracleGateway()
     now = datetime(2030, 1, 2, tzinfo=UTC)

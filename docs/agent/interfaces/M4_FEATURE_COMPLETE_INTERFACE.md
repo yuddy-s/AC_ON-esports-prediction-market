@@ -1,5 +1,7 @@
 # Milestone 4 Feature-Complete Design Decision
 
+> **Provider amendment proposed in backend M4 work:** Implementing a PandaScore fixture/result adapter is now planned as required M4 backend work. The team must review whether permitted live PandaScore ingestion is an acceptance gate. The approved no-cost manual/mock requirement below remains in force until that decision is recorded. PandaScore responses alone are not independent organizer evidence and must not trigger an automatic proposal without a reviewed source-verification rule.
+
 Status: **target design approved and merged in PR #28 on 2026-10-29; implementation pending**. Matthew's GitHub approval and Yudhveer's confirmation established the decision set. These rules define target behavior; exact Solidity types, indexed event fields, and compiled ABI remain an implementation freeze gate. The [M3 interface](M3_TRADING_INTERFACE.md) is the historical deployed baseline; M4 needs a new contract and manifest.
 
 ## Fixture and result source
