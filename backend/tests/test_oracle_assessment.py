@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.database import Base
 from app.fixture_data import FixtureImportDocument, deterministic_mock
 from app.fixture_service import import_document
+from app.fixture_curation import review_result
 from app.models import Fixture, FixtureResultObservation, OracleProposalEvent, OracleProposalIntent, OracleResultAssessment
 from app.oracle_assessment import ResultAssessmentError, assess_imported_results, classify_result
 from app.oracle_worker import (
@@ -119,6 +120,22 @@ def test_pandascore_observation_cannot_create_automatic_proposal(session: Sessio
     gateway = FakeOracleGateway()
     assert plan_proposal(session, gateway.market, gateway) is None
     assert session.scalar(select(OracleProposalIntent)) is None
+    with pytest.raises(ValueError, match="independent"):
+        review_result(session, 1, reviewer="operator", approved=True,
+                      evidence_url="https://api.pandascore.co/matches/1",
+                      evidence_hash="0x" + "aa" * 32)
+    review_result(session, 1, reviewer="operator", approved=True,
+                  evidence_url="https://organizer.example/match/1/result",
+                  evidence_hash="0x" + "bb" * 32)
+    review_result(session, 1, reviewer="operator", approved=False)
+    assert plan_proposal(session, gateway.market, gateway) is None
+    review_result(session, 1, reviewer="operator", approved=True,
+                  evidence_url="https://organizer.example/match/1/result",
+                  evidence_hash="0x" + "bb" * 32)
+    intent = plan_proposal(session, gateway.market, gateway)
+    assert intent is not None
+    assert intent.evidence_url == "https://organizer.example/match/1/result"
+    assert intent.evidence_hash == "0x" + "bb" * 32
 
 
 def test_oracle_run_selects_observed_result_and_requires_chain_match(session: Session) -> None:

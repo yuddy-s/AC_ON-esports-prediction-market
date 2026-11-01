@@ -88,6 +88,20 @@ class FixtureReviewEvent(Base):
     reviewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
+class ResultReviewEvent(Base):
+    """Append-only decision for one exact provider result observation."""
+
+    __tablename__ = "result_review_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    observation_id: Mapped[int] = mapped_column(ForeignKey("fixture_result_observations.id"), nullable=False, index=True)
+    reviewer: Mapped[str] = mapped_column(String(120), nullable=False)
+    approved: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    evidence_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    evidence_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    reviewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
 class RegistrationChallenge(Base):
     """A short-lived, single-use EOA authorization for requesting fixture registration."""
 

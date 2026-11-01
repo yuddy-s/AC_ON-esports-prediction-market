@@ -8,7 +8,7 @@ from pydantic import HttpUrl, TypeAdapter
 from sqlalchemy.orm import Session
 
 from app.fixture_data import HASH_32
-from app.models import Fixture, FixtureReviewEvent
+from app.models import Fixture, FixtureResultObservation, FixtureReviewEvent, ResultReviewEvent
 
 
 def identity_hash(fixture: Fixture) -> str:
@@ -54,6 +54,36 @@ def review_fixture(session: Session, fixture_id: int, *, reviewer: str, approved
         fixture_id=fixture.id, reviewer=reviewer.strip(), approved=approved,
         identity_hash=identity_hash(fixture), evidence_url=evidence_url,
         evidence_hash=evidence_hash, reviewed_at=now or datetime.now(UTC),
+    )
+    session.add(event)
+    session.flush()
+    return event
+
+
+def review_result(session: Session, observation_id: int, *, reviewer: str, approved: bool,
+                  evidence_url: str | None = None, evidence_hash: str | None = None,
+                  now: datetime | None = None) -> ResultReviewEvent:
+    """Approve/revoke one exact observation; corrections require a fresh review."""
+    observation = session.get(FixtureResultObservation, observation_id)
+    fixture = session.get(Fixture, observation.fixture_id) if observation else None
+    if fixture is None or fixture.provider_id != "pandascore":
+        raise ValueError("PandaScore result observation not found")
+    if not reviewer.strip() or len(reviewer) > 120:
+        raise ValueError("reviewer identity is required")
+    if approved:
+        if not evidence_url or not evidence_hash or not HASH_32.fullmatch(evidence_hash):
+            raise ValueError("independent evidence URL and 32-byte hash are required")
+        url = TypeAdapter(HttpUrl).validate_python(evidence_url)
+        if url.host == "api.pandascore.co":
+            raise ValueError("PandaScore API response is not independent evidence")
+        evidence_url = str(url)
+        evidence_hash = evidence_hash.lower()
+    else:
+        evidence_url = evidence_hash = None
+    event = ResultReviewEvent(
+        observation_id=observation.id, reviewer=reviewer.strip(), approved=approved,
+        evidence_url=evidence_url, evidence_hash=evidence_hash,
+        reviewed_at=now or datetime.now(UTC),
     )
     session.add(event)
     session.flush()
