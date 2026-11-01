@@ -1,6 +1,6 @@
 # Milestone 4: Feature-Complete
 
-Status: M4 target design approved and merged in PR #28; implementation is pending. See [the M4 design decision](../interfaces/M4_FEATURE_COMPLETE_INTERFACE.md). The deployed M3 guarded-buy implementation remains the current baseline.
+Status: M4 target design approved and merged in PR #28. Benny's updated product contracts are a **locally verified draft**, with [exact ABI/events](../interfaces/CONTRACT_ABI.md), [test/security evidence](../testing/CONTRACT_VERIFICATION.md), and [deployment tooling](../CONTRACT_DEPLOYMENT.md) available for review. Source and tests use the shared `contracts/src/` and `contracts/test/` folders. Team ABI freeze, Matthew's economic approval, whole-application integration and fresh Sepolia acceptance remain pending. See [the M4 design decision](../interfaces/M4_FEATURE_COMPLETE_INTERFACE.md). The previously deployed guarded-buy implementation remains the live baseline.
 
 ## Course Goal And Acceptance
 

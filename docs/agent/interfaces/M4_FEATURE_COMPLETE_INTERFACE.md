@@ -1,6 +1,6 @@
 # Milestone 4 Feature-Complete Design Decision
 
-Status: **target design approved and merged in PR #28 on 2026-10-29; implementation pending**. Matthew's GitHub approval and Yudhveer's confirmation established the decision set. These rules define target behavior; exact Solidity types, indexed event fields, and compiled ABI remain an implementation freeze gate. The [M3 interface](M3_TRADING_INTERFACE.md) is the historical deployed baseline; M4 needs a new contract and manifest.
+Status: **target design approved and merged in PR #28 on 2026-10-29; local contract draft available for review**. Matthew's GitHub approval and Yudhveer's confirmation established the decision set. These rules define target behavior; exact Solidity types, indexed event fields, and compiled ABI remain an implementation freeze gate. The [current contract draft](CONTRACT_ABI.md) records locally verified behavior and Benny's explicit implementation clarifications; it is not team approval or a deployed release. The [M3 interface](M3_TRADING_INTERFACE.md) describes the historical deployment; the current source updates the product in place and requires a fresh deployment and manifest.
 
 ## Fixture and result source
 

@@ -1,31 +1,62 @@
-# Public Sepolia deployment handoff
+# Contract deployment handoff
 
-[`sepolia-m3.json`](sepolia-m3.json) is the completed handoff for source commit `6e30d516669e51d7f3e4bff0d8670168da9b1f83`: both contracts are deployed, market `0` is seeded, and a ten-share YES buy succeeded on Ethereum Sepolia. Its versioned ABI files are under `abi/`. The [detailed deployment record](../contracts/deployments/sepolia-m3-2026-10-21/README.md) and [guarded-buy receipt/event fixture](../contracts/deployments/sepolia-m3-2026-10-21/guarded-buy.json) contain the verification evidence.
+## Current product build
 
-The trade is `0xe5f5ff239ff3939cfc34c1c7719f2b1db9ef83d75f77f501236d004cb2d10c16`, block `11964663`, log index `104`, costing `5249584441082326050` ACON base units for `10000000000000000000` YES share units. Canonical receipts, payment, positions, and live decoding with the backend RPC client/ABI decoder were checked after two confirmations. Hosted database/indexer/API/frontend acceptance remains pending.
+**The current local build is a review draft, not a new Sepolia deployment.**
 
-`sepolia-m3.template.json` remains an **unfilled template** for future deployments and must not be used as worker configuration. Commit the completed JSON plus both exact-build ABI files only after the team verifies them. Keep RPC URLs, database URLs, private keys, `.env`, and `contracts/broadcast/` out of Git.
+- `abi/PredictionMarket.abi.json`, `abi/ResolverRegistry.abi.json`, `abi/MarketPricing.abi.json`,
+  `abi/ACONTestToken.abi.json`: exact current compiled ABIs.
+- `build.json`: compiler settings, source/dependency hashes, ABI digests and runtime sizes.
+  Runtime hashes describe compiler templates with immutable placeholders, not live bytecode hashes.
+  Deployment addresses are null until a real deployment is recorded in a versioned manifest.
+- `event-fixtures.anvil.json`: real local receipt logs, canonical signatures and decoded nonindexed
+  values for required events. Chain ID is **31337** and VRF is an explicit mock.
+- `anvil-summary.json`: six contract journeys and their transaction/confirmation summary.
 
-## ABI version convention
+See the [ABI guide](../docs/agent/interfaces/CONTRACT_ABI.md),
+[generated reference](../docs/agent/interfaces/CONTRACT_ABI_REFERENCE.md),
+[test/security evidence](../docs/agent/testing/CONTRACT_VERIFICATION.md), and
+[deployment runbook](../docs/agent/CONTRACT_DEPLOYMENT.md).
 
-Use `forge inspect PredictionMarket abi --json` and `forge inspect ACONTestToken abi --json` from the deployed source commit. Save each ABI as a JSON list under `deployments/abi/` with this filename:
+From `contracts/`, with Foundry and the pinned dependency present:
+
+```bash
+export FOUNDRY_OUT=out/current FOUNDRY_CACHE_PATH=cache/current
+forge build
+python3 script/smoke.py --start-anvil
+python3 script/export_handoff.py
+python3 script/export_handoff.py --check
+```
+
+Regenerate after source/configuration changes, review the resulting ABI/source differences and
+obtain consumer/accounting approval. `--check` verifies exact ABI/source/runtime hashes, generated
+reference and event examples; it does not establish approval or a live deployment.
+
+## Live deployment records
+
+The current source replaces the older implementation, but an on-chain deployment's manifest and
+source-versioned ABI remain immutable records. `sepolia-m3.json` identifies the previously deployed
+buy-only market from source `6e30d516669e51d7f3e4bff0d8670168da9b1f83`; it is not the current lifecycle
+contract. Its [deployment record](../contracts/deployments/sepolia-m3-2026-10-21/README.md) and
+[guarded-buy receipt](../contracts/deployments/sepolia-m3-2026-10-21/guarded-buy.json) retain live evidence.
+The legacy `sepolia-m3.template.json` is an unfilled template for that schema, not worker config.
+
+The new deployment needs a consumer-reviewed manifest schema containing its full source commit,
+chain ID, all four addresses/deployment receipts, ABI digests, Safe/roles, VRF config, resolver pool,
+confirmation depth and example transactions. Current `build.json` content hashes are local build
+evidence only. The backend's existing manifest validator targets the previously deployed interface;
+its owners must update the schema/decoders before configuring it for the new market.
+
+## Published ABI version convention
+
+The unsuffixed ABI names describe the evolving current build. When publishing a **live** manifest,
+save an immutable copy of each ABI under `deployments/abi/` using:
 
 ```text
 <ContractName>.<first 12 characters of full source commit>.<first 12 characters of ABI file SHA-256>.abi.json
 ```
 
-The full SHA-256 digest goes in the manifest. The filename is the `abi_version` stored in `indexed_contracts` by the worker, so a different ABI produces a different version label. Do not rename or edit an ABI after recording its hash. The manifest uses repository-relative paths. A future incompatible manifest shape must increment `manifest_version` and update the validator and consumers together.
-
-Git checks out `deployments/abi/*.abi.json` with LF line endings on every platform. Their manifest digests cover exact file bytes, so Windows CRLF conversion would otherwise make handoff validation and the Sepolia smoke check fail despite unchanged JSON content.
-
-The market event decoder validates `MarketCreated` and `TradeExecuted` against the approved M3 field order, types, and indexed positions. `backend/app/indexer/handoff.py` additionally verifies the token/market functions needed by consumers, the manifest's chain ID, checksummed addresses, transaction hashes, block order, source commit, ABI paths, and file digests. The template deliberately fails validation until real deployment data and ABI files are supplied.
-
-## Handoff procedure
-
-1. Record the full deployed source commit, chain ID `11155111`, checksummed token and market addresses, and each deployment transaction hash/block from receipts.
-2. Export the two ABIs from that exact source build; calculate SHA-256 for each file and use the naming convention above.
-3. Record a successful market-creation transaction and a successful guarded-buy transaction, their blocks, and the demo market ID. The trade must emit `TradeExecuted`.
-4. Fill `sepolia-m3.json`. From `backend/`, run `python -m scripts.validate_handoff ../deployments/sepolia-m3.json` before configuring the worker. After the API and worker are running, set `SEPOLIA_RPC_URL` privately in `backend/.env` or the process environment and run `python -m scripts.smoke_sepolia --manifest ../deployments/sepolia-m3.json --api-base-url <API_URL>`. The read-only smoke script verifies that the market's on-chain `paymentToken()` equals the manifest's ACON token address, then compares RPC chain/events, safe checkpoint, market projection, and indexed trade with the public handoff.
-5. Set Render's `PREDICTION_MARKET_ADDRESS` and `PREDICTION_MARKET_DEPLOYMENT_BLOCK` from the market entry, and `INDEXER_CONFIRMATION_DEPTH` from the manifest. The manifest ABI path is relative to the repository root; when the worker starts from `backend/`, set `PREDICTION_MARKET_ABI_PATH=../<manifest market.abi_path>` and verify that file exists in the deployed filesystem. Configure `SEPOLIA_RPC_URL` and `DATABASE_URL` as private environment settings. Run one worker instance.
-
-The [backend deployment runbook](../docs/agent/DEPLOYMENT_RUNBOOK.md) covers migrations, Render processes, and recovery. The [frontend handoff](../docs/agent/APPLICATION_ROADMAP.md#frontend-backend-api-handoff) covers mined versus indexed UI states.
+Record the full SHA-256 in the manifest. Published files are never edited/renamed after recording
+their digest; repository-relative paths and LF line endings are part of the handoff. Pair every
+address with its exact source-versioned ABI and deployment block. Keep credentials, RPC URLs,
+private `.env` files and local broadcast output out of the public manifest.
