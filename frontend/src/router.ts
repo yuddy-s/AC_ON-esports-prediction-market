@@ -6,6 +6,7 @@ export type Route =
   | { page: "markets" }
   | { page: "market"; id: bigint }
   | { page: "fixtures" }
+  | { page: "portfolio" }
   | { page: "fixture"; id: number }
   | { page: "not-found" };
 
@@ -15,6 +16,7 @@ export function parseRoute(hash: string): Route {
   const market = /^\/markets\/(\d+)$/.exec(path);
   if (market) return { page: "market", id: BigInt(market[1]) };
   if (path === "/fixtures") return { page: "fixtures" };
+  if (path === "/portfolio") return { page: "portfolio" };
   const fixture = /^\/fixtures\/(\d+)$/.exec(path);
   if (fixture) return { page: "fixture", id: Number(fixture[1]) };
   return { page: "not-found" };

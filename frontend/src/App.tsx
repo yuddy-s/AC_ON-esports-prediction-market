@@ -4,6 +4,7 @@ import { FixtureDetail } from "./FixtureDetail";
 import { Header } from "./Header";
 import { MarketPage } from "./MarketPage";
 import { MarketsPage } from "./MarketsPage";
+import { PortfolioPage } from "./PortfolioPage";
 import { useRoute, type Route } from "./router";
 import { Dots } from "./ui";
 
@@ -38,6 +39,8 @@ function Page({ route }: { route: Route }) {
       return <FixtureCatalog />;
     case "fixture":
       return <FixtureDetail id={route.id} />;
+    case "portfolio":
+      return <PortfolioPage />;
     case "not-found":
       return (
         <p className="text-sand">

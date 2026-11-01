@@ -13,6 +13,10 @@ describe("parseRoute", () => {
     expect(parseRoute(marketHref(12n))).toEqual({ page: "market", id: 12n });
   });
 
+  it("parses the portfolio page", () => {
+    expect(parseRoute("#/portfolio")).toEqual({ page: "portfolio" });
+  });
+
   it("parses the fixture catalog and a fixture detail page", () => {
     expect(parseRoute("#/fixtures")).toEqual({ page: "fixtures" });
     expect(parseRoute("#/fixtures/")).toEqual({ page: "fixtures" });
