@@ -1,6 +1,7 @@
 # Contract verification record
 
-Status: **mathematical floor-sell / ceiling-buy correction locally tested on 2026-11-01; numerical/ABI/economic review and fresh deployment pending**.
+Status: **mathematical floor-sell / ceiling-buy correction and stacked economic proof locally tested
+on 2026-11-01; numerical/ABI/economic review and fresh deployment pending**.
 Source/dependency/ABI/runtime-template digests are in
 [`deployments/build.json`](../../../deployments/build.json).
 This record covers Benny's contract slice. The [M4 milestone test plan](../milestones/MILESTONE_4.md#full-documented-test-plan)
@@ -12,11 +13,11 @@ also requires frontend, backend, oracle/indexer and cross-layer evidence from th
 |---|---|
 | Solidity formatting | `forge fmt --check` passed |
 | Production compilation | Solc 0.8.24, optimizer 200, `via_ir=true`; the current `script/Deploy.s.sol` compiles |
-| Full Foundry suite | **116 passed, 0 failed, 0 skipped** across nine suites |
+| Full Foundry suite | **119 passed, 0 failed, 0 skipped** across twelve suites |
 | Lifecycle tests | 20 lifecycle, 23 resolver, 18 security/accounting, 5 deployment-helper tests |
-| Token/trading/math tests | 16 real-token market integration, 9 mathematical-pricing tests, 4 ACON, 20 historical LMSR deterministic/fuzz, 1 grouped historical invariant suite |
+| Token/trading/math tests | 16 real-token market integration, 9 mathematical-pricing tests, 4 ACON, 20 historical LMSR deterministic/fuzz, 1 rounding regression, 3 grouped invariant suites |
 | Independent pricing references | 72 mathematical trade vectors checked for both outcomes/directions, 85 correction bounds; generated reference results agree at 160/220 decimal digits |
-| Fuzz/invariant runs | 256 runs per fuzz test; grouped LMSR invariant 256 runs × 500 calls = 128,000 calls, zero reverts |
+| Fuzz/invariant runs | 256 runs per fuzz test; historical LMSR plus M4 trading and settlement invariants each run 256 × 500 calls = **384,000 total state-machine calls**, zero reverts |
 | Local Anvil | **Six journeys, 104 successful transactions**, including a captured failed VRF request and recovery; real ACON/pricing/registry/market, explicit mock coordinator |
 | ABI/event handoff | Four exact JSON ABI exports, source/dependency/runtime-template hashes, generated reference and required event examples validate |
 | Static analysis | Slither 0.11.3: **0 high, 7 medium, 14 low**; `--fail-high` passes with findings retained below |
@@ -119,22 +120,31 @@ and `testRetryFailureAlsoInvalidatesOlderOutstandingRequest` also passed for thi
 | Adversarial interactions | False-returning and fee-like transfers; rollback of token/position/claim/bond/vote effects; incoming/outgoing/coordinator reentry; invalid raw enum calldata |
 | Administration | Two-step transfer removes former admin; no accidental default-admin renunciation/duplication; narrow-role recovery; no admin rewrite of a proposal or withdrawal of user claims |
 
-The mixed-market fuzz test performs 16 randomized buys/sells across two markets and two wallets,
-checks quantities and balances after each action, then tests all outcome kinds, claims and surplus
-withdrawals. It is useful integration evidence, **not** Matthew's independent stateful economic
-proof over the complete supported domain. The retained 128,000-call invariant harness concerns
-pure M3 LMSR buys; do not describe it as a full M4 lifecycle invariant campaign.
+The mixed-market fuzz test still supplies a compact end-to-end integration property. Matthew's
+independent [M4 economic proof](M4_ECONOMIC_PROOF.md) now adds two invariant campaigns beyond it:
+
+- 128,000 repeated YES/NO buy/sell calls across two markets and two wallets, continuously checking
+  quote-to-collateral changes under ceiling-buy/floor-sell rounding, creator-subsidy preservation,
+  position/quantity conservation, winning and VOID coverage, token conservation and market isolation;
+- 128,000 claim/duplicate-claim/surplus/bond-settlement calls across YES, NO, VOID and challenged
+  markets, continuously checking payout units, remaining liabilities, separate bond escrow and
+  cross-market isolation.
+
+Together with the retained 128,000-call M3 buy-only invariant, the suite executes 384,000 stateful
+calls at the repository's standard 256 campaigns × 500 depth. The deterministic sell regression
+locks the mathematical floor, reverse-buy ceiling, and one-base-unit residue for the reported vector.
 
 The [rounding correction record](PRICING_ROUNDING.md) explains the new numerical enclosure and
-the corresponding ceil-buy change. Matthew's `80e0f21` branch was separately tested against the
-old integer-potential model; its exact-telescoping regression/invariant is incompatible with
-the selected mathematical rounding rule and needs adaptation before it can support this build.
+the corresponding ceil-buy change. Matthew's revised
+[economic proof](M4_ECONOMIC_PROOF.md) replaces the superseded exact rounded-potential equality
+with the successful-trade ledger inequality and direct winning/VOID liability checks.
 
 ### Coverage measurement
 
-The corrected coverage run passed **115 tests**, excluding only the production runtime-size
-assertion from the 116-test normal suite. All market tests, including the real-ACON regression
-suite, exercise the same current `PredictionMarket`; there is no separate old-market implementation.
+PR #37's corrected coverage run passed **115 tests**, excluding only the production runtime-size
+assertion from its 116-test suite. The stacked proof adds three tests; combined coverage must rerun
+in PR #37 CI after merge. All market tests exercise the same current `PredictionMarket`; there is
+no separate old-market implementation.
 
 ```bash
 FOUNDRY_OUT=out/coverage FOUNDRY_CACHE_PATH=cache/coverage \

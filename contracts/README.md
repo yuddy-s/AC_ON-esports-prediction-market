@@ -26,8 +26,11 @@ revision hash. Buys and sells use fresh quotes plus caller slippage limits. The 
 immutable proposals, bonded challenges, five-resolver committees and terminal payout accounting.
 
 Economic units are integers: `1e18` per ACON/share, `b=50e18`, maximum `100e18` per trade and
-`2000e18` outstanding shares per side. Matthew's sell-rounding/solvency and payout review remains
-required. The exact current state enum, tuple layouts, errors and payment/claim rules are in the
+`2000e18` outstanding shares per side. Buys use the certified ceiling of the mathematical LMSR
+cost increase; sells use the certified floor of the decrease. Nonnegative rounding residues remain
+in collateral. Matthew's [economic proof and stateful invariants](../docs/agent/testing/M4_ECONOMIC_PROOF.md)
+review solvency, claims, bonds, and surplus against this model; final approval remains required.
+The exact current state enum, tuple layouts, errors and payment/claim rules are in the
 [contract ABI guide](../docs/agent/interfaces/CONTRACT_ABI.md) and
 [generated reference](../docs/agent/interfaces/CONTRACT_ABI_REFERENCE.md).
 
