@@ -10,6 +10,8 @@ Draft PR #32 adds deterministic off-chain YES/NO/VOID result assessments, correc
 
 Backend branch tests cover fixture imports, EOA request replay/expiry, immutable snapshots, duplicate/rate limits, mock registrar/proposer retries, uncertain submission, correction review, migration upgrades, and preservation of source/signer records during an M3 indexer rebuild. The full M4 event decoder, API, and Anvil/Sepolia acceptance rows below remain pending.
 
+The following API branch exposes off-chain registration-request status in fixture reads and the active worker ABI version in indexer status. Market linkage, resolution, claims, and portfolio reads remain dependent on confirmed M4 events and contract reads.
+
 ## Course Goal And Acceptance
 
 Demonstrate the complete planned feature set, explain trade-offs, present a full testing and integration plan, and deliver final-design documentation. M4 acceptance requires complete normal, disputed, timeout, VOID, and claim journeys locally on Anvil; component tests; a documented full test plan; final ABI/design alignment; and a fresh Sepolia contract deployment with focused transaction smoke tests. Full public Vercel/Render/Supabase/Sepolia integration is an M4 stretch target, with unfinished hosting due in M5. Local Anvil exercises time-dependent paths that cannot finish during a short live demo.
