@@ -2,7 +2,7 @@
 
 **Provider decision pending:** Yudhveer is adding a PandaScore REST adapter for Valorant, CS2, and Rainbow Six Siege to the backend work. Live ingestion and proposal use require a team-reviewed provider-use and result-verification decision. Until approved, the manual JSON/mock path below remains the accepted source path; the adapter's implementation or tests do not imply a working live account.
 
-Draft PR #39 contains the adapter and offline tests. A live account check, permitted-use decision, and independent result-verification rule remain outstanding. PandaScore ingestion does not itself confirm a fixture on-chain or authorize settlement.
+Draft PR #39 contains the adapter, offline tests, and an auditable operator review for selecting PandaScore fixtures with independent evidence. A live account check, permitted-use decision, and independent **result** verification rule remain outstanding. PandaScore ingestion or operator fixture review does not itself confirm registration on-chain or authorize settlement.
 
 Status: M4 target design approved and merged in PR #28; implementation is pending. See [the M4 design decision](../interfaces/M4_FEATURE_COMPLETE_INTERFACE.md). The deployed M3 guarded-buy implementation remains the current baseline.
 

@@ -2,6 +2,8 @@
 
 Provider update proposed in draft PR #39: `provider_id=pandascore` fixtures and result observations may enter the same catalog after permitted operator ingestion. They remain non-authoritative. A PandaScore result is not an on-chain proposal, and the current proposer worker refuses to create an intent from PandaScore-only evidence. The UI should show the source and update time, never infer settlement or claimability from a provider result.
 
+PandaScore listings return `detail.code=fixture_unreviewed` (HTTP 409) from the registration challenge route until an operator approves that specific fixture with independent evidence. Approval is bound to the team mapping and scheduled start and is revoked by a change to either. It is an off-chain selection, not an on-chain registration or permission to create a market.
+
 Status: **stacked review PRs #30–#34**, 2026-10-30. These routes are off-chain source data and request tracking. On-chain M4 registration, market linkage, and result proposals require Benny's compiled ABI and deployment. Keep the [M3 trading interface](M3_TRADING_INTERFACE.md) as the deployed baseline.
 
 ## Fixture browsing

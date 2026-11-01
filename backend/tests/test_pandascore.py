@@ -7,9 +7,12 @@ from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
 
 from app.database import Base
+from app.fixture_curation import review_fixture
+from app.fixture_data import FixtureImportDocument
 from app.fixture_service import import_document
-from app.models import Fixture, FixtureResultObservation
+from app.models import Fixture, FixtureResultObservation, FixtureReviewEvent
 from app.pandascore import PandaScoreClient, PandaScoreError, PandaScoreRateLimited, normalize_match
+from app.registration_service import RegistrationError, create_challenge
 
 
 def match(match_id: int, *, status: str = "not_started", winner_id: int | None = None,
@@ -119,4 +122,49 @@ def test_import_is_idempotent_and_preserves_result_correction(tmp_path: Path) ->
         assert [row.winner_team_id for row in session.scalars(
             select(FixtureResultObservation).order_by(FixtureResultObservation.source_updated_at)
         )] == ["10", "20"]
+    engine.dispose()
+
+
+def test_provider_listing_cannot_bypass_registrar_curation(tmp_path: Path) -> None:
+    provider = client_for(lambda request: httpx.Response(
+        200, json=[match(9)] if request.url.path.endswith("upcoming") else []
+    ))
+    engine = create_engine(f"sqlite+pysqlite:///{tmp_path / 'curation.db'}")
+    Base.metadata.create_all(engine)
+    with Session(engine, autoflush=False) as session:
+        import_document(session, provider.fetch("valorant"))
+        session.commit()
+        with pytest.raises(RegistrationError) as exc:
+            create_challenge(session, 1, "0x" + "11" * 20, 11155111,
+                             "http://localhost:5173", now=datetime(2029, 12, 31, tzinfo=UTC))
+        assert exc.value.code == "fixture_unreviewed"
+        with pytest.raises(ValueError, match="independent"):
+            review_fixture(session, 1, reviewer="operator", approved=True,
+                           evidence_url="https://api.pandascore.co/matches/9",
+                           evidence_hash="0x" + "ab" * 32)
+        review_fixture(session, 1, reviewer="operator", approved=True,
+                       evidence_url="https://organizer.example/match/9",
+                       evidence_hash="0x" + "ab" * 32)
+        session.commit()
+        challenge, _nonce = create_challenge(
+            session, 1, "0x" + "11" * 20, 11155111,
+            "http://localhost:5173", now=datetime(2029, 12, 31, tzinfo=UTC),
+        )
+        assert challenge.fixture_snapshot["evidence_url"] == "https://organizer.example/match/9"
+        assert session.scalar(select(func.count()).select_from(FixtureReviewEvent)) == 1
+
+        changed = match(9, modified_at="2030-01-01T11:00:00Z",
+                        scheduled_at="2030-01-03T18:00:00Z")
+        fixture_record, _result = normalize_match(changed, "valorant")
+        assert fixture_record is not None
+        import_document(session, FixtureImportDocument(fixtures=[fixture_record]))
+        session.commit()
+        with pytest.raises(RegistrationError) as exc:
+            create_challenge(session, 1, "0x" + "22" * 20, 11155111,
+                             "http://localhost:5173", now=datetime(2029, 12, 31, tzinfo=UTC))
+        assert exc.value.code == "fixture_unreviewed"
+
+        review_fixture(session, 1, reviewer="operator", approved=False)
+        session.commit()
+        assert session.scalar(select(func.count()).select_from(FixtureReviewEvent)) == 2
     engine.dispose()

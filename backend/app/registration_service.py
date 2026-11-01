@@ -15,6 +15,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.models import Fixture, FixtureRegistrationJob, FixtureResultObservation, RegistrationChallenge, RegistrationJobEvent
+from app.fixture_curation import identity_hash
 
 
 CHALLENGE_LIFETIME = timedelta(minutes=5)
@@ -45,6 +46,11 @@ def _eligible(session: Session, fixture_id: int, now: datetime) -> Fixture:
     fixture = session.get(Fixture, fixture_id)
     if fixture is None:
         raise RegistrationError("fixture_not_found", "Fixture not found", 404)
+    if fixture.provider_id == "pandascore" and (
+        not fixture.curated_evidence_url or not fixture.curated_evidence_hash
+        or fixture.curated_identity_hash != identity_hash(fixture)
+    ):
+        raise RegistrationError("fixture_unreviewed", "Provider fixture requires current operator verification", 409)
     if fixture.match_status != "scheduled" or _utc(fixture.scheduled_start) <= now + MINIMUM_START_BUFFER:
         raise RegistrationError("fixture_ineligible", "Fixture is not scheduled far enough in the future", 409)
     if not fixture.evidence_url or not fixture.evidence_hash or fixture.team_a_id == fixture.team_b_id:
@@ -65,8 +71,8 @@ def fixture_snapshot(fixture: Fixture) -> dict[str, object]:
         "team_a_name": fixture.team_a_name,
         "team_b_id": fixture.team_b_id,
         "team_b_name": fixture.team_b_name,
-        "evidence_url": fixture.evidence_url,
-        "evidence_hash": fixture.evidence_hash,
+        "evidence_url": fixture.curated_evidence_url if fixture.provider_id == "pandascore" else fixture.evidence_url,
+        "evidence_hash": fixture.curated_evidence_hash if fixture.provider_id == "pandascore" else fixture.evidence_hash,
         "source_updated_at": _utc(fixture.source_updated_at).isoformat(),
     }
 

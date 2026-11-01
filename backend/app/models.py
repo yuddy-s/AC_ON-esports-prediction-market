@@ -46,6 +46,9 @@ class Fixture(Base):
     team_b_name: Mapped[str] = mapped_column(String(160), nullable=False)
     evidence_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     evidence_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    curated_evidence_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    curated_evidence_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    curated_identity_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     source_updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     imported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
 
@@ -68,6 +71,21 @@ class FixtureResultObservation(Base):
     evidence_hash: Mapped[str] = mapped_column(String(66), nullable=False)
     observation_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     imported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
+
+
+class FixtureReviewEvent(Base):
+    """Append-only operator curation; source imports cannot grant approval."""
+
+    __tablename__ = "fixture_review_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    fixture_id: Mapped[int] = mapped_column(ForeignKey("fixtures.id"), nullable=False, index=True)
+    reviewer: Mapped[str] = mapped_column(String(120), nullable=False)
+    approved: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    identity_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    evidence_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    evidence_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    reviewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
 class RegistrationChallenge(Base):
