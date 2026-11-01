@@ -91,6 +91,7 @@ class FakeOracleGateway:
         self.submit_calls = 0
         self.fail_before_submit = False
         self.uncertain_submit = False
+        self.transaction_hash = "0x" + "cd" * 32
 
     def closed_markets(self):
         return [self.market]
@@ -107,7 +108,7 @@ class FakeOracleGateway:
             raise OracleGatewayUnavailable("offline")
         if self.uncertain_submit:
             raise OracleSubmissionUncertain("unknown")
-        return "0x" + "cd" * 32
+        return self.transaction_hash
 
 
 def test_oracle_run_selects_observed_result_and_requires_chain_match(session: Session) -> None:
@@ -149,6 +150,50 @@ def test_correction_before_submission_pauses_oracle(session: Session) -> None:
     assert intent.outcome == "YES"
     assert intent.correction_observation_id is not None
     assert gateway.submit_calls == 0
+
+
+def test_correction_already_present_before_intent_requires_review(session: Session) -> None:
+    gateway = FakeOracleGateway()
+    now = datetime(2030, 1, 2, tzinfo=UTC)
+    corrected = deterministic_mock().model_dump(mode="json")
+    corrected["fixtures"] = []
+    corrected["results"][0]["winner_team_id"] = "bravo"
+    corrected["results"][0]["source_updated_at"] = "2030-01-01T22:00:00Z"
+    corrected["results"][0]["evidence_hash"] = "0x" + "22" * 32
+    import_document(session, FixtureImportDocument.model_validate(corrected))
+    assert run_oracle_once(session, gateway, now=now) == 0
+    intent = session.scalar(select(OracleProposalIntent))
+    assert intent is not None
+    assert intent.outcome == "NO"
+    assert intent.status == "correction_review"
+    assert intent.error_code == "result_corrected_before_submission"
+    assert intent.attempts == 0 and intent.transaction_hash is None
+    assert gateway.submit_calls == 0
+    session.flush()
+    assert [event.status for event in session.scalars(select(OracleProposalEvent))] == ["correction_review"]
+
+
+@pytest.mark.parametrize("bad_hash", ["0x" + "zz" * 32, "0x" + "cd" * 31, "0x" + "cd" * 33, "cd" * 32])
+def test_oracle_quarantines_invalid_transaction_hash(session: Session, bad_hash: str) -> None:
+    gateway = FakeOracleGateway()
+    gateway.transaction_hash = bad_hash
+    now = datetime(2030, 1, 2, tzinfo=UTC)
+    run_oracle_once(session, gateway, now=now)
+    intent = session.scalar(select(OracleProposalIntent))
+    assert intent is not None and intent.status == "submission_unknown"
+    assert intent.error_code == "invalid_transaction_hash"
+    assert intent.transaction_hash is None
+    run_oracle_once(session, gateway, now=now + timedelta(minutes=1))
+    assert gateway.submit_calls == 1
+
+
+def test_oracle_normalizes_valid_transaction_hash(session: Session) -> None:
+    gateway = FakeOracleGateway()
+    gateway.transaction_hash = "0x" + "CD" * 32
+    run_oracle_once(session, gateway, now=datetime(2030, 1, 2, tzinfo=UTC))
+    intent = session.scalar(select(OracleProposalIntent))
+    assert intent is not None and intent.status == "submitted"
+    assert intent.transaction_hash == "0x" + "cd" * 32
 
 
 def test_oracle_retries_only_pre_submission_failures(session: Session) -> None:

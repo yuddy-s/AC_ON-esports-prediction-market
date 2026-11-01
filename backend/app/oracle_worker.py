@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+import re
 from typing import Literal, Protocol
 
 from eth_utils import is_address, to_checksum_address
@@ -101,15 +102,22 @@ def plan_proposal(session: Session, market: ClosedMarketRef, gateway: OracleGate
         return None
     if gateway.proposal_state(market, None) != "closed_unproposed":
         return None
+    prior_conflict = session.scalar(select(OracleResultAssessment.id).where(
+        OracleResultAssessment.fixture_id == fixture.id,
+        OracleResultAssessment.conflicts_with_prior.is_(True),
+    ).limit(1)) is not None
+    initial_status = "correction_review" if prior_conflict else "queued"
+    initial_error = "result_corrected_before_submission" if prior_conflict else None
     intent = OracleProposalIntent(
         chain_id=market.chain_id, contract_address=address, market_id=market.market_id,
         fixture_id=fixture.id, observation_id=observation.id, outcome=assessment.outcome,
         evidence_url=observation.evidence_url, evidence_hash=observation.evidence_hash,
-        status="queued", attempts=0, created_at=now, updated_at=now,
+        status=initial_status, error_code=initial_error, attempts=0, created_at=now, updated_at=now,
     )
     session.add(intent)
     session.flush()
-    session.add(OracleProposalEvent(intent_id=intent.id, status="queued", recorded_at=now))
+    session.add(OracleProposalEvent(intent_id=intent.id, status=initial_status,
+                                    error_code=initial_error, recorded_at=now))
     return intent
 
 
@@ -170,10 +178,10 @@ def process_proposal(session: Session, intent_id: int, gateway: OracleGateway,
     except OracleSubmissionUncertain:
         _record(session, intent, "submission_unknown", now, code="manual_reconciliation_required")
         return intent
-    if not (isinstance(transaction_hash, str) and transaction_hash.startswith("0x") and len(transaction_hash) == 66):
+    if not (isinstance(transaction_hash, str) and re.fullmatch(r"0x[0-9a-fA-F]{64}", transaction_hash)):
         _record(session, intent, "submission_unknown", now, code="invalid_transaction_hash")
         return intent
-    _record(session, intent, "submitted", now, transaction_hash=transaction_hash,
+    _record(session, intent, "submitted", now, transaction_hash=transaction_hash.lower(),
             next_attempt_at=now + timedelta(seconds=30))
     return intent
 
