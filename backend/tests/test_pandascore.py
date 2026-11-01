@@ -202,3 +202,25 @@ def test_provider_listing_cannot_bypass_registrar_curation(tmp_path: Path) -> No
         session.commit()
         assert session.scalar(select(func.count()).select_from(FixtureReviewEvent)) == 2
     engine.dispose()
+
+
+@pytest.mark.parametrize("evidence_url", [
+    "https://pandascore.co/matches/9",
+    "https://www.pandascore.co/matches/9",
+    "https://api.pandascore.co/matches/9",
+    "https://results.api.pandascore.co/matches/9",
+    "https://WWW.PANDASCORE.CO/matches/9",
+])
+def test_fixture_review_rejects_all_pandascore_controlled_hosts(tmp_path: Path, evidence_url: str) -> None:
+    engine = create_engine(f"sqlite+pysqlite:///{tmp_path / 'review-hosts.db'}")
+    Base.metadata.create_all(engine)
+    with Session(engine, autoflush=False) as session:
+        record, _ = normalize_match(match(9), "valorant")
+        assert record is not None
+        import_document(session, FixtureImportDocument(fixtures=[record]))
+        with pytest.raises(ValueError, match="not independent"):
+            review_fixture(session, 1, reviewer="operator", approved=True,
+                           evidence_url=evidence_url, evidence_hash="0x" + "ab" * 32)
+        assert session.scalar(select(func.count()).select_from(FixtureReviewEvent)) == 0
+        assert session.get(Fixture, 1).curated_evidence_url is None
+    engine.dispose()

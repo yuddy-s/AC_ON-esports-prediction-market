@@ -13,7 +13,7 @@ from app.database import Base
 from app.fixture_data import FixtureImportDocument, deterministic_mock
 from app.fixture_service import import_document
 from app.fixture_curation import review_result
-from app.models import Fixture, FixtureResultObservation, OracleProposalEvent, OracleProposalIntent, OracleResultAssessment
+from app.models import Fixture, FixtureResultObservation, OracleProposalEvent, OracleProposalIntent, OracleResultAssessment, ResultReviewEvent
 from app.oracle_assessment import ResultAssessmentError, assess_imported_results, classify_result
 from app.oracle_worker import (
     ClosedMarketRef, OracleGatewayUnavailable, OracleSubmissionUncertain,
@@ -136,6 +136,23 @@ def test_pandascore_observation_cannot_create_automatic_proposal(session: Sessio
     assert intent is not None
     assert intent.evidence_url == "https://organizer.example/match/1/result"
     assert intent.evidence_hash == "0x" + "bb" * 32
+
+
+@pytest.mark.parametrize("evidence_url", [
+    "https://pandascore.co/matches/1",
+    "https://www.pandascore.co/matches/1",
+    "https://api.pandascore.co/matches/1",
+    "https://results.api.pandascore.co/matches/1",
+    "https://WWW.PANDASCORE.CO/matches/1",
+])
+def test_result_review_rejects_all_pandascore_controlled_hosts(session: Session, evidence_url: str) -> None:
+    fixture = session.get(Fixture, 1)
+    assert fixture is not None
+    fixture.provider_id = "pandascore"
+    with pytest.raises(ValueError, match="not independent"):
+        review_result(session, 1, reviewer="operator", approved=True,
+                      evidence_url=evidence_url, evidence_hash="0x" + "ab" * 32)
+    assert session.scalar(select(ResultReviewEvent)) is None
 
 
 def test_corrected_pandascore_result_needs_its_own_review(session: Session) -> None:

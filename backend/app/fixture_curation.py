@@ -11,6 +11,14 @@ from app.fixture_data import HASH_32
 from app.models import Fixture, FixtureResultObservation, FixtureReviewEvent, ResultReviewEvent
 
 
+def _independent_evidence_url(value: str) -> str:
+    url = TypeAdapter(HttpUrl).validate_python(value)
+    host = (url.host or "").lower().rstrip(".")
+    if host == "pandascore.co" or host.endswith(".pandascore.co"):
+        raise ValueError("PandaScore-controlled URL is not independent evidence")
+    return str(url)
+
+
 def identity_hash(fixture: Fixture) -> str:
     start = fixture.scheduled_start
     if start.tzinfo is None:
@@ -37,10 +45,7 @@ def review_fixture(session: Session, fixture_id: int, *, reviewer: str, approved
     if approved:
         if not evidence_url or not evidence_hash or not HASH_32.fullmatch(evidence_hash):
             raise ValueError("independent evidence URL and 32-byte hash are required")
-        url = TypeAdapter(HttpUrl).validate_python(evidence_url)
-        if url.host == "api.pandascore.co":
-            raise ValueError("PandaScore API response is not independent evidence")
-        evidence_url = str(url)
+        evidence_url = _independent_evidence_url(evidence_url)
         evidence_hash = evidence_hash.lower()
         fixture.curated_evidence_url = evidence_url
         fixture.curated_evidence_hash = evidence_hash
@@ -73,10 +78,7 @@ def review_result(session: Session, observation_id: int, *, reviewer: str, appro
     if approved:
         if not evidence_url or not evidence_hash or not HASH_32.fullmatch(evidence_hash):
             raise ValueError("independent evidence URL and 32-byte hash are required")
-        url = TypeAdapter(HttpUrl).validate_python(evidence_url)
-        if url.host == "api.pandascore.co":
-            raise ValueError("PandaScore API response is not independent evidence")
-        evidence_url = str(url)
+        evidence_url = _independent_evidence_url(evidence_url)
         evidence_hash = evidence_hash.lower()
     else:
         evidence_url = evidence_hash = None
