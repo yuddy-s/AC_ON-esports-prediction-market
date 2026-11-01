@@ -10,8 +10,9 @@
     "contracts/src/IERC20Minimal.sol": "e5843cc192d5781781ec3a97f84502a201c6cc68d5027ab39fe9255fd1eec209",
     "contracts/src/IVRFCoordinatorV2Plus.sol": "3bd800bedf10968b872bae6483cc09dfc353ec0b24fa2abd719af8ac32f6100e",
     "contracts/src/LMSR.sol": "99a3bcb9b67cae320bd7c717cc89f20b422c9e7f33be681498baffd16da27fcf",
+    "contracts/src/LMSRBounds.sol": "e51910fb4329ed5a6967753e7f84c7801fb2c9d6a9a8a0ac6fd1589b392ce479",
     "contracts/src/MarketAccess.sol": "ac46ed711c3f9747004fc3dc4f06b1e429fe2ea1236fa9ec12b0b9214c235951",
-    "contracts/src/MarketPricing.sol": "88195bfe703273276c2384f80c0d3d2d271b806ad763d78500d0062b202b8ffd",
+    "contracts/src/MarketPricing.sol": "3ab38df5d2281402d091721ef2dc840f3c84917de130c8f24dc8dfc44b1044a1",
     "contracts/src/PredictionMarket.sol": "45d3289cdf230308e38015e91abd0aeb6156b5c28367a2e9ea92bdeebece9bed",
     "contracts/src/ResolverRegistry.sol": "4ff3801ebb34b1c4f71f6e17df3a5c9439e02a39aa2d67f7d3979cafabc2e903",
     "contracts/lib/prb-math/src/Common.sol": "839ffee2fb3215c441749fab6c943fa8641652d4cb94acc02a48f637745b570c",
@@ -60,7 +61,7 @@
       "abi_path": "deployments/abi/PredictionMarket.abi.json",
       "abi_sha256": "4af9297937eb1b1b277a8c8d83e78ceb05c5db66cb120f1d39b80fdfc1015a91",
       "compiled_runtime_bytes": 23929,
-      "runtime_template_sha256": "bdf8e98b9a48b0f3e14709788eaf6051d67dcb6664ede8ff530574987176bba6",
+      "runtime_template_sha256": "e34867e7a6b75fc252625421f81d4f383a58210259e59e3e7c10ee9b2c8ed309",
       "deployment_address": null
     },
     "ResolverRegistry": {
@@ -72,9 +73,9 @@
     },
     "MarketPricing": {
       "abi_path": "deployments/abi/MarketPricing.abi.json",
-      "abi_sha256": "21890bf1d2a2c22f36a67270b729baa8b97c0d7edc742d647d2344379472b01f",
-      "compiled_runtime_bytes": 4180,
-      "runtime_template_sha256": "3e86c60fe7283e194120bbe9f9ec3818443079ccbbda79e7ffe96a74a8d09444",
+      "abi_sha256": "70aeb0507ae0984b2f4b4ddf9e985c73dfe45cc0b9f8d4937fbccb85a5a80bb1",
+      "compiled_runtime_bytes": 3185,
+      "runtime_template_sha256": "82a47af73fe272d171464d8a7490aad1a510b67d14b78e439329e4c0af4ac117",
       "deployment_address": null
     },
     "ACONTestToken": {

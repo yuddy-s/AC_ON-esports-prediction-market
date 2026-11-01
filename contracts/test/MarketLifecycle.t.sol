@@ -92,10 +92,10 @@ contract MarketLifecycleTest is MarketTestBase {
         uint256 beforeBalance = token.balanceOf(TRADER);
         uint256 cost = _buy(TRADER, id, PredictionMarket.Outcome.YES, 10e18);
         uint256 quote = market.quoteSell(id, PredictionMarket.Outcome.YES, 10e18);
-        require(cost == quote, "round-trip potential difference");
+        require(cost == quote + 1, "ceil-buy/floor-sell round trip must retain one base unit");
         vm.prank(TRADER);
         uint256 paid = market.sell(id, PredictionMarket.Outcome.YES, 10e18, quote);
-        require(paid == quote && token.balanceOf(TRADER) == beforeBalance, "sell payment mismatch");
+        require(paid == quote && token.balanceOf(TRADER) == beforeBalance - 1, "sell payment mismatch");
         require(market.balanceOf(id, TRADER, PredictionMarket.Outcome.YES) == 0, "shares not consumed");
         require(market.hasTraded(id, TRADER), "historical conflict cleared by selling");
         _accounting();

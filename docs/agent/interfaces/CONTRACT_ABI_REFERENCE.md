@@ -199,16 +199,8 @@ Tuple field order is part of the ABI. Pricing/math errors propagate from MarketP
 ### Errors
 
 - `InsufficientQuantity(uint256 requested, uint256 available)`
-- `PRBMath_MulDiv18_Overflow(uint256 x, uint256 y)`
 - `PRBMath_MulDiv_Overflow(uint256 x, uint256 y, uint256 denominator)`
-- `PRBMath_SD59x18_Div_InputTooSmall()`
-- `PRBMath_SD59x18_Div_Overflow(int256 x, int256 y)`
-- `PRBMath_SD59x18_Exp2_InputTooBig(int256 x)`
-- `PRBMath_SD59x18_Exp_InputTooBig(int256 x)`
-- `PRBMath_SD59x18_IntoUint256_Underflow(int256 x)`
-- `PRBMath_SD59x18_Log_InputTooSmall(int256 x)`
-- `PRBMath_SD59x18_Mul_InputTooSmall()`
-- `PRBMath_SD59x18_Mul_Overflow(int256 x, int256 y)`
+- `PricingPrecisionExceeded()`
 - `QuantityLimitExceeded(uint256 quantity, uint256 maximum)`
 - `TradeSizeLimitExceeded(uint256 shares, uint256 maximum)`
 - `TradeTooSmall()`

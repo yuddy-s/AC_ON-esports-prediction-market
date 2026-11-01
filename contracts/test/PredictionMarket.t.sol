@@ -112,14 +112,15 @@ contract PredictionMarketTest {
         market.getMarket(0);
     }
 
-    function testQuoteBuyMatchesLmsrCostAndBuyUpdatesYesState() public {
+    function testQuoteBuyUsesMathematicalCeilingAndBuyUpdatesYesState() public {
         market.createMarket(fixtureKey, block.timestamp + 1 days, fixtureRevision);
         uint256 shares = 10e18;
         uint256 quote = market.quoteBuy(0, PredictionMarket.Outcome.YES, shares);
-        uint256 expected = LMSR.buyCost(0, 0, true, shares);
+        // Independent high-precision mathematical ceil, not a call to the pricing implementation.
+        uint256 expected = 5_249_584_441_082_326_514;
         uint256 balanceBefore = token.balanceOf(address(this));
 
-        require(quote == expected, "quote must use LMSR buyCost");
+        require(quote == expected, "quote must round mathematical buy cost up");
         vm.expectEmit(true, true, true, true, address(market));
         emit PredictionMarket.TradeExecuted(0, address(this), 0, shares, quote, shares, 0);
         uint256 charged = market.buy(0, PredictionMarket.Outcome.YES, shares, quote);
@@ -143,6 +144,33 @@ contract PredictionMarketTest {
         require(market.balanceOf(0, address(this), PredictionMarket.Outcome.NO) == shares, "NO position mismatch");
         PredictionMarket.Market memory data = market.getMarket(0);
         require(data.yesQuantity == 0 && data.noQuantity == shares, "post-buy NO quantity mismatch");
+    }
+
+    function testRepeatedRealTokenRoundTripsCannotIncreaseWalletBalance() public {
+        market.createMarket(fixtureKey, block.timestamp + 1 days, fixtureRevision);
+        uint256 beforeBalance = token.balanceOf(address(this));
+        for (uint256 i; i < 16; ++i) {
+            uint256 cost = market.quoteBuy(0, PredictionMarket.Outcome.YES, 10e18);
+            market.buy(0, PredictionMarket.Outcome.YES, 10e18, cost);
+            uint256 proceeds = market.quoteSell(0, PredictionMarket.Outcome.YES, 10e18);
+            market.sell(0, PredictionMarket.Outcome.YES, 10e18, proceeds);
+        }
+        require(token.balanceOf(address(this)) == beforeBalance - 16, "repeated rounding gain");
+        PredictionMarket.Market memory data = market.getMarket(0);
+        require(data.yesQuantity == 0 && data.noQuantity == 0, "round trip retained shares");
+        require(data.collateralBalance == market.REQUIRED_SUBSIDY() + 16, "rounding reserve mismatch");
+        require(token.balanceOf(address(market)) == data.collateralBalance, "token ledger mismatch");
+    }
+
+    function testBaseUnitBuyRoundsUpAndZeroProceedsSellPreservesShares() public {
+        market.createMarket(fixtureKey, block.timestamp + 1 days, fixtureRevision);
+        uint256 beforeBalance = token.balanceOf(address(this));
+        require(market.buy(0, PredictionMarket.Outcome.YES, 1, 1) == 1, "sub-base-unit buy must round up");
+        vm.expectRevert(abi.encodeWithSelector(LMSR.TradeTooSmall.selector));
+        market.sell(0, PredictionMarket.Outcome.YES, 1, 0);
+        require(market.balanceOf(0, address(this), PredictionMarket.Outcome.YES) == 1, "zero sell burned shares");
+        require(token.balanceOf(address(this)) == beforeBalance - 1, "zero sell moved tokens");
+        require(market.getMarket(0).collateralBalance == market.REQUIRED_SUBSIDY() + 1, "zero sell changed collateral");
     }
 
     function testStaleQuoteExceedingMaxCostRevertsAtomically() public {

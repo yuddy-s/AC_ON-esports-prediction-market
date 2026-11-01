@@ -1,6 +1,6 @@
 # Contract verification record
 
-Status: **current product consolidated and locally tested on 2026-11-01; ABI/economic review and fresh deployment pending**.
+Status: **mathematical floor-sell / ceiling-buy correction locally tested on 2026-11-01; numerical/ABI/economic review and fresh deployment pending**.
 Source/dependency/ABI/runtime-template digests are in
 [`deployments/build.json`](../../../deployments/build.json).
 This record covers Benny's contract slice. The [M4 milestone test plan](../milestones/MILESTONE_4.md#full-documented-test-plan)
@@ -12,13 +12,14 @@ also requires frontend, backend, oracle/indexer and cross-layer evidence from th
 |---|---|
 | Solidity formatting | `forge fmt --check` passed |
 | Production compilation | Solc 0.8.24, optimizer 200, `via_ir=true`; the current `script/Deploy.s.sol` compiles |
-| Full Foundry suite | **105 passed, 0 failed, 0 skipped** across eight suites |
+| Full Foundry suite | **116 passed, 0 failed, 0 skipped** across nine suites |
 | Lifecycle tests | 20 lifecycle, 23 resolver, 18 security/accounting, 5 deployment-helper tests |
-| Token/trading/math tests | 14 real-token market integration, 4 ACON, 20 LMSR deterministic/fuzz, 1 grouped invariant suite |
+| Token/trading/math tests | 16 real-token market integration, 9 mathematical-pricing tests, 4 ACON, 20 historical LMSR deterministic/fuzz, 1 grouped historical invariant suite |
+| Independent pricing references | 72 mathematical trade vectors checked for both outcomes/directions, 85 correction bounds; generated reference results agree at 160/220 decimal digits |
 | Fuzz/invariant runs | 256 runs per fuzz test; grouped LMSR invariant 256 runs × 500 calls = 128,000 calls, zero reverts |
 | Local Anvil | **Six journeys, 101 successful transactions**, real ACON/pricing/registry/market, explicit mock coordinator |
 | ABI/event handoff | Four exact JSON ABI exports, source/dependency/runtime-template hashes, generated reference and required event examples validate |
-| Static analysis | Slither 0.11.3: **0 high, 2 medium, 14 low**; `--fail-high` passes with findings retained below |
+| Static analysis | Slither 0.11.3: **0 high, 7 medium, 14 low**; `--fail-high` passes with findings retained below |
 
 The separate deployment-helper tests execute all 15 Safe setup CALL payloads against a Safe
 execution mock and a subscription mock. They verify both admin handoffs, former-admin removal,
@@ -33,7 +34,7 @@ resolver pool containing the Safe, registrar or proposer.
 | Contract | Bytes | EIP-170 limit |
 |---|---:|---:|
 | PredictionMarket | 23,929 | 24,576 |
-| MarketPricing | 4,180 | 24,576 |
+| MarketPricing | 3,185 | 24,576 |
 | ResolverRegistry | 2,524 | 24,576 |
 | ACONTestToken | 1,716 | 24,576 |
 
@@ -54,6 +55,7 @@ forge build
 forge build script/Deploy.s.sol
 forge test --summary
 python3 script/export_handoff.py --check
+python3 script/pricing_reference.py --check
 python3 script/smoke.py --start-anvil
 ```
 
@@ -88,6 +90,7 @@ frontend/backend integration or proof of real Chainlink/Safe behavior.
 |---|---|
 | Fixtures | Registrar permission; exact key/team order; immutable funded metadata; revision-race rejection; one market; failed funding rollback; deadline margin; historical registrar conflicts |
 | Trades | YES/NO positions and exact token changes; bounded sizes/quantities; actual intervening-trade buy/sell slippage; no trade at/after deadline; no unowned sells; tiny sell rejection |
+| Mathematical pricing | Reported 464-unit discrepancy; direct high-precision references; directed interval enclosure; exact reflected states; near-integer fuzzing; no inverse-trade gain; 16 repeated real-token round trips; uncertifiable intervals revert |
 | Lifecycle | Immutable authorized proposal; 24-hour edge; no self/duplicate challenge; separate bond; late proposal cannot race no-proposal expiry; unchallenged finalize |
 | Resolver | All conflicts; distinct frozen candidates; shortages/replenishment; retries/failures; request ID zero; cross-market identity; unauthorized/stale/duplicate/malformed/late callbacks; preserved snapshot/deadline |
 | Voting | Selected-only, once per round, strict 48-hour edge; YES/NO/VOID quorum; fresh replacement and reuse fallback; formation expiry and second-round VOID |
@@ -101,10 +104,15 @@ withdrawals. It is useful integration evidence, **not** Matthew's independent st
 proof over the complete supported domain. The retained 128,000-call invariant harness concerns
 pure M3 LMSR buys; do not describe it as a full M4 lifecycle invariant campaign.
 
+The [rounding correction record](PRICING_ROUNDING.md) explains the new numerical enclosure and
+the corresponding ceil-buy change. Matthew's `80e0f21` branch was separately tested against the
+old integer-potential model; its exact-telescoping regression/invariant is incompatible with
+the selected mathematical rounding rule and needs adaptation before it can support this build.
+
 ### Coverage measurement
 
-The consolidated coverage run passed **104 tests**, excluding only the production runtime-size
-assertion from the 105-test normal suite. All market tests, including the real-ACON regression
+The corrected coverage run passed **115 tests**, excluding only the production runtime-size
+assertion from the 116-test normal suite. All market tests, including the real-ACON regression
 suite, exercise the same current `PredictionMarket`; there is no separate old-market implementation.
 
 ```bash
@@ -117,10 +125,11 @@ FOUNDRY_OUT=out/coverage FOUNDRY_CACHE_PATH=cache/coverage \
 | Production file | Lines | Statements | Branches | Functions |
 |---|---:|---:|---:|---:|
 | MarketAccess | 97.44% (38/39) | 89.74% | 72.73% | 100% |
-| MarketPricing | 100% (12/12) | 94.44% | 75% | 100% |
+| LMSRBounds | 100% (64/64) | 100% | 100% | 100% |
+| MarketPricing | 94.44% (17/18) | 96.30% | 100% | 100% |
 | PredictionMarket | 98.47% (386/392) | 95.66% | 83.84% | 97.73% |
 | ResolverRegistry | 90% (18/20) | 90.48% | 75% | 75% |
-| All production source | 97.74% (519/531) | 94.96% | 81.54% | 95.77% |
+| All production source | 98.34% (591/601) | 95.86% | 83.21% | 97.47% |
 
 These are the measured current run's counts, not promised future thresholds. Minimum-IR source maps
 can be imprecise and its bytecode differs from production; the normal test suite and exporter
@@ -135,16 +144,18 @@ from `contracts/` with its executable on PATH:
 ```bash
 FOUNDRY_OUT=out/security FOUNDRY_CACHE_PATH=cache/security \
   slither . --filter-paths 'lib/|test/|script/' --fail-high \
-  --json cache/verification/slither.json
+  --json cache/verification/slither-rounding-final.json
 ```
 
 Use an unused report filename when rerunning; Slither does not overwrite existing reports.
-The current report is `cache/verification/slither.json`. Output/cache isolation keeps
+The current local report is `cache/verification/slither-rounding-final.json` (CI writes `slither.json`). Output/cache isolation keeps
 Slither's `forge clean` away from normal and coverage artifacts. The scan covers all current
 first-party production contracts; it excludes library, test and script findings.
 
 | Finding | Count/severity | Review and evidence |
 |---|---|---|
+| `divide-before-multiply` | 2 medium | In `LMSRBounds`, `Q/(64*b)` is an exact integer because the constants divide exactly; multiplying by imbalance loses no precision. The log lower-bound term deliberately uses `2*floor(power/denominator)`, which is at most the true term. The upper bound encloses it separately and certification checks final rounding. Independent correction vectors test enclosure. |
+| `unused-return` | 3 medium | Buy pricing uses the certified ceiling and both sell branches use the certified floor, intentionally ignoring the unused member of `LMSRBounds.trade`'s pair. This is not an ignored token-transfer success flag; certification executes before either amount is returned. |
 | `incorrect-equality` | 1 medium | `_eligibleCandidates`: `round == 2` intentionally identifies the only replacement round. Round is assigned internally to 1/2, not a balance or an unpredictable timestamp. Replacement/exclusion/fallback tests exercise both branches. |
 | `reentrancy-no-eth` | 1 medium | `_requestRandomness` records the coordinator-returned ID after the external request. All market lifecycle entry points and callbacks share the lock; snapshot, last-attempt time and prior-request invalidation precede the call. `testCoordinatorRequestCannotReenterSelection` checks the actual lock error and that no nested request installs. The immutable coordinator must be the reviewed Chainlink deployment. |
 | `reentrancy-benign` | 1 low | Same coordinator-returned request-ID association after the guarded request. Incoming/outgoing market payment accounting precedes token interactions. The coordinator reentry test verifies that a nested lifecycle call cannot install a request. |
@@ -161,7 +172,8 @@ smoke uses ten addresses, not an unbounded-pool gas guarantee.
 
 The existing contract build/test check now also validates the exact handoff and runs disposable
 Anvil journeys. A separate analysis job runs pinned Slither and coverage and uploads their reports.
-The commands have been exercised locally; **a hosted GitHub Actions run is still pending publication**.
+PR #37's original CI passed. The commands above have been rerun locally for the rounding correction;
+**the correction has not yet been published for a new hosted CI run**.
 
 Before M4 release: record Matthew's economics/payout approval and consumer ABI freeze; verify
 the team Safe, ten real resolver-only wallets and funded Safe-owned subscription; deploy fresh

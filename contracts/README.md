@@ -12,7 +12,8 @@ It is a locally verified review draft; economic/ABI approval and a fresh Sepolia
 | `src/PredictionMarket.sol` | Registered fixtures, user-funded markets, buys/sells, proposals/challenges, VRF committee selection, voting/timeouts, settlement, claims and creator surplus |
 | `src/MarketAccess.sol` | Registrar/proposer roles and two-step administration transfer |
 | `src/ResolverRegistry.sol` | Safe-administered resolver allowlist |
-| `src/MarketPricing.sol` | Stateless buy/sell pricing adapter to the pure LMSR library |
+| `src/MarketPricing.sol` | Stateless mathematical ceiling-buy / floor-sell quotes and input limits |
+| `src/LMSRBounds.sol` | Directed numerical intervals that certify mathematical trade rounding |
 | `src/LMSR.sol` | Bounded fixed-point cost/price mathematics |
 | `src/ACONTestToken.sol` | 18-decimal, fee-free test payment token; one 1,000 ACON faucet claim per address |
 | `src/IERC20Minimal.sol` | Payment-token interface |
@@ -29,6 +30,10 @@ Economic units are integers: `1e18` per ACON/share, `b=50e18`, maximum `100e18` 
 required. The exact current state enum, tuple layouts, errors and payment/claim rules are in the
 [contract ABI guide](../docs/agent/interfaces/CONTRACT_ABI.md) and
 [generated reference](../docs/agent/interfaces/CONTRACT_ABI_REFERENCE.md).
+
+The [rounding correction](../docs/agent/testing/PRICING_ROUNDING.md) fixes the reported 464-base-unit
+sell overestimate and pairs it with ceil-buy pricing to avoid reverse-trade gains. Independent
+Decimal vectors certify the regression expectations. This numeric amendment remains under review.
 
 ## Local checks
 
@@ -49,11 +54,13 @@ forge build
 forge build script/Deploy.s.sol
 forge test
 python3 script/export_handoff.py --check
+python3 script/pricing_reference.py --check
 python3 script/smoke.py --start-anvil
 ```
 
 The source uses solc 0.8.24 with optimizer 200 and IR optimization. Tests are grouped by behavior:
-`PredictionMarket.t.sol` exercises the real ACON integration, `MarketLifecycle.t.sol` covers fixture/
+`PredictionMarket.t.sol` exercises the real ACON integration, `MarketPricing.t.sol` covers independent
+mathematical references and rounding boundaries, `MarketLifecycle.t.sol` covers fixture/
 settlement rules, `Resolvers.t.sol` covers VRF/votes, `MarketSecurity.t.sol` covers adversarial accounting,
 and `Deployment.t.sol` covers Safe setup. Token/math tests and the shared `MarketTestBase.sol` are in
 the same folder. See the [verification report](../docs/agent/testing/CONTRACT_VERIFICATION.md) for results,

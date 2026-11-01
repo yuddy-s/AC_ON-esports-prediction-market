@@ -123,6 +123,9 @@ jobs:
       - name: Check exact draft ABI, event fixtures, source hashes and runtime sizes
         run: python script/export_handoff.py --check
 
+      - name: Check independent mathematical pricing vectors
+        run: python script/pricing_reference.py --check
+
       - name: Run six transaction journeys on disposable Anvil
         run: python script/smoke.py --start-anvil
 

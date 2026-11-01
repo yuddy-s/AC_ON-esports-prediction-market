@@ -85,22 +85,6 @@
   },
   {
     "type": "error",
-    "name": "PRBMath_MulDiv18_Overflow",
-    "inputs": [
-      {
-        "name": "x",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "y",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ]
-  },
-  {
-    "type": "error",
     "name": "PRBMath_MulDiv_Overflow",
     "inputs": [
       {
@@ -122,89 +106,8 @@
   },
   {
     "type": "error",
-    "name": "PRBMath_SD59x18_Div_InputTooSmall",
+    "name": "PricingPrecisionExceeded",
     "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "PRBMath_SD59x18_Div_Overflow",
-    "inputs": [
-      {
-        "name": "x",
-        "type": "int256",
-        "internalType": "SD59x18"
-      },
-      {
-        "name": "y",
-        "type": "int256",
-        "internalType": "SD59x18"
-      }
-    ]
-  },
-  {
-    "type": "error",
-    "name": "PRBMath_SD59x18_Exp2_InputTooBig",
-    "inputs": [
-      {
-        "name": "x",
-        "type": "int256",
-        "internalType": "SD59x18"
-      }
-    ]
-  },
-  {
-    "type": "error",
-    "name": "PRBMath_SD59x18_Exp_InputTooBig",
-    "inputs": [
-      {
-        "name": "x",
-        "type": "int256",
-        "internalType": "SD59x18"
-      }
-    ]
-  },
-  {
-    "type": "error",
-    "name": "PRBMath_SD59x18_IntoUint256_Underflow",
-    "inputs": [
-      {
-        "name": "x",
-        "type": "int256",
-        "internalType": "SD59x18"
-      }
-    ]
-  },
-  {
-    "type": "error",
-    "name": "PRBMath_SD59x18_Log_InputTooSmall",
-    "inputs": [
-      {
-        "name": "x",
-        "type": "int256",
-        "internalType": "SD59x18"
-      }
-    ]
-  },
-  {
-    "type": "error",
-    "name": "PRBMath_SD59x18_Mul_InputTooSmall",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "PRBMath_SD59x18_Mul_Overflow",
-    "inputs": [
-      {
-        "name": "x",
-        "type": "int256",
-        "internalType": "SD59x18"
-      },
-      {
-        "name": "y",
-        "type": "int256",
-        "internalType": "SD59x18"
-      }
-    ]
   },
   {
     "type": "error",
