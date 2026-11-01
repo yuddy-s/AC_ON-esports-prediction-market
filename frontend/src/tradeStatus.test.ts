@@ -19,7 +19,7 @@ const statuses: Record<TradeStatus["kind"], TradeStatus> = {
   idle: { kind: "idle" },
   "approve-wallet": { kind: "approve-wallet" },
   "approve-pending": { kind: "approve-pending", hash },
-  "buy-wallet": { kind: "buy-wallet" },
+  "trade-wallet": { kind: "trade-wallet", side: "buy" },
   submitted: { kind: "submitted", hash },
   mined: { kind: "mined", hash, blockNumber: 527n, indexer: { state: "waiting", lastSafeBlock: 520 } },
   indexed: { kind: "indexed", hash, blockNumber: 527n, trade },
@@ -28,10 +28,14 @@ const statuses: Record<TradeStatus["kind"], TradeStatus> = {
   error: { kind: "error", message: "Not enough ACON for this trade." },
 };
 
+it("names the sale in the wallet step", () => {
+  expect(statusMessage({ kind: "trade-wallet", side: "sell" })).toBe("Confirm the sale in your wallet…");
+});
+
 describe("submitted, mined and indexed are separate states", () => {
   it("each sits on its own progress step", () => {
     expect(TRADE_STEPS).toEqual(["Wallet", "Submitted", "Mined", "Indexed"]);
-    expect(stepIndex(statuses["buy-wallet"])).toBe(0);
+    expect(stepIndex(statuses["trade-wallet"])).toBe(0);
     expect(stepIndex(statuses.submitted)).toBe(1);
     expect(stepIndex(statuses.mined)).toBe(2);
     expect(stepIndex(statuses.indexed)).toBe(3);
@@ -85,8 +89,8 @@ describe("unhappy paths", () => {
     expect(failures.sort()).toEqual(["error", "rejected", "reverted"]);
   });
 
-  it("a reverted transaction says no ACON was spent", () => {
-    expect(statusMessage(statuses.reverted)).toMatch(/reverted\. No ACON was spent/);
+  it("a reverted transaction says nothing changed", () => {
+    expect(statusMessage(statuses.reverted)).toMatch(/reverted\. Your ACON and your position did not change/);
   });
 
   it("an error shows its message", () => {
@@ -98,7 +102,7 @@ describe("isBusy locks the form only while waiting on the wallet or chain", () =
   it.each([
     ["approve-wallet", true],
     ["approve-pending", true],
-    ["buy-wallet", true],
+    ["trade-wallet", true],
     ["submitted", true],
     ["idle", false],
     ["mined", false],

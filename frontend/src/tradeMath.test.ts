@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeMaxCost, parseBaseUnits, parseShares, parseSlippagePercent } from "./tradeMath";
+import { computeMaxCost, computeMinReturn, parseBaseUnits, parseShares, parseSlippagePercent } from "./tradeMath";
 
 const ONE = 10n ** 18n;
 
@@ -78,5 +78,22 @@ describe("parseBaseUnits (backend Decimal strings)", () => {
     expect(() => parseBaseUnits("1.5")).toThrow();
     expect(() => parseBaseUnits("-1")).toThrow();
     expect(() => parseBaseUnits("abc")).toThrow();
+  });
+});
+
+describe("computeMinReturn", () => {
+  it("accepts exactly the quote with zero slippage", () => {
+    expect(computeMinReturn(4_000_000_000_000_000_001n, 0)).toBe(4_000_000_000_000_000_001n);
+  });
+
+  it("rounds down so the guard never exceeds the quote", () => {
+    // 1% below 101 base units is 99.99, which must round down to 99.
+    expect(computeMinReturn(101n, 100)).toBe(99n);
+    expect(computeMinReturn(10n ** 18n, 50)).toBe(995_000_000_000_000_000n);
+  });
+
+  it("rejects slippage outside 0-100%", () => {
+    expect(() => computeMinReturn(1n, -1)).toThrow();
+    expect(() => computeMinReturn(1n, 10_001)).toThrow();
   });
 });

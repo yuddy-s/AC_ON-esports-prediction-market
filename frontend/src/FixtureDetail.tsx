@@ -5,7 +5,6 @@ import { SourceNote } from "./FixtureCatalog";
 import { fetchFixture, fetchFixtureResults, type Fixture, type ResultObservation } from "./fixturesApi";
 import {
   allowsNewRequest,
-  canCreateMarket,
   describeRegistration,
   gameLabel,
   MATCH_STATUS_LABELS,
@@ -15,6 +14,7 @@ import {
   winnerName,
 } from "./fixtureStatus";
 import { shortenAddress } from "./format";
+import { CreateMarket, useOnChainFixture } from "./CreateMarket";
 import { RegistrationRequest } from "./RegistrationRequest";
 import { fetchRegistration } from "./registrationApi";
 import { Panel, PanelTitle, Tag } from "./ui";
@@ -62,7 +62,12 @@ function FixtureBody({
 }) {
   const now = useNowSeconds(30_000);
   const teams = outcomeTeams(fixture);
-  const registration = describeRegistration(fixture.registration_request_status);
+  const { onChain } = useOnChainFixture(fixture);
+  const registeredOnChain = onChain?.registered === true;
+  // The chain is authoritative; the backend job only matters until then.
+  const registration = registeredOnChain
+    ? { label: "Registered", tone: "good" as const, detail: "Registered on-chain. Anyone can fund its one market." }
+    : describeRegistration(fixture.registration_request_status);
   // The catalog only carries the job status; a terminal failure needs the
   // job's error_code to know whether a fresh signed request is allowed.
   const failed = fixture.registration_request_status === "terminal_failure";
@@ -105,15 +110,19 @@ function FixtureBody({
           </div>
           <h2 className="font-display text-lg font-semibold uppercase tracking-wide text-paper">Registration</h2>
           <p className="text-sm text-cream">{registration.detail}</p>
-          {fixture.registration_request_status === null && !eligibility.ok && (
+          {!registeredOnChain && failed && job.data && (
+            <p className="text-sm text-sand">
+              {allowsNewRequest(fixture.registration_request_status, job.data)
+                ? "This failure can be retried with a new signed request."
+                : "This failure needs a team operator before anyone can request again."}
+            </p>
+          )}
+          {!registeredOnChain && allowsNewRequest(fixture.registration_request_status, job.data) && !eligibility.ok && (
             <p className="text-sm text-sand">{eligibility.reason}</p>
           )}
-          <RegistrationRequest fixture={fixture} job={job.data} nowMs={now * 1000} />
+          {!registeredOnChain && <RegistrationRequest fixture={fixture} job={job.data} nowMs={now * 1000} />}
           <div className="border-t border-bronze/40 pt-3">
-            <button type="button" disabled title="Needs the M4 contract" className="btn-gold w-full">
-              {canCreateMarket(fixture.registration_request_status) ? "Create market" : "Create market · after registration"}
-            </button>
-            <p className="mt-1.5 text-xs text-dust">Market creation is enabled once the M4 contract is deployed.</p>
+            <CreateMarket fixture={fixture} />
           </div>
         </section>
       </div>

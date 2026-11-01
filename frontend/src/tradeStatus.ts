@@ -14,7 +14,7 @@ export type TradeStatus =
   | { kind: "idle" }
   | { kind: "approve-wallet" }
   | { kind: "approve-pending"; hash: Hash }
-  | { kind: "buy-wallet" }
+  | { kind: "trade-wallet"; side: "buy" | "sell" }
   | { kind: "submitted"; hash: Hash }
   | { kind: "mined"; hash: Hash; blockNumber: bigint; indexer: IndexerWait }
   | { kind: "indexed"; hash: Hash; blockNumber: bigint; trade: IndexedTrade }
@@ -27,7 +27,7 @@ export const TRADE_STEPS = ["Wallet", "Submitted", "Mined", "Indexed"] as const;
 // True while a transaction is waiting on the wallet or the chain; inputs and
 // the buy button are locked.
 export function isBusy(status: TradeStatus): boolean {
-  return ["approve-wallet", "approve-pending", "buy-wallet", "submitted"].includes(status.kind);
+  return ["approve-wallet", "approve-pending", "trade-wallet", "submitted"].includes(status.kind);
 }
 
 export function isFailure(status: TradeStatus): boolean {
@@ -39,7 +39,7 @@ export function stepIndex(status: TradeStatus): number {
   switch (status.kind) {
     case "approve-wallet":
     case "approve-pending":
-    case "buy-wallet":
+    case "trade-wallet":
       return 0;
     case "submitted":
       return 1;
@@ -61,8 +61,8 @@ export function statusMessage(status: TradeStatus): string {
       return "Step 1 of 2: confirm the ACON approval in your wallet…";
     case "approve-pending":
       return "Approval submitted, waiting for it to be mined…";
-    case "buy-wallet":
-      return "Confirm the buy in your wallet…";
+    case "trade-wallet":
+      return status.side === "buy" ? "Confirm the buy in your wallet…" : "Confirm the sale in your wallet…";
     case "submitted":
       return "Submitted. Waiting for the transaction to be mined…";
     case "mined":
@@ -86,7 +86,7 @@ export function statusMessage(status: TradeStatus): string {
     case "indexed":
       return "Indexed: the backend now shows your trade.";
     case "reverted":
-      return "The transaction was mined but reverted. No ACON was spent on the trade and your position did not change.";
+      return "The transaction was mined but reverted. Your ACON and your position did not change.";
     case "rejected":
       return "You rejected the request in your wallet. Nothing was sent.";
     case "error":

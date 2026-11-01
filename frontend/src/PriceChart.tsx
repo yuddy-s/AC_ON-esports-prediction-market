@@ -40,8 +40,8 @@ export function PriceChart({ marketId }: { marketId: bigint }) {
         aside={<span className="font-mono text-[11px] text-dust">AFTER EACH INDEXED TRADE</span>}
       />
       <div className="mt-4">
-        {(status.isLoading || trades.isLoading) && <p className="text-sm text-sand">Loading price history…</p>}
-        {(status.isError || trades.isError) && <p className="text-sm text-signal">Indexer API unreachable. The chart needs indexed trades.</p>}
+        {!problem && (status.isLoading || trades.isLoading) && <p className="text-sm text-sand">Loading price history…</p>}
+        {!problem && (status.isError || trades.isError) && <p className="text-sm text-signal">Indexer API unreachable. The chart needs indexed trades.</p>}
         {problem && <p className="text-sm text-signal">{problem} The chart is hidden.</p>}
         {points && points.length === 1 && <p className="text-sm text-sand">No trades yet. The price starts at 50%.</p>}
         {points && points.length > 1 && <Chart points={points} />}

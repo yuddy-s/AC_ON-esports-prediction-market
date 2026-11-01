@@ -47,6 +47,72 @@ export function describeContractError(errorName: string, args: readonly unknown[
       return "This wallet already claimed the faucet.";
     case "ReentrantCall":
       return "The contract rejected a re-entrant call.";
+    // M4 lifecycle (docs/agent/interfaces/CONTRACT_ABI.md).
+    case "MinimumReturnNotMet":
+      return `The price moved: the sale now pays ${amount(0)}, below your minimum of ${amount(1)}. Get a new quote or raise your slippage.`;
+    case "InsufficientShares":
+      return "You don't own that many shares of this side.";
+    case "WrongState":
+      return "The market has moved to a different stage. Refresh and try again.";
+    case "FixtureNotRegistered":
+      return "This fixture is not registered on-chain yet.";
+    case "FixtureRevisionMismatch":
+      return "The registered fixture changed while you were creating the market. Review it and try again.";
+    case "MarketAlreadyExists":
+      return "A market already exists for this fixture.";
+    case "FixtureLocked":
+      return "This fixture's details are locked because its market is funded.";
+    case "ChallengeWindowClosed":
+      return "The 24-hour challenge window has closed.";
+    case "ChallengeNotAllowed":
+      return "The proposer can't challenge their own proposal.";
+    case "ChallengeAlreadyExists":
+      return "This proposal was already challenged (only the first challenge is accepted).";
+    case "ResolverNotSelected":
+      return "This wallet is not on the resolver committee for this round.";
+    case "AlreadyVoted":
+      return "This wallet already voted in this round.";
+    case "VotingClosed":
+      return "The voting period for this round has ended.";
+    case "SelectionExpired":
+      return "Resolver selection expired. Advance the market instead.";
+    case "RetryTooSoon":
+      return "The committee draw was requested less than 30 minutes ago. Try again later.";
+    case "DeadlineNotReached":
+      return "It's too early for this step.";
+    case "ProposalExpired":
+      return "The proposal window has passed.";
+    case "NoPosition":
+      return "This wallet holds no shares in this market.";
+    case "AlreadyClaimed":
+      return "This wallet already claimed its payout for this market.";
+    case "NoSurplus":
+      return "There is no creator surplus to withdraw yet.";
+    case "CreatorOnly":
+      return "Only the market creator can withdraw the surplus.";
+    case "InsufficientCollateral":
+      return "The market does not hold enough collateral for this payout.";
+    case "UnexpectedTokenTransfer":
+      return "The ACON transfer did not move the expected amount.";
+    case "Unauthorized":
+      return "This wallet does not have the role needed for this action.";
+    case "InsufficientQuantity":
+      return "The market doesn't have that many shares outstanding on this side.";
+    case "PricingPrecisionExceeded":
+      return "This trade size can't be priced precisely. Try a slightly different number of shares.";
+    case "InvalidEvidence":
+      return "Evidence is required (a non-empty link or reason).";
+    case "InvalidFixture":
+      return "The fixture details are invalid.";
+    case "ProposalAlreadyExists":
+      return "A result was already proposed for this market.";
+    // Admin / VRF-coordinator paths; shown only if something is misconfigured.
+    case "InvalidConfiguration":
+    case "OnlyCoordinator":
+    case "RequestIdCollision":
+    case "UseAdministrationTransfer":
+    case "ZeroAddress":
+      return `This action is restricted to the contract's administrator or VRF coordinator (${errorName}).`;
     default:
       return `The contract rejected the transaction (${errorName}).`;
   }

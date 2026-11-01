@@ -43,7 +43,7 @@ describe("lmsrPrices", () => {
 });
 
 describe("isTradable", () => {
-  const OPEN = 1;
+  const OPEN = 0;
   const deadline = 1_000n;
 
   it("is tradable when OPEN and before the deadline", () => {
@@ -57,7 +57,7 @@ describe("isTradable", () => {
   });
 
   it("is never tradable in a non-OPEN state", () => {
-    for (const state of [0, 2, 3, 4, 5, 6]) {
+    for (const state of [1, 2, 3, 4, 5, 6, 7]) {
       expect(isTradable(state, deadline, 0), `state ${state}`).toBe(false);
     }
   });
