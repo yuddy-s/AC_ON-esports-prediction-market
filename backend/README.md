@@ -72,7 +72,17 @@ The seed script creates the `sample_matches` table if needed and upserts three f
 
 ## Milestone 4 Fixture Catalog (first backend slice)
 
-The fixture catalog is imported **off-chain source data**, not an on-chain registration or market. An operator imports a JSON file from `backend/` after `alembic upgrade head` has applied revision `20261029_0002` to the chosen database. Use a local database for development; do not point the importer at Supabase unintentionally. No PandaScore account, API token, registrar key, or M4 ABI is needed for this slice.
+The fixture catalog is imported **off-chain source data**, not an on-chain registration or market. An operator imports a JSON file from `backend/` after `alembic upgrade head` has applied the fixture migration (`20261029_0002`) to the chosen database. Use a local database for development; do not point the importer at Supabase unintentionally. No PandaScore account, API token, registrar key, or M4 ABI is needed for this slice.
+
+The next migration, `20261029_0003`, adds registration request tracking. Applying `alembic upgrade head` on the stacked registration branch reaches this revision. No hosted database has been migrated by this branch.
+
+### Signed registration request (ABI-gated slice)
+
+The player selects a **scheduled, curated** catalog fixture with two distinct teams, source evidence, no recorded result, and at least 30 minutes until the scheduled start. The frontend calls `POST /api/fixtures/{id}/registration-challenges` with `{"wallet_address":"0x..."}` and receives a five-minute EIP-191 message, nonce, chain ID, and expiry. The message binds a SHA-256 snapshot of identity, teams, start time, and evidence. The player signs that exact message with an EOA wallet. The frontend then calls `POST /api/fixtures/{id}/registration-requests` with `wallet_address`, `nonce`, and `signature`. The server recovers the signer, checks the chain/fixture/expiry and unchanged snapshot, consumes the challenge once, and stores at most one request per fixture. A wallet is limited to 12 challenges and 3 registration requests per rolling day. Expired challenges are cleaned after a one-day retention period. Errors include a stable `detail.code`.
+
+`GET /api/fixtures/{id}/registration` returns the job or `null`. Jobs currently report `awaiting_abi`; that means **no on-chain registration has occurred**. The mock-gateway worker also defines `queued`, `retryable_failure`, `submitted`, `submission_unknown`, `terminal_failure`, and `confirmed`. Its append-only event log records transitions. A successful receipt alone cannot set `confirmed`; the production gateway must require a matching on-chain registration after the configured confirmation depth. An uncertain submission is never resent automatically. The UI must not offer market creation until `confirmed`. This branch does not load a registrar key, send a transaction, derive Benny's exact fixture-key bytes, or alter the M3 worker. The production registrar gateway requires Benny's compiled M4 ABI, exact call types, role grant, contract address, and deployment block. Contract wallets are not supported by this EOA signature flow.
+
+The request is only permission for the narrow registrar to register a verified fixture. The player must sign a **separate market creation and funding transaction** after the registration is confirmed. The backend never creates or funds the player's market. Before exposing these POST endpoints publicly, configure an edge rate limit and bot protection in addition to the per-wallet database limits; arbitrary new addresses can otherwise consume challenge storage.
 
 ```bash
 python -m scripts.import_fixtures path/to/fixtures.json --validate-only
@@ -108,7 +118,7 @@ Results are append-only observations with their evidence reference and hash; imp
 - `GET /api/fixtures/{id}` returns one fixture and its latest result observation, or 404.
 - `GET /api/fixtures/{id}/results` returns all source observations oldest first.
 
-All catalog responses are non-authoritative. Registration status, linked market, on-demand wallet requests, and result-proposer automation are later M4 PRs; the M3 market/trade indexer continues to use its existing deployment and ABI.
+All catalog responses are non-authoritative. The stacked registration PR adds on-demand wallet requests and off-chain job status; on-chain registration, linked markets, and result-proposer automation remain later work. The M3 market/trade indexer continues to use its existing deployment and ABI.
 
 ## Run Locally
 
