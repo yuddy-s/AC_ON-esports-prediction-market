@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.models import (
     Fixture, FixtureResultObservation, OracleProposalEvent, OracleProposalIntent, OracleResultAssessment,
+    ResultReviewEvent,
 )
 from app.oracle_assessment import assess_imported_results
 
@@ -100,6 +101,14 @@ def plan_proposal(session: Session, market: ClosedMarketRef, gateway: OracleGate
         return None
     if observation.match_status == "completed" and _utc(observation.source_updated_at) < _utc(fixture.scheduled_start):
         return None
+    evidence_url, evidence_hash = observation.evidence_url, observation.evidence_hash
+    if fixture.provider_id == "pandascore":
+        review = session.scalar(select(ResultReviewEvent).where(
+            ResultReviewEvent.observation_id == observation.id
+        ).order_by(ResultReviewEvent.id.desc()).limit(1))
+        if review is None or not review.approved or not review.evidence_url or not review.evidence_hash:
+            return None
+        evidence_url, evidence_hash = review.evidence_url, review.evidence_hash
     if gateway.proposal_state(market, None) != "closed_unproposed":
         return None
     prior_conflict = session.scalar(select(OracleResultAssessment.id).where(
@@ -111,7 +120,7 @@ def plan_proposal(session: Session, market: ClosedMarketRef, gateway: OracleGate
     intent = OracleProposalIntent(
         chain_id=market.chain_id, contract_address=address, market_id=market.market_id,
         fixture_id=fixture.id, observation_id=observation.id, outcome=assessment.outcome,
-        evidence_url=observation.evidence_url, evidence_hash=observation.evidence_hash,
+        evidence_url=evidence_url, evidence_hash=evidence_hash,
         status=initial_status, error_code=initial_error, attempts=0, created_at=now, updated_at=now,
     )
     session.add(intent)

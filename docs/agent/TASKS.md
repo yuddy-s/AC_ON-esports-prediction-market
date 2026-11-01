@@ -71,6 +71,10 @@ Use the validated [`../../deployments/sepolia-m3.json`](../../deployments/sepoli
 
 ## Active Milestone 4 Feature-Complete Queue
 
+**Provider amendment for review:** Add and test a PandaScore schedule/result adapter in Yudhveer's backend stack. Decide whether permitted live ingestion becomes an M4 acceptance gate, and define independent result verification before PandaScore observations can feed the proposer. Existing manual/mock work remains the accepted baseline until the team records this change.
+
+Draft PR #39 implements the guarded adapter, operator command, and parser/database tests on top of #34. It has no live-account evidence and cannot propose from PandaScore-only observations. Review the provider-use and result-verification decision before enabling it.
+
 Status: **M4 target approved in merged PR #28; implementation pending**. The [M4 milestone](milestones/MILESTONE_4.md) contains detailed ownership/tests, and the [M4 design decision](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md) supplies target rules. Exact ABI types/indexed fields still need a freeze. Full public application integration is an M4 stretch target and remains required in M5 if unfinished.
 
 For each owner, see [M4 Owner Handoffs And Roadblocks](milestones/MILESTONE_4.md#owner-handoffs-and-roadblocks) for what can start now, the specific artifact or access that blocks later work, and who must publish the handoff. A dependency below does not block the owner's independent preparation.

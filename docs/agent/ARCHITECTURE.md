@@ -1,5 +1,7 @@
 # AC_ON Architecture
 
+> Proposed M4 data-source addition: a server-side PandaScore REST adapter normalizes fixtures and results into the existing source tables. Its token stays outside the browser and Git. This is not a trusted settlement authority; live activation and independent result verification remain team decisions. The approved manual/mock path below is still the current target baseline.
+
 AC_ON is a testnet-only decentralized esports prediction market. Users connect an Ethereum wallet and trade YES/NO shares on binary esports match outcomes. The planned product is not fully trustless or fully permissionless: contract state should be authoritative for markets and payouts, while esports APIs, oracle automation, initial resolver bootstrapping, and indexing are trusted/off-chain support systems.
 
 This document describes the repository as currently inspected. Do not treat planned components as implemented.

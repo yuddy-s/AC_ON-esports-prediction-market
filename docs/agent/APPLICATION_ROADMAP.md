@@ -1,5 +1,7 @@
 # AC_ON Application Roadmap
 
+> M4 provider amendment under review: implement a PandaScore fixture/result adapter and decide whether live permitted ingestion is required for M4 acceptance. The approved mock/manual path remains the baseline until the team records that decision; provider responses alone must not authorize on-chain proposals.
+
 This is the canonical implementation checklist for coding agents and team members. It records what exists, what remains, who owns each area, and whether work can proceed without another team decision. Detailed milestone scope remains in `milestones/` and current assignments remain in `TASKS.md`.
 
 Last reviewed: 2026-11-01. The M3 baseline is deployed, and PR #30's off-chain fixture catalog is merged into `dev`. M4 registration and result-assessment branches remain drafts; on-chain M4 integration is pending.
