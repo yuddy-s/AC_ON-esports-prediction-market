@@ -1,6 +1,6 @@
 # AC_ON Backend
 
-FastAPI backend and Milestone 3 indexer foundation. The indexed market/trade APIs expose derived Ethereum Sepolia projections. The older sample-match endpoints remain temporarily as deprecated Milestone 2 fallback data.
+FastAPI backend with M3 indexed market/trade reads and merged M4 off-chain fixture, registration-request, and result-review foundations. M4 chain gateways, event projections, and lifecycle APIs remain pending. The older sample-match endpoints are deprecated M2 fallback data.
 
 This data is **non-authoritative**. Blockchain contracts remain the source of truth for real markets, balances, settlement, and payouts.
 
@@ -70,15 +70,23 @@ python -m scripts.seed_sample_matches
 
 The seed script creates the `sample_matches` table if needed and upserts three fake sample matches.
 
-## Milestone 4 Fixture Catalog (first backend slice)
+## Milestone 4 Backend Status
+
+As of 2026-11-01, PRs #30–#34 and #39 are merged. The backend includes the fixture/result catalog, manual/mock imports, signed EOA registration requests and recovery audit, result assessments/reviews, and an optional gated PandaScore adapter. These are off-chain foundations: no production registrar or proposer gateway submits M4 transactions, and a registration request is not an on-chain registration.
+
+The indexer still decodes the M3 `MarketCreated` and `TradeExecuted` events. M4 chain-event migrations/projections and APIs for fixture-to-market linkage, market history, resolution/committee, claims, and portfolio are not implemented. PR #37 is open and contains candidate ABI/event artifacts; production integration waits for review and an exact ABI/deployment/role handoff. No M4 Sepolia deployment or transaction/indexing smoke is recorded here.
+
+The manual JSON and deterministic mock paths are the required fixture/result sources. PandaScore support is optional under the approved M4 design. Live calls remain disabled unless the team enables the provider and a private token is configured; a PandaScore account is not an M4 blocker.
+
+## Milestone 4 Fixture Catalog
 
 The fixture catalog is imported **off-chain source data**, not an on-chain registration or market. An operator imports a JSON file from `backend/` after `alembic upgrade head` has applied the fixture migration (`20261029_0002`) to the chosen database. Use a local database for development; do not point the importer at Supabase unintentionally. No PandaScore account, API token, registrar key, or M4 ABI is needed for this slice.
 
-### PandaScore provider adapter (review branch)
+### PandaScore provider adapter (merged, optional)
 
 `app.pandascore` normalizes PandaScore's Valorant, Counter-Strike, and Rainbow Six Siege upcoming/past match pages into the same fixture/result document as the manual adapter. It uses a server-side Bearer token, bounded pagination, the provider's remaining-request header, and explicit failures for denied access, rate limits, and malformed responses. Missing teams, timestamps, and ambiguous winners produce no guessed result. A canceled forfeit with a winner also produces no result until reviewed. The source URL and SHA-256 of the provider record are evidence **of what PandaScore returned**, not independent organizer confirmation. Imported data remains non-authoritative.
 
-The proposed M4 requirement is to implement and validate this real provider adapter. The approved design currently makes PandaScore optional; the team must approve that change and confirm permitted use before live polling. Live calls are disabled unless `PANDASCORE_USE_APPROVED=true` and `PANDASCORE_API_TOKEN` are set privately. From `backend/`, run `python -m scripts.import_pandascore valorant --validate-only` to inspect normalization, or omit `--validate-only` to import into the configured database; use `cs2`, `r6siege`, or `all` as the game. `--max-pages` bounds each upcoming/past query. Check `DATABASE_URL` before an import. Never put the token in a frontend variable, URL, log, or committed file. This command is operator-run, not a public API endpoint or automatic market creator.
+PR #39 implemented and tested this provider adapter. PandaScore remains optional under the approved design; live polling remains disabled unless the team elects to enable it and `PANDASCORE_USE_APPROVED=true` and `PANDASCORE_API_TOKEN` are configured privately. From `backend/`, run `python -m scripts.import_pandascore valorant --validate-only` to inspect normalization, or omit `--validate-only` to import into the configured database; use `cs2`, `r6siege`, or `all` as the game. `--max-pages` bounds each upcoming/past query. Check `DATABASE_URL` before an import. Never put the token in a frontend variable, URL, log, or committed file. This command is operator-run, not a public API endpoint or automatic market creator.
 
 For a registered match older than the bounded past-match pages, use `python -m scripts.import_pandascore valorant --match-id <provider-match-id>` to refresh its exact provider record. The adapter checks the returned game identity before importing. The same option works for `cs2` and `r6siege` and prevents a tracked result from being missed solely because it aged out of the recent list.
 
@@ -88,13 +96,13 @@ Fetched PandaScore fixtures start catalog-only: registration challenges return `
 
 Fixture catalog/detail responses expose `registration_eligible` as an off-chain precheck. It is false for unreviewed or stale PandaScore listings and can change before a challenge is signed; it never means that on-chain registration is complete.
 
-The next migration, `20261029_0003`, adds registration request tracking. Applying `alembic upgrade head` on the stacked registration branch reaches this revision. No hosted database has been migrated by this branch.
+Merged migrations through `20261101_0007` include registration requests, result assessments, recovery audit, and source-review records. Run `alembic upgrade head` against the intended development database before using these features. Do not infer that a hosted database has been migrated; hosted migration state must be checked separately.
 
 ### Signed registration request (ABI-gated slice)
 
 The player selects a **scheduled, curated** catalog fixture with two distinct teams, source evidence, no recorded result, and at least 30 minutes until the scheduled start. The frontend calls `POST /api/fixtures/{id}/registration-challenges` with `{"wallet_address":"0x..."}` and receives a five-minute EIP-191 message, nonce, chain ID, and expiry. The message binds a SHA-256 snapshot of identity, teams, start time, and evidence. The player signs that exact message with an EOA wallet. The frontend then calls `POST /api/fixtures/{id}/registration-requests` with `wallet_address`, `nonce`, and `signature`. The server recovers the signer, checks the chain/fixture/expiry and unchanged snapshot, consumes the challenge once, and stores at most one request per fixture. A wallet is limited to 12 challenges and 3 registration requests per rolling day. Expired challenges are cleaned after a one-day retention period. Errors include a stable `detail.code`.
 
-`GET /api/fixtures/{id}/registration` returns the job or `null`. Jobs currently report `awaiting_abi`; that means **no on-chain registration has occurred**. The mock-gateway worker also defines `queued`, `retryable_failure`, `submitted`, `submission_unknown`, `terminal_failure`, and `confirmed`. Its append-only event log records transitions. A successful receipt alone cannot set `confirmed`; the production gateway must require a matching on-chain registration after the configured confirmation depth. An uncertain submission is never resent automatically. The UI must not offer market creation until `confirmed`. This branch does not load a registrar key, send a transaction, derive Benny's exact fixture-key bytes, or alter the M3 worker. The production registrar gateway requires Benny's compiled M4 ABI, exact call types, role grant, contract address, and deployment block. Contract wallets are not supported by this EOA signature flow.
+`GET /api/fixtures/{id}/registration` returns the job or `null`. Without a production chain gateway, jobs remain `awaiting_abi`; that means **no on-chain registration has occurred**. The mock-gateway state machine also defines `queued`, `retryable_failure`, `submitted`, `submission_unknown`, `terminal_failure`, and `confirmed`. Its append-only event log records transitions. A successful receipt alone cannot set `confirmed`; the production gateway must require a matching on-chain registration after the configured confirmation depth. An uncertain submission is never resent automatically. The UI must not offer market creation until `confirmed`. The production registrar gateway requires the reviewed M4 ABI, exact call types, role grant, contract address, and deployment block. Contract wallets are not supported by this EOA signature flow.
 
 The request is only permission for the narrow registrar to register a verified fixture. The player must sign a **separate market creation and funding transaction** after the registration is confirmed. The backend never creates or funds the player's market. Before exposing these POST endpoints publicly, configure an edge rate limit and bot protection in addition to the per-wallet database limits; arbitrary new addresses can otherwise consume challenge storage.
 
@@ -104,9 +112,9 @@ Recovery migration `20261030_0005` retains each signed fixture snapshot, authori
 
 Migration `20261029_0004` adds append-only result assessments. After importing result observations, an operator can run `python -m scripts.assess_results` against the intended database. Each observation maps Team A to YES, Team B to NO, and canceled/tied/no-contest/unsupported to VOID. A corrected observation creates a new row; changed outcomes are flagged for challenge review. Re-running the command is idempotent. These rows are **source assessments**, not on-chain proposals, market outcomes, or proof that a result is true.
 
-The same draft migration also stores one proposal intent per `(chain_id, contract_address, market_id)` and append-only attempt events. `app.oracle_worker` defines a mockable closed-market gateway and bounded state machine. It chooses the latest assessment only after a gateway reports a closed, unproposed market. If the fixture's assessed result history contains a conflicting correction before intent creation, the intent starts in `correction_review` and cannot auto-submit. A new observation after intent creation also pauses a not-yet-submitted intent for review, even if the suggested outcome is unchanged. A known pre-submission outage may retry; an uncertain submission or invalid transaction hash is quarantined. Both registrar and proposer workers accept only `0x` followed by 64 hexadecimal characters as a transaction hash and store valid hashes in lowercase. A successful receipt is insufficient to report `confirmed` without a matching chain read after the confirmation depth. No public route can choose an outcome.
+The merged result-assessment migrations also store one proposal intent per `(chain_id, contract_address, market_id)` and append-only attempt events. `app.oracle_worker` defines a mockable closed-market gateway and bounded state machine. It chooses the latest assessment only after a gateway reports a closed, unproposed market. If the fixture's assessed result history contains a conflicting correction before intent creation, the intent starts in `correction_review` and cannot auto-submit. A new observation after intent creation also pauses a not-yet-submitted intent for review, even if the suggested outcome is unchanged. A known pre-submission outage may retry; an uncertain submission or invalid transaction hash is quarantined. Both registrar and proposer workers accept only `0x` followed by 64 hexadecimal characters as a transaction hash and store valid hashes in lowercase. A successful receipt is insufficient to report `confirmed` without a matching chain read after the confirmation depth. No public route can choose an outcome.
 
-The M3 indexer rebuild test now proves imported fixtures, registration jobs/audit, assessments, and oracle intents/audit survive a replay; the derived M3 market/trade rows are recreated. M4 event tables and decoder changes still need the compiled ABI, and their rebuild coverage must be added with the actual event fixtures.
+The merged M3 indexer rebuild test proves imported fixtures, registration jobs/audit, assessments, and oracle intents/audit survive a replay; the derived M3 market/trade rows are recreated. M4 event tables and decoder changes still need the reviewed ABI, and their rebuild coverage must be added with actual event fixtures.
 
 The automatic production proposer is still gated on the M4 event/ABI freeze: it must link registered fixtures to confirmed M4 markets, check the chain's closed/proposed state before every submission or retry, then use a separate least-privilege proposer key. The mock gateway is exercised by tests; no production gateway, loop, or signer key is configured. Corrections after an immutable on-chain proposal require the challenge/resolver path.
 
@@ -144,7 +152,7 @@ Results are append-only observations with their evidence reference and hash; imp
 - `GET /api/fixtures/{id}` returns one fixture and its latest result observation, or 404.
 - `GET /api/fixtures/{id}/results` returns all source observations oldest first.
 
-All catalog responses are non-authoritative. The stacked registration PR adds on-demand wallet requests and off-chain job status; on-chain registration, linked markets, and result-proposer automation remain later work. The M3 market/trade indexer continues to use its existing deployment and ABI.
+All catalog responses are non-authoritative. Merged registration code accepts on-demand wallet requests and reports off-chain job status; on-chain registration, linked markets, and result-proposer automation remain outstanding. The M3 market/trade indexer continues to use its existing deployment and ABI.
 
 ## Run Locally
 
