@@ -85,20 +85,21 @@ ID, fixture lock, collateral, and token movement. YES/NO follow registered team 
 ## Trading and accounting
 
 `quoteBuy`/`buy` use the ceiling of the mathematical LMSR cost increase; `quoteSell`/`sell` use
-the floor of the mathematical cost decrease through immutable `MarketPricing`. Both directions require stored OPEN and time strictly
-before the deadline. Sell execution additionally checks the caller owns the shares; its quote
-is market-wide and does not certify caller ownership. Quotes are indicative, not reservations.
+the floor of the mathematical cost decrease through immutable `MarketPricing`. Both directions
+require stored OPEN and time strictly before the deadline. Sell execution additionally checks the
+caller owns the shares; its quote is market-wide and does not certify caller ownership. Quotes are
+indicative, not reservations.
 
 Buy recomputes `cost <= maxCost`; sell recomputes `proceeds >= minReturn`. Buy collects only
 actual cost; sell pays only actual proceeds. A positive sale whose mathematical cost-difference
-floor is zero reverts as `TradeTooSmall`; positive buys round up to at least one base unit. `LMSRBounds` encloses the real
-difference before base-unit rounding; if the bounds do not certify floor and ceiling it reverts
-`PricingPrecisionExceeded`. An immediate reverse trade retains zero base units for exact-integer
-prices, otherwise one. There is no platform fee or arbitrary rounding buffer. See the
-[numerical method, regression vectors and collateral argument](../testing/PRICING_ROUNDING.md).
-Matthew must review the calculation and adapt the sell-inclusive proof for this pricing model
-before payout code merges. The original rounded-potential `LMSR.buyCost` remains a historical
-primitive; the current market no longer uses it to quote executable trades.
+floor is zero reverts as `TradeTooSmall`; positive buys round up to at least one base unit.
+`LMSRBounds` encloses the real difference before base-unit rounding; if the bounds do not certify
+floor and ceiling it reverts `PricingPrecisionExceeded`. An immediate reverse trade retains zero
+base units for exact-integer prices, otherwise one. There is no platform fee or arbitrary rounding
+buffer. See the [numerical method and reference vectors](../testing/PRICING_ROUNDING.md) and
+Matthew's [rounded-ledger collateral proof](../testing/M4_ECONOMIC_PROOF.md). The original
+rounded-potential `LMSR.buyCost` remains a historical primitive; the current market no longer uses
+it to quote executable trades.
 
 Market accounting/positions update before token interactions under a shared reentrancy lock.
 Failed/false-returning or unexpected token transfers revert atomically. Deployment fixes the
@@ -222,8 +223,11 @@ must remain supported. Full signatures are generated rather than duplicated here
 
 ### Review handoff
 
-Matthew reviews mathematical bounds, matched ceil-buy/floor-sell rounding, terminal liabilities, bond disposition, dust and
-surplus. Adriel reviews tuple/enum decoding, guarded user writes and derived claimability.
+Matthew's [economic proof](../testing/M4_ECONOMIC_PROOF.md) reviews mathematical bounds, matched
+ceil-buy/floor-sell rounding, the rounded-ledger collateral inequality, terminal liabilities, bond
+disposition, dust, and surplus. Its stacked PR must be approved against the exact source/build
+before sign-off is final. Adriel reviews tuple/enum decoding, guarded user writes and derived
+claimability.
 Yudhveer reviews fixture encoding/revisions, restricted calls, indexed event fields, ignored
 callbacks and reorg-safe projection. Record their approvals against the exact ABI/source
 digests before declaring the interface frozen.

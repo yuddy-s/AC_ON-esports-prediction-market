@@ -76,7 +76,15 @@ Status: [target design approved and merged in PR #28](interfaces/M4_FEATURE_COMP
 
 The fixture flow is deterministic mock or manual JSON fixture/result import with organizer evidence → restricted on-chain registration of selected fixture IDs and Team A/YES, Team B/NO → one user-funded market per registered fixture. The key is `keccak256(abi.encode(providerId, gameId, externalMatchId))`. A PandaScore adapter is optional only with written permission for this use; no paid plan is required. Importing a listing does not create a market. The contract checks its registry, so the registrar/source remain trusted inputs. The backend and PostgreSQL remain derived; users submit trades, challenges, resolver votes, and claims through wallets.
 
-The M4 design adds guarded LMSR sells rounded down with `minReturn`, 1 ACON per winning share, 0.5 ACON per outstanding share on VOID, separate 10 ACON challenge-bond accounting, and creator surplus only above claim reserves after settlement. Matthew must prove fixed-point solvency before payout code merges. A proposal is immutable and has a 24-hour challenge window. After exact events/reads freeze, the indexer/API will project sells, proposals, challenges, committees/votes, outcomes, and claims; contract reads remain authoritative for spendable and claimable amounts.
+The M4 design adds guarded LMSR sells with `minReturn`, mathematical ceiling rounding for buys,
+mathematical floor rounding for sells, 1 ACON per winning share, 0.5 ACON per outstanding share on
+VOID, separate 10 ACON challenge-bond accounting, and creator surplus only above claim reserves
+after settlement. Successful trade rounding leaves a nonnegative residue in collateral, yielding
+the solvency inequality recorded with stateful invariants in the
+[M4 economic proof](testing/M4_ECONOMIC_PROOF.md). A proposal is immutable and has a 24-hour
+challenge window. After exact events/reads freeze, the indexer/API will project sells, proposals,
+challenges, committees/votes, outcomes, and claims; contract reads remain authoritative for
+spendable and claimable amounts.
 
 ## Oracle
 

@@ -10,20 +10,29 @@ Only a restricted registrar registers a selected fixture on-chain. Its key is `k
 
 ## Trading, proposal, and settlement
 
-`quoteSell(marketId, outcome, shares)` returns the LMSR cost decrease `C(q) - C(q after sale)`, rounded down to ACON base units. `sell(marketId, outcome, shares, minReturn)` requires owned shares, at most `100e18` shares per trade, stored `OPEN` state, and `block.timestamp < tradingDeadline`; it reverts when proceeds fall below `minReturn`. The frontend derives `minReturn` from user slippage. Under a reentrancy guard, accounting and positions update before ACON transfers. M3 `quoteBuy` and guarded `buy` retain their meanings.
+`quoteBuy` returns the certified mathematical ceiling of the LMSR cost increase and
+`quoteSell(marketId, outcome, shares)` returns the certified mathematical floor of the cost
+decrease. `sell(marketId, outcome, shares, minReturn)` requires owned shares, at most `100e18`
+shares per trade, stored `OPEN` state, and `block.timestamp < tradingDeadline`; it reverts when
+proceeds fall below `minReturn`. The frontend derives `minReturn` from user slippage. Under a
+reentrancy guard, accounting and positions update before ACON transfers. Successful rounding
+leaves a nonnegative residue in collateral rather than an exact rounded-potential equality. The
+regression vector and solvency inequality are recorded in the
+[M4 economic proof](../testing/M4_ECONOMIC_PROOF.md).
 
-**Local rounding correction proposed for review:** the current draft preserves the mathematical
+**Local rounding correction under final review:** the current draft preserves the mathematical
 floor for sells and changes executable buy amounts to the mathematical ceiling of the cost
 increase. Benny authorized the paired correction to prevent reverse-trade gains from mixing
-strict-floor sells with the previous rounded-potential buys. This numeric amendment, interval
-certification/error behavior and updated invariants still require Matthew/consumer approval;
-it is not retroactive PR #28 approval. See [the pricing review record](../testing/PRICING_ROUNDING.md).
+strict-floor sells with the previous rounded-potential buys. The updated proof and invariants now
+use this rule; the numeric amendment and interval error behavior still require reviewer/consumer
+approval and are not retroactive PR #28 approval. See
+[the pricing review record](../testing/PRICING_ROUNDING.md).
 
 An authorized proposer submits YES, NO, or VOID with evidence hash and reference after trading closes. One immutable proposal opens a fixed 24-hour challenge window. Any address except its proposer may submit the first challenge with a 10 ACON bond; subsequent challenges revert. If the final outcome differs, including YES/NO becoming VOID, refund the challenger; if upheld, forfeit the bond to market collateral, available as creator surplus only after claims are reserved. Anyone may finalize an unchallenged proposal after the window. A challenged proposal proceeds to resolver selection. The seven-day no-proposal path also proceeds to resolver selection.
 
 The **stored** M4 market-state enum, in order, is `OPEN`, `CLOSED`, `PROPOSED`, `DISPUTED`, `RESOLVER_SELECTION`, `RESOLVER_VOTING`, `FINALIZED`, `VOID`. Resolver round 1 or 2 is stored separately. `CLAIMABLE` is a derived read from terminal state, position, and claimed status; `POSTPONED` and `ORACLE_TIMEOUT` are not market states. Expired transitions require an on-chain caller; time passing does not mutate storage.
 
-Final YES/NO pays 1 ACON per outstanding winning share. VOID pays 0.5 ACON per outstanding YES and NO share. A wallet claims once per market; a VOID claim combines both holdings. Mark claimed, clear/decrement positions and liabilities, and update collateral before token transfer; duplicate claims revert. Winning liability equals outstanding winning quantity; VOID reserves `ceil((outstandingYes + outstandingNo) / 2)` base units. Challenge bonds remain separate until disposition. Creator surplus can be withdrawn only in `FINALIZED` or `VOID`, only above conservative remaining liabilities. No fees. Matthew's fixed-point collateral invariant and payout review are mandatory before payout code merges.
+Final YES/NO pays 1 ACON per outstanding winning share. VOID pays 0.5 ACON per outstanding YES and NO share. A wallet claims once per market; a VOID claim combines both holdings. Mark claimed, clear/decrement positions and liabilities, and update collateral before token transfer; duplicate claims revert. Winning liability equals outstanding winning quantity; VOID reserves `ceil((outstandingYes + outstandingNo) / 2)` base units. Challenge bonds remain separate until disposition. Creator surplus can be withdrawn only in `FINALIZED` or `VOID`, only above conservative remaining liabilities. No fees. Matthew's rounded-ledger collateral proof and payout review are mandatory before payout code merges.
 
 ## Resolver selection and voting
 

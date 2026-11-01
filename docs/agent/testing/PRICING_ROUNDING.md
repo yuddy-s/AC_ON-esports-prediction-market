@@ -1,8 +1,8 @@
 # Mathematical trade rounding correction
 
-Status: **local correction authorized by Benny; numerical method and matched buy-rounding change
-still require Matthew's review and consumer sign-off before merge**. This selects mathematical
-floor for sells, not the alternative integer-potential definition proposed in `80e0f21`.
+Status: **local correction authorized by Benny and reconciled with Matthew's revised economic
+proof; final reviewer and consumer sign-off remain pending**. This selects mathematical floor for
+sells and matched ceiling for buys, replacing the superseded integer-potential draft.
 
 ## Rule and motivating regressions
 
@@ -75,7 +75,7 @@ The regression and fuzz cases pass without this error, but they do not establish
 unreachable for every supported input. Review of availability near integer boundaries remains
 part of the numerical-method review. No token or position change occurs when quoting fails.
 
-## Collateral argument to review
+## Collateral argument
 
 For each successful buy, the collected integer amount is at least the real cost increase.
 For each successful sell, the integer payout is at most the real cost decrease. Inductively,
@@ -93,10 +93,11 @@ integer quantities. Existing bond separation, terminal liability reserves, claim
 checks still apply. Surplus can include accumulated rounding reserve only after terminal
 liabilities are protected.
 
-Matthew's `80e0f21` regression and trading invariant assert the alternative integer-potential
-semantics. They cannot be integrated unchanged with this correction. His written proof and
-sell-inclusive campaign need to be adapted/reviewed for the inequality above. These notes and
-the current tests are not a replacement for that independent sign-off.
+Matthew's revised [economic proof](M4_ECONOMIC_PROOF.md) derives this inequality over the rounded
+trade ledger. Its sell-inclusive state machine directly checks quote-to-collateral changes,
+winning/VOID coverage, conservation, and market isolation while the separate settlement campaign
+checks claims, bond disposition, and surplus. Final sign-off still applies to the reviewed exact
+source/build rather than this design note alone.
 
 ## Independent evidence and maintenance
 
