@@ -108,7 +108,7 @@ function FixtureBody({
           {fixture.registration_request_status === null && !eligibility.ok && (
             <p className="text-sm text-sand">{eligibility.reason}</p>
           )}
-          <RegistrationRequest fixture={fixture} nowMs={now * 1000} />
+          <RegistrationRequest fixture={fixture} job={job.data} nowMs={now * 1000} />
           <div className="border-t border-bronze/40 pt-3">
             <button type="button" disabled title="Needs the M4 contract" className="btn-gold w-full">
               {canCreateMarket(fixture.registration_request_status) ? "Create market" : "Create market · after registration"}
