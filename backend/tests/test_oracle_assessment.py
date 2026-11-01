@@ -162,6 +162,8 @@ def test_corrected_pandascore_result_needs_its_own_review(session: Session) -> N
                   evidence_hash="0x" + "dd" * 32)
     intent = plan_proposal(session, gateway.market, gateway)
     assert intent is not None and intent.outcome == "NO"
+    assert intent.status == "correction_review" and intent.transaction_hash is None
+    assert gateway.submit_calls == 0
 
 
 def test_oracle_run_selects_observed_result_and_requires_chain_match(session: Session) -> None:
