@@ -6,6 +6,10 @@ Backend implementation is starting as stacked review PRs: the fixture catalog an
 
 Draft PR #31 also stores an immutable signed fixture snapshot and provides a mock-gateway registrar state machine with audit transitions, safe pre-submission retries, and uncertain-submission quarantine. This is an off-chain implementation boundary: no live signer or confirmed M4 registration is configured. The [draft API handoff](../interfaces/M4_BACKEND_API.md) specifies EOA-only message signing and frontend polling.
 
+Draft PR #32 adds deterministic off-chain YES/NO/VOID result assessments, correction flags, one intent per chain market, and a mockable proposer retry/audit state machine. It does not submit real proposals. The automatic signer, indexer projections, and resolution/portfolio APIs must consume Benny's exact M4 market linkage and ABI after that interface is published; these pending pieces are not M4 acceptance evidence.
+
+Backend branch tests cover fixture imports, EOA request replay/expiry, immutable snapshots, duplicate/rate limits, mock registrar/proposer retries, uncertain submission, correction review, migration upgrades, and preservation of source/signer records during an M3 indexer rebuild. The full M4 event decoder, API, and Anvil/Sepolia acceptance rows below remain pending.
+
 ## Course Goal And Acceptance
 
 Demonstrate the complete planned feature set, explain trade-offs, present a full testing and integration plan, and deliver final-design documentation. M4 acceptance requires complete normal, disputed, timeout, VOID, and claim journeys locally on Anvil; component tests; a documented full test plan; final ABI/design alignment; and a fresh Sepolia contract deployment with focused transaction smoke tests. Full public Vercel/Render/Supabase/Sepolia integration is an M4 stretch target, with unfinished hosting due in M5. Local Anvil exercises time-dependent paths that cannot finish during a short live demo.
