@@ -76,7 +76,7 @@ def export(check=False):
         "compiler": "solc 0.8.24; optimizer 200; via_ir true",
         "source_sha256": source_hashes,
         "contracts": metadata,
-        "release_gates": ["2-of-3 team Safe and funded VRF v2.5 subscription", "ten eligible resolver addresses",
+        "release_gates": ["2-of-3 team Safe and funded VRF v2.5 subscription", "at least ten resolver-only eligible Sepolia addresses",
                           "fresh Sepolia deployment with deployment manifest", "completed Safe ownership and narrow service-role receipts",
                           "consumer integration and local Anvil/Sepolia lifecycle acceptance"],
     }

@@ -27,7 +27,7 @@ EOA signatures are the M4 registration scope. Coinbase Smart Wallet can connect 
 
 ## Indexed market data
 
-`GET /api/indexer/status` includes nullable `abi_version` alongside chain, contract, safe block, and freshness; compare all of them to the selected deployment. The production indexer currently projects M3 `MarketCreated` and `TradeExecuted`. PR #42 is under review with a generic tuple-aware decoder and exact-signature filtering for the strict M3 path; it does not add M4 projections. M4 event projections and market/history/resolution/committee/claims/portfolio APIs remain unimplemented. The planned M4 read surface uses `/api/v2` to keep M3 route behavior stable. Indexed values are derived; frontend contract reads decide spendable positions, claimability, and whether a write is currently valid.
+`GET /api/indexer/status` includes nullable `abi_version` alongside chain, contract, safe block, and freshness; compare all of them to the selected deployment. The production indexer currently projects M3 `MarketCreated` and `TradeExecuted`. PR #42 merged a generic tuple-aware decoder with exact-signature filtering for the strict M3 path; it does not add M4 projections. M4 event projections and market/history/resolution/committee/claims/portfolio APIs remain unimplemented. The planned M4 read surface uses `/api/v2` to keep M3 route behavior stable. Indexed values are derived; frontend contract reads decide spendable positions, claimability, and whether a write is currently valid.
 
 ### Planned M4 read routes (not implemented)
 

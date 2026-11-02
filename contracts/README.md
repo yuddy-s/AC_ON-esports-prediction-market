@@ -29,14 +29,16 @@ Economic units are integers: `1e18` per ACON/share, `b=50e18`, maximum `100e18` 
 `2000e18` outstanding shares per side. Buys use the certified ceiling of the mathematical LMSR
 cost increase; sells use the certified floor of the decrease. Nonnegative rounding residues remain
 in collateral. Matthew's [economic proof and stateful invariants](../docs/agent/testing/M4_ECONOMIC_PROOF.md)
-review solvency, claims, bonds, and surplus against this model; final approval remains required.
+review solvency, claims, bonds, and surplus against this model; the approval is recorded in the
+merged PR #37 contract review.
 The exact current state enum, tuple layouts, errors and payment/claim rules are in the
 [contract ABI guide](../docs/agent/interfaces/CONTRACT_ABI.md) and
 [generated reference](../docs/agent/interfaces/CONTRACT_ABI_REFERENCE.md).
 
 The [rounding correction](../docs/agent/testing/PRICING_ROUNDING.md) fixes the reported 464-base-unit
 sell overestimate and pairs it with ceil-buy pricing to avoid reverse-trade gains. Independent
-Decimal vectors certify the regression expectations. This numeric amendment remains under review.
+Decimal vectors certify the regression expectations. The corrected rounding model and economic
+approval were merged in PRs #37/#38 and are the integration baseline.
 
 ## Local checks
 
