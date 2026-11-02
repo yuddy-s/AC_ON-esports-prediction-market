@@ -5,20 +5,24 @@ import { describeError } from "./errors";
 import { formatTokenAmount } from "./format";
 import { isTradable } from "./lmsr";
 import { aconTokenAbi, OUTCOME, predictionMarketAbi, type Outcome } from "./predictionMarket";
-import { computeMaxCost, parseBaseUnits, parseShares, parseSlippagePercent } from "./tradeMath";
-import { useNowSeconds } from "./useNow";
+import { computeMaxCost, computeMinReturn, parseBaseUnits, parseShares, parseSlippagePercent } from "./tradeMath";
+import { useChainNowSeconds } from "./useNow";
 import { isWrongNetwork } from "./walletSupport";
 import { isBusy, isFailure, statusMessage, stepIndex, TRADE_STEPS, type TradeStatus } from "./tradeStatus";
 import { useTradeFlow } from "./useTradeFlow";
 import { Tag } from "./ui";
+import type { MarketTeams } from "./useMarkets";
 
-export function TradePanel({ marketId }: { marketId: bigint }) {
+type Mode = "buy" | "sell";
+
+export function TradePanel({ marketId, teams }: { marketId: bigint; teams?: MarketTeams }) {
   const { address, isConnected, chainId: walletChainId } = useAccount();
-  const now = useNowSeconds();
+  const now = useChainNowSeconds();
+  const [mode, setMode] = useState<Mode>("buy");
   const [outcome, setOutcome] = useState<Outcome>(OUTCOME.YES);
   const [sharesInput, setSharesInput] = useState("10");
   const [slippageInput, setSlippageInput] = useState("1");
-  const { status, buy, reset } = useTradeFlow();
+  const { status, trade, reset } = useTradeFlow();
 
   const market = PREDICTION_MARKET_ADDRESS;
   const token = ACON_TOKEN_ADDRESS;
@@ -32,22 +36,23 @@ export function TradePanel({ marketId }: { marketId: bigint }) {
     chainId: CHAIN.id,
     query: { enabled: configured, refetchInterval: 10_000 },
   });
-  const tradable = marketRead.data ? isTradable(marketRead.data[2], marketRead.data[1], now) : false;
+  const tradable = marketRead.data ? isTradable(marketRead.data.state, marketRead.data.tradingDeadline, now) : false;
 
   const shares = parseShares(sharesInput);
   const slippageBps = parseSlippagePercent(slippageInput);
 
-  // Live on-chain quote: the same LMSR path the contract charges in buy().
+  // Live on-chain quote: the same LMSR path the contract charges or pays.
   const quoteRead = useReadContract({
     address: market,
     abi: predictionMarketAbi,
-    functionName: "quoteBuy",
+    functionName: mode === "buy" ? "quoteBuy" : "quoteSell",
     args: [marketId, outcome, shares.ok ? shares.value : 0n],
     chainId: CHAIN.id,
     query: { enabled: configured && tradable && shares.ok, refetchInterval: 5_000 },
   });
   const quote = shares.ok ? quoteRead.data : undefined;
-  const maxCost = quote !== undefined && slippageBps !== undefined ? computeMaxCost(quote, slippageBps) : undefined;
+  const maxCost = mode === "buy" && quote !== undefined && slippageBps !== undefined ? computeMaxCost(quote, slippageBps) : undefined;
+  const minReturn = mode === "sell" && quote !== undefined && slippageBps !== undefined ? computeMinReturn(quote, slippageBps) : undefined;
 
   const wallet = useReadContracts({
     contracts: [
@@ -71,30 +76,45 @@ export function TradePanel({ marketId }: { marketId: bigint }) {
   }
 
   const busy = isBusy(status);
-  const notEnoughAcon = quote !== undefined && aconBalance !== undefined && aconBalance < quote;
-  const needsApproval = maxCost !== undefined && allowance !== undefined && allowance < maxCost;
+  const owned = outcome === OUTCOME.YES ? yesShares : noShares;
   const wrongNetwork = isWrongNetwork(walletChainId, CHAIN.id);
-  const canBuy =
-    tradable && shares.ok && maxCost !== undefined && !notEnoughAcon && !busy && aconBalance !== undefined && !wrongNetwork;
+  const notEnoughAcon = mode === "buy" && quote !== undefined && aconBalance !== undefined && aconBalance < quote;
+  const notEnoughShares = mode === "sell" && shares.ok && owned !== undefined && owned < shares.value;
+  const needsApproval = maxCost !== undefined && allowance !== undefined && allowance < maxCost;
+  const guard = mode === "buy" ? maxCost : minReturn;
+  const canTrade =
+    tradable && shares.ok && guard !== undefined && !notEnoughAcon && !notEnoughShares && !busy && aconBalance !== undefined && !wrongNetwork;
+  const side = outcome === OUTCOME.YES ? "YES" : "NO";
+  const sideTeam = teams ? (outcome === OUTCOME.YES ? teams.teamA : teams.teamB) : undefined;
 
-  const onBuy = () => {
-    if (!canBuy || !shares.ok || maxCost === undefined) return;
-    void buy({
-      account: address,
-      market,
-      token,
-      marketId,
-      outcome,
-      shares: shares.value,
-      maxCost,
-      needsApproval,
-    });
+  const onTrade = () => {
+    if (!canTrade || !shares.ok) return;
+    const base = { account: address, market, marketId, outcome, shares: shares.value };
+    if (mode === "buy" && maxCost !== undefined) void trade({ ...base, side: "buy", token, maxCost, needsApproval });
+    if (mode === "sell" && minReturn !== undefined) void trade({ ...base, side: "sell", minReturn });
   };
 
   return (
     <Shell>
+      <div className="grid grid-cols-2 border-b border-bronze/50" role="tablist" aria-label="Buy or sell">
+        {(["buy", "sell"] as const).map((m) => (
+          <button
+            key={m}
+            role="tab"
+            aria-selected={mode === m}
+            onClick={() => setMode(m)}
+            disabled={busy}
+            className={`-mb-px border-b-2 py-1.5 font-display text-sm font-semibold uppercase tracking-wider ${
+              mode === m ? "border-gold text-gold" : "border-transparent text-sand hover:text-paper"
+            }`}
+          >
+            {m}
+          </button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-2">
-        {([["YES", OUTCOME.YES], ["NO", OUTCOME.NO]] as const).map(([label, value]) => {
+        {([["YES", OUTCOME.YES, teams?.teamA], ["NO", OUTCOME.NO, teams?.teamB]] as const).map(([label, value, team]) => {
           const selected = outcome === value;
           const color =
             value === OUTCOME.YES
@@ -109,9 +129,10 @@ export function TradePanel({ marketId }: { marketId: bigint }) {
               key={label}
               onClick={() => setOutcome(value)}
               disabled={busy}
-              className={`border border-bronze py-2.5 font-display text-base font-bold tracking-[0.2em] ${color}`}
+              className={`flex flex-col items-center border border-bronze py-2 ${color}`}
             >
-              {label}
+              <span className="font-display text-base font-bold tracking-[0.2em]">{label}</span>
+              {team && <span className="max-w-full truncate px-1 text-[11px] font-semibold opacity-80">{team}</span>}
             </button>
           );
         })}
@@ -135,18 +156,22 @@ export function TradePanel({ marketId }: { marketId: bigint }) {
         {tradable && shares.ok && quoteRead.error && <p className="text-signal">Cannot quote: {describeError(quoteRead.error)}</p>}
         {tradable && shares.ok && quote !== undefined && (
           <div className="flex flex-col gap-1.5 font-mono">
-            <Row label="Quoted cost" value={`${formatTokenAmount(quote, 18, 4)} ACON`} strong />
+            <Row label={mode === "buy" ? "Quoted cost" : "Quoted proceeds"} value={`${formatTokenAmount(quote, 18, 4)} ACON`} strong />
             {maxCost !== undefined && <Row label="You pay at most" value={`${formatTokenAmount(maxCost, 18, 4)} ACON`} />}
-            {aconBalance !== undefined && <Row label="Your ACON" value={formatTokenAmount(aconBalance)} />}
+            {minReturn !== undefined && <Row label="You receive at least" value={`${formatTokenAmount(minReturn, 18, 4)} ACON`} />}
+            {mode === "buy" && aconBalance !== undefined && <Row label="Your ACON" value={formatTokenAmount(aconBalance)} />}
+            {mode === "sell" && owned !== undefined && <Row label={`Your ${side} shares`} value={formatTokenAmount(owned)} />}
           </div>
         )}
         {notEnoughAcon && <p className="mt-2 text-signal">Not enough ACON for this trade. Claim from the faucet or buy fewer shares.</p>}
+        {notEnoughShares && <p className="mt-2 text-signal">You only own {formatTokenAmount(owned ?? 0n)} {side} shares.</p>}
       </div>
 
-      <button onClick={onBuy} disabled={!canBuy} className="btn-gold w-full py-3 text-base">
-        {needsApproval ? "Approve ACON, then buy" : "Buy"} {outcome === OUTCOME.YES ? "YES" : "NO"}
+      <button onClick={onTrade} disabled={!canTrade} className="btn-gold w-full py-3 text-base">
+        {mode === "buy" ? (needsApproval ? "Approve ACON, then buy" : "Buy") : "Sell"} {side}
+        {sideTeam && <span className="ml-1 normal-case tracking-normal">· {sideTeam}</span>}
       </button>
-      {needsApproval && !busy && (
+      {mode === "buy" && needsApproval && !busy && (
         <p className="-mt-2 text-xs text-dust">
           Two wallet steps: first allow the market to spend up to the max cost in ACON, then the buy itself.
         </p>
@@ -173,7 +198,7 @@ function Shell({ children }: { children: ReactNode }) {
     <section className="hud flex flex-col gap-4 border-t-2 border-gold bg-ink-600 p-5">
       <div className="flex items-center justify-between">
         <Tag tone="gold">Trade</Tag>
-        <span className="font-mono text-[11px] text-dust">BUY SHARES</span>
+        <span className="font-mono text-[11px] text-dust">YES = TEAM A · NO = TEAM B</span>
       </div>
       {children}
     </section>

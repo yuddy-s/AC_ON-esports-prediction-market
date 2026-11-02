@@ -2,15 +2,16 @@ import { DEMO_MARKET_ID, PREDICTION_MARKET_ADDRESS } from "./config";
 import { formatPercent, formatTokenAmount } from "./format";
 import { isTradable, lmsrPrices } from "./lmsr";
 import { formatCountdown } from "./marketTime";
-import { MARKET_STATES } from "./predictionMarket";
+import { STATE_LABELS } from "./predictionMarket";
+import { gameLabel } from "./fixtureStatus";
 import { marketHref } from "./router";
 import { SplitBar, Tag } from "./ui";
-import { useMarkets, type Market } from "./useMarkets";
-import { useNowSeconds } from "./useNow";
+import { useMarkets, type Market, type MarketTeams } from "./useMarkets";
+import { useChainNowSeconds } from "./useNow";
 
 export function MarketsPage() {
-  const { markets, isLoading, error } = useMarkets();
-  const now = useNowSeconds();
+  const { markets, teams, isLoading, error } = useMarkets();
+  const now = useChainNowSeconds();
   // Open markets first, newest first within each group; the configured
   // featured market leads.
   const sorted = [...(markets ?? [])].sort((a, b) => {
@@ -50,7 +51,7 @@ export function MarketsPage() {
 
       <div className="grid gap-4 md:grid-cols-2">
         {sorted.map((m) => (
-          <MarketTile key={m.id.toString()} market={m} now={now} featured={m.id === DEMO_MARKET_ID} />
+          <MarketTile key={m.id.toString()} market={m} teams={teams.get(m.fixtureKey)} now={now} featured={m.id === DEMO_MARKET_ID} />
         ))}
       </div>
     </div>
@@ -66,7 +67,7 @@ function Counter({ label, value, accent }: { label: string; value: number; accen
   );
 }
 
-function MarketTile({ market, now, featured }: { market: Market; now: number; featured: boolean }) {
+function MarketTile({ market, teams, now, featured }: { market: Market; teams?: MarketTeams; now: number; featured: boolean }) {
   const prices = lmsrPrices(market.yesQuantity, market.noQuantity);
   const open = isTradable(market.state, market.tradingDeadline, now);
   const volume = market.yesQuantity + market.noQuantity;
@@ -79,6 +80,7 @@ function MarketTile({ market, now, featured }: { market: Market; now: number; fe
       <div className="flex items-center justify-between gap-2">
         <span className="font-mono text-[11px] text-dust">
           MKT-{market.id.toString().padStart(3, "0")}
+          {teams && ` · ${gameLabel(teams.gameId).toUpperCase()}`}
           {featured && <span className="ml-2 text-gold">★ FEATURED</span>}
         </span>
         {open ? (
@@ -87,12 +89,21 @@ function MarketTile({ market, now, featured }: { market: Market; now: number; fe
           </span>
         ) : (
           <span className="font-display text-[11px] font-bold uppercase tracking-wider text-dust">
-            {MARKET_STATES[market.state] === "OPEN" ? "Closed" : MARKET_STATES[market.state] ?? "Unknown"}
+            {STATE_LABELS[market.state] ?? "Unknown"}
           </span>
         )}
       </div>
 
-      <h3 className="font-display text-lg font-semibold leading-snug text-paper group-hover:text-gold">{market.question}</h3>
+      <div>
+        {teams && (
+          <p className="font-display text-sm font-semibold uppercase tracking-wide">
+            <span className="text-gold">{teams.teamA}</span>
+            <span className="mx-1.5 text-dust">vs</span>
+            <span className="text-signal-soft">{teams.teamB}</span>
+          </p>
+        )}
+        <h3 className="font-display text-lg font-semibold leading-snug text-paper group-hover:text-gold">{market.question}</h3>
+      </div>
 
       <div className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between font-mono">
@@ -113,10 +124,7 @@ function MarketTile({ market, now, featured }: { market: Market; now: number; fe
           <span className="text-dust">SHARES </span>
           {formatTokenAmount(volume, 18, 0)}
         </span>
-        <span>
-          <span className="text-dust">{open ? "CLOSES IN " : ""}</span>
-          {formatCountdown(market.tradingDeadline, now)}
-        </span>
+        <span>{open ? <><span className="text-dust">CLOSES IN </span>{formatCountdown(market.tradingDeadline, now)}</> : <span className="text-dust">TRADING CLOSED</span>}</span>
       </div>
     </a>
   );

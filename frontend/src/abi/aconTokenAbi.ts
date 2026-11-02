@@ -1,6 +1,5 @@
-// Generated from contracts/src (ACONTestToken) at commit 68322ef08217 with:
-//   forge inspect ACONTestToken abi --json
-// Regenerate after any contract interface change; do not edit by hand.
+// Copied from deployments/abi/ACONTestToken.abi.json (M4 contracts, PR #37 at commit 0b3ed8a).
+// Regenerate when Benny re-exports the ABI; do not edit by hand.
 export const aconTokenAbi = [
   {
     "type": "function",
