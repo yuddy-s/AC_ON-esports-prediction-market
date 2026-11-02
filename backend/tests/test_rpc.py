@@ -200,6 +200,69 @@ def test_approved_market_event_is_decoded(tmp_path: Path) -> None:
     assert decoded.payload["question"] == "Will A win?"
 
 
+@pytest.mark.parametrize("event_name", ["MarketCreated", "TradeExecuted"])
+def test_strict_decoder_ignores_overloaded_same_name_events(tmp_path: Path, event_name: str) -> None:
+    if event_name == "MarketCreated":
+        overload = {
+            "type": "event",
+            "name": event_name,
+            "inputs": [
+                {"name": "marketId", "type": "uint256", "indexed": True},
+                {"name": "creator", "type": "address", "indexed": True},
+                {"name": "opaque", "type": "bytes32", "indexed": False},
+                {"name": "deadline", "type": "uint256", "indexed": False},
+            ],
+        }
+        signature = "MarketCreated(uint256,address,bytes32,uint256)"
+        topics = (
+            "0x" + keccak(text=signature).hex(),
+            "0x" + encode(["uint256"], [4]).hex(),
+            "0x" + encode(["address"], [ADDRESS]).hex(),
+        )
+        data = "0x" + encode(["bytes32", "uint256"], [bytes.fromhex("44" * 32), 1_900_000_000]).hex()
+    else:
+        overload = {
+            "type": "event",
+            "name": event_name,
+            "inputs": [
+                {"name": "marketId", "type": "uint256", "indexed": True},
+                {"name": "trader", "type": "address", "indexed": True},
+                {"name": "outcome", "type": "uint8", "indexed": True},
+                {"name": "opaque", "type": "bytes32", "indexed": False},
+                {"name": "cost", "type": "uint256", "indexed": False},
+                {"name": "yesQuantity", "type": "uint256", "indexed": False},
+                {"name": "noQuantity", "type": "uint256", "indexed": False},
+            ],
+        }
+        signature = "TradeExecuted(uint256,address,uint8,bytes32,uint256,uint256,uint256)"
+        topics = (
+            "0x" + keccak(text=signature).hex(),
+            "0x" + encode(["uint256"], [4]).hex(),
+            "0x" + encode(["address"], [ADDRESS]).hex(),
+            "0x" + encode(["uint8"], [1]).hex(),
+        )
+        data = "0x" + encode(
+            ["bytes32", "uint256", "uint256", "uint256"],
+            [bytes.fromhex("44" * 32), 2 * 10**18, 3 * 10**18, 4 * 10**18],
+        ).hex()
+
+    # Put the overload first: a name-only allowlist used to overwrite its
+    # lookup by name with the valid event while still admitting both topics.
+    path = tmp_path / "abi-with-overload.json"
+    path.write_text(json.dumps([overload, *approved_abi()]), encoding="utf-8")
+    raw = RawEthereumLog(
+        address=ADDRESS,
+        block_number=7,
+        block_hash=BLOCK_HASH,
+        transaction_hash=TX_HASH,
+        log_index=0,
+        topics=topics,
+        data=data,
+    )
+
+    assert JsonAbiLogDecoder(path).decode(11155111, raw) is None
+
+
 def test_approved_trade_event_is_decoded(tmp_path: Path) -> None:
     path = tmp_path / "abi.json"
     path.write_text(json.dumps(approved_abi()), encoding="utf-8")

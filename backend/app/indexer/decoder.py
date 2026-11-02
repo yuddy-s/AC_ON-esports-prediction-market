@@ -24,7 +24,13 @@ class JsonAbiEventDecoder:
     only the expected events into database state.
     """
 
-    def __init__(self, abi_path: str | Path, *, event_names: set[str] | None = None) -> None:
+    def __init__(
+        self,
+        abi_path: str | Path,
+        *,
+        event_names: set[str] | None = None,
+        event_signatures: set[str] | None = None,
+    ) -> None:
         path = Path(abi_path)
         if not path.is_file():
             raise ValueError(f"ABI file does not exist: {path}")
@@ -47,6 +53,8 @@ class JsonAbiEventDecoder:
             if not all(isinstance(field, dict) for field in inputs):
                 raise ValueError(f"ABI event {name} contains malformed inputs")
             signature = f"{name}({','.join(self._canonical_type(field) for field in inputs)})"
+            if event_signatures is not None and signature not in event_signatures:
+                continue
             topic = "0x" + keccak(text=signature).hex()
             if topic in self.events_by_topic:
                 raise ValueError(f"ABI contains duplicate event signature {signature}")
@@ -176,7 +184,11 @@ class JsonAbiLogDecoder:
     }
 
     def __init__(self, abi_path: str | Path) -> None:
-        self.decoder = JsonAbiEventDecoder(abi_path, event_names=set(self.REQUIRED_EVENTS))
+        expected_signatures = {
+            f"{event_name}({','.join(field_type for _, field_type, _ in expected)})"
+            for event_name, expected in self.REQUIRED_EVENTS.items()
+        }
+        self.decoder = JsonAbiEventDecoder(abi_path, event_signatures=expected_signatures)
         for event_name, expected in self.REQUIRED_EVENTS.items():
             event = self.decoder.events_by_name.get(event_name)
             if not isinstance(event, dict) or not self._matches(event, expected):
