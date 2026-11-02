@@ -141,13 +141,29 @@ with the successful-trade ledger inequality and direct winning/VOID liability ch
 
 ### Coverage measurement
 
-PR #37's corrected coverage run passed **115 tests**, excluding only the production runtime-size
-assertion from its 116-test suite. The stacked proof adds three tests; combined coverage must rerun
-in PR #37 CI after merge. All market tests exercise the same current `PredictionMarket`; there is
-no separate old-market implementation.
+The coverage step uses **32 invariant runs at depth 100**, scoped through environment variables
+on that step alone. The normal `forge test` job retains the `foundry.toml` defaults of **256 runs
+at depth 500**. Across the three invariant campaigns this reduces the instrumented rerun from
+384,000 to **9,600 handler calls** (40 times fewer); it does not reduce the full economic test
+campaign or the 256-run stateless fuzz tests. Failure-on-revert remains enabled.
+
+Coverage still runs every suite and excludes only the production runtime-size assertion, because
+minimum-IR instrumentation changes bytecode size. The normal test job and ABI exporter enforce
+production size. All market tests exercise the same current `PredictionMarket`.
+
+The reduced-budget local run passed **118 tests, 0 failed, 0 skipped** across twelve suites.
+Each invariant campaign completed 3,200 handler calls with zero handler reverts. Compilation
+took 37.40 seconds and test execution took 55.75 seconds (about 93 seconds combined, excluding
+setup and static analysis). GitHub runner/setup costs will affect the hosted duration.
+
+An LCOV comparison against the recorded pre-#38 full-budget report retained **every previously
+covered production line, branch and function** across all seven source files, not just the same
+aggregate percentages. The local comparison report is
+`contracts/cache/verification/lcov-coverage-budget.info`; CI continues to upload `lcov.info`.
 
 ```bash
 FOUNDRY_OUT=out/coverage FOUNDRY_CACHE_PATH=cache/coverage \
+  FOUNDRY_INVARIANT_RUNS=32 FOUNDRY_INVARIANT_DEPTH=100 \
   forge coverage --ir-minimum --exclude-tests --no-match-coverage '^script/' \
   --no-match-test testProductionContractsFitEip170RuntimeLimit \
   --report summary --report lcov --report-file cache/verification/lcov.info
@@ -162,7 +178,8 @@ FOUNDRY_OUT=out/coverage FOUNDRY_CACHE_PATH=cache/coverage \
 | ResolverRegistry | 90% (18/20) | 90.48% | 75% | 75% |
 | All production source | 98.34% (591/601) | 95.86% | 83.21% | 97.47% |
 
-These are the measured current run's counts, not promised future thresholds. Minimum-IR source maps
+This table records the reduced-budget results, which match the recorded full-budget baseline.
+These are measured counts, not promised future thresholds. Minimum-IR source maps
 can be imprecise and its bytecode differs from production; the normal test suite and exporter
 still enforce production runtime size. Scripts/tests/dependencies are excluded from the table.
 LCOV is retained under the ignored cache and uploaded in CI.
