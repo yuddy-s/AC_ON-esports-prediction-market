@@ -37,6 +37,17 @@ omits it. Final ABI/source digest pinning remains a team approval gate after PR 
 
 ## Live deployment records
 
+The fresh M4 contracts were deployed on Ethereum Sepolia on **2026-11-02** from source
+`721a6fef039a479f46a76fd77fdc4f0f1937af7f`. The
+[deployment handoff](sepolia-2026-11-02/README.md) includes the
+[post-setup manifest](sepolia-2026-11-02/manifest.post-setup.json), exact source-versioned ABIs,
+six successful deployment receipts, live bytecode/configuration verification, and the executed
+[15-call Safe setup batch](sepolia-2026-11-02/safe-setup.json).
+**Safe setup is complete; real VRF/lifecycle and cross-layer acceptance remain pending.** See the
+[integration handoff](sepolia-2026-11-02/INTEGRATION.md) for the remaining consumer work.
+The original manifest and verification snapshot retain their pre-setup state. The build record above remains
+a compiler-template record; use the versioned deployment manifest for live addresses.
+
 The current source replaces the older implementation, but an on-chain deployment's manifest and
 source-versioned ABI remain immutable records. `sepolia-m3.json` identifies the previously deployed
 buy-only market from source `6e30d516669e51d7f3e4bff0d8670168da9b1f83`; it is not the current lifecycle
@@ -44,7 +55,7 @@ contract. Its [deployment record](../contracts/deployments/sepolia-m3-2026-10-21
 [guarded-buy receipt](../contracts/deployments/sepolia-m3-2026-10-21/guarded-buy.json) retain live evidence.
 The legacy `sepolia-m3.template.json` is an unfilled template for that schema, not worker config.
 
-The new deployment needs a consumer-reviewed manifest schema containing its full source commit,
+The new deployment's manifest schema needs consumer review and contains its full source commit,
 chain ID, all four addresses/deployment receipts, ABI digests, Safe/roles, VRF config, resolver pool,
 confirmation depth and example transactions. Current `build.json` content hashes are local build
 evidence only. The backend's existing manifest validator targets the previously deployed interface;
