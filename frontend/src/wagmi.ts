@@ -26,9 +26,11 @@ export const config = createConfig({
   chains: [CHAIN],
   connectors,
   // CHAIN is one of these two; listing both keeps the transport map typed.
+  // One transport retry here plus one query retry (main.tsx): an unreachable
+  // RPC surfaces as an error within seconds instead of a minute of retries.
   transports: {
-    [sepolia.id]: http(),
-    [foundry.id]: http(),
+    [sepolia.id]: http(undefined, { retryCount: 1, timeout: 8_000 }),
+    [foundry.id]: http(undefined, { retryCount: 1, timeout: 8_000 }),
   },
 });
 

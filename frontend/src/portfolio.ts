@@ -84,3 +84,30 @@ export function portfolioTotals(rows: readonly PortfolioRow[]): PortfolioTotals 
     markets: rows.filter((r) => r.valueKind !== "claimed").length,
   };
 }
+
+// Which state the page is in. Every branch renders something, so a connected
+// wallet never sees a blank page (zero markets, read failures, loading).
+export type PortfolioView =
+  | { kind: "disconnected" }
+  | { kind: "loading" }
+  | { kind: "error"; message: string }
+  | { kind: "no-markets" }
+  | { kind: "no-positions" }
+  | { kind: "positions" };
+
+export function portfolioView(input: {
+  connected: boolean;
+  marketCount: number | undefined;
+  marketsError: unknown;
+  holdingsLoaded: boolean;
+  holdingsError: unknown;
+  rowCount: number;
+}): PortfolioView {
+  if (!input.connected) return { kind: "disconnected" };
+  const failure = input.marketsError ?? input.holdingsError;
+  if (failure) return { kind: "error", message: failure instanceof Error ? failure.message.split("\n")[0] : String(failure) };
+  if (input.marketCount === undefined) return { kind: "loading" };
+  if (input.marketCount === 0) return { kind: "no-markets" };
+  if (!input.holdingsLoaded) return { kind: "loading" };
+  return input.rowCount === 0 ? { kind: "no-positions" } : { kind: "positions" };
+}

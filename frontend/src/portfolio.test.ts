@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { markToPrice, portfolioRow, portfolioRows, portfolioTotals, type Holding } from "./portfolio";
+import { markToPrice, portfolioRow, portfolioRows, portfolioTotals, portfolioView, type Holding } from "./portfolio";
 import { MARKET_STATE } from "./predictionMarket";
 import type { Market } from "./useMarkets";
 
@@ -87,5 +87,37 @@ describe("portfolioRows and totals", () => {
 
   it("totals open estimates and exact claimables separately", () => {
     expect(portfolioTotals(portfolioRows(markets, holdings, NOW))).toEqual({ openValue: E18, claimable: 5n * E18, markets: 2 });
+  });
+});
+
+describe("portfolioView", () => {
+  const base = { connected: true, marketCount: 3, marketsError: null, holdingsLoaded: true, holdingsError: null, rowCount: 2 };
+
+  it("asks to connect a wallet first", () => {
+    expect(portfolioView({ ...base, connected: false })).toEqual({ kind: "disconnected" });
+  });
+
+  it("says there are no markets when the deployment has none (holdings reads never run)", () => {
+    expect(portfolioView({ ...base, marketCount: 0, holdingsLoaded: false, rowCount: 0 })).toEqual({ kind: "no-markets" });
+  });
+
+  it("reports a failed market read instead of rendering nothing", () => {
+    const error = new Error("HTTP request failed.\nURL: http://127.0.0.1:8545");
+    const view = portfolioView({ ...base, marketCount: undefined, marketsError: error, holdingsLoaded: false });
+    expect(view).toEqual({ kind: "error", message: "HTTP request failed." });
+  });
+
+  it("reports a failed position read", () => {
+    expect(portfolioView({ ...base, holdingsLoaded: false, holdingsError: new Error("timeout") }).kind).toBe("error");
+  });
+
+  it("is loading until markets and holdings arrive", () => {
+    expect(portfolioView({ ...base, marketCount: undefined, holdingsLoaded: false }).kind).toBe("loading");
+    expect(portfolioView({ ...base, holdingsLoaded: false }).kind).toBe("loading");
+  });
+
+  it("separates no positions from positions", () => {
+    expect(portfolioView({ ...base, rowCount: 0 }).kind).toBe("no-positions");
+    expect(portfolioView(base).kind).toBe("positions");
   });
 });

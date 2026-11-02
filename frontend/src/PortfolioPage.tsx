@@ -2,7 +2,7 @@ import { zeroAddress } from "viem";
 import { useAccount, useReadContract, useReadContracts } from "wagmi";
 import { ACON_TOKEN_ADDRESS, CHAIN, PREDICTION_MARKET_ADDRESS } from "./config";
 import { formatTokenAmount } from "./format";
-import { isSettled, portfolioRows, portfolioTotals, type Holding, type PortfolioRow } from "./portfolio";
+import { isSettled, portfolioRows, portfolioTotals, portfolioView, type Holding, type PortfolioRow } from "./portfolio";
 import { aconTokenAbi, OUTCOME, predictionMarketAbi, STATE_LABELS } from "./predictionMarket";
 import { marketHref } from "./router";
 import { Panel, PanelTitle, Tag } from "./ui";
@@ -18,7 +18,8 @@ const market = { address: PREDICTION_MARKET_ADDRESS, abi: predictionMarketAbi, c
 export function PortfolioPage() {
   const { address } = useAccount();
   const now = useChainNowSeconds();
-  const { markets, teams, isLoading } = useMarkets();
+  const marketsQuery = useMarkets();
+  const { markets, teams } = marketsQuery;
   const user = address ?? zeroAddress;
   const list = markets ?? [];
 
@@ -51,6 +52,14 @@ export function PortfolioPage() {
   const surplus = list.map((_, i) => (values ? (values[i * 5 + 4] as bigint) : 0n));
   const rows = portfolioRows(list, holdings, now);
   const totals = portfolioTotals(rows);
+  const view = portfolioView({
+    connected: address !== undefined,
+    marketCount: markets?.length,
+    marketsError: marketsQuery.error,
+    holdingsLoaded: values !== undefined,
+    holdingsError: reads.error,
+    rowCount: rows.length,
+  });
   const created = list
     .map((m, i) => ({ m, surplus: surplus[i] }))
     .filter(({ m }) => address !== undefined && m.creator.toLowerCase() === address.toLowerCase());
@@ -73,15 +82,36 @@ export function PortfolioPage() {
         )}
       </div>
 
-      {!address && <p className="text-sand">Connect a wallet (top right) to see your positions.</p>}
-      {address && (isLoading || (list.length > 0 && !values)) && <p className="text-sand">Reading your positions from the chain…</p>}
-      {address && values && rows.length === 0 && (
+      {view.kind === "disconnected" && <p className="text-sand">Connect a wallet (top right) to see your positions.</p>}
+      {view.kind === "loading" && <p className="text-sand">Reading your positions from the chain…</p>}
+      {view.kind === "error" && (
+        <div className="flex flex-col items-start gap-1.5">
+          <p className="text-signal">Couldn't read your positions from the chain. Check the network and try again.</p>
+          <p className="break-words font-mono text-[11px] text-dust">{view.message}</p>
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={() => {
+              marketsQuery.refetch();
+              void reads.refetch();
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+      {view.kind === "no-markets" && (
+        <p className="text-sand">
+          There are no markets on this deployment yet. Create one from a registered <a href="#/fixtures" className="link">fixture</a>.
+        </p>
+      )}
+      {view.kind === "no-positions" && (
         <p className="text-sand">
           No positions yet. <a href="#/" className="link">Browse markets</a> to make your first trade.
         </p>
       )}
 
-      {rows.length > 0 && (
+      {view.kind === "positions" && (
         <Panel className="overflow-x-auto">
           <PanelTitle tag="Positions" title={`${totals.markets} active · ${rows.length - totals.markets} claimed`} />
           <table className="mt-4 w-full min-w-[640px] text-left text-sm">
