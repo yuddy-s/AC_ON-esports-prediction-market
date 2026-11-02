@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { zeroAddress, type Hex } from "viem";
+import { encodeAbiParameters, keccak256, zeroAddress, type Hex } from "viem";
 import { useAccount, useReadContract, useReadContracts } from "wagmi";
 import { ACON_TOKEN_ADDRESS, CHAIN, PREDICTION_MARKET_ADDRESS } from "./config";
+import { isContractRevert } from "./errors";
 import { formatTokenAmount } from "./format";
 import type { Fixture } from "./fixturesApi";
 import { aconTokenAbi, MIN_START_MARGIN_SECONDS, predictionMarketAbi, REQUIRED_SUBSIDY } from "./predictionMarket";
@@ -44,22 +45,54 @@ export function deadlineProblem(deadline: bigint | undefined, nowSeconds: number
   return null;
 }
 
+// What the chain says about a fixture. getFixture reverts FixtureNotRegistered
+// for an unregistered key; that revert is an answer ("not registered"), while
+// RPC, network or provider failures are not and stay retryable errors.
+export type RegistrationRead =
+  | { kind: "loading" }
+  | { kind: "registered"; fixture: OnChainFixture }
+  | { kind: "not-registered" }
+  | { kind: "error"; message: string };
+
+export function registrationRead(input: { fixtureError: unknown; data: OnChainFixture | undefined }): RegistrationRead {
+  if (input.data) return input.data.registered ? { kind: "registered", fixture: input.data } : { kind: "not-registered" };
+  if (isContractRevert(input.fixtureError, "FixtureNotRegistered")) return { kind: "not-registered" };
+  const failure = input.fixtureError;
+  if (failure) {
+    const message = failure instanceof Error ? failure.message.split("\n")[0] : String(failure);
+    return { kind: "error", message };
+  }
+  return { kind: "loading" };
+}
+
+// computeFixtureKey(providerId, gameId, externalMatchId) is
+// keccak256(abi.encode(string,string,string)) with no normalization
+// (CONTRACT_ABI.md), so it is computed locally instead of over RPC.
+export function fixtureKey(providerId: string, gameId: string, externalMatchId: string): Hex {
+  return keccak256(encodeAbiParameters([{ type: "string" }, { type: "string" }, { type: "string" }], [providerId, gameId, externalMatchId]));
+}
+
+// Retrying a deterministic contract revert only delays the answer.
+const retryUnlessNotRegistered = (failureCount: number, error: unknown) =>
+  !isContractRevert(error, "FixtureNotRegistered") && failureCount < 2;
+
 // The contract's view of a catalog fixture (key from the source identity).
 // This, not the backend job status, is authoritative for registration.
 export function useOnChainFixture(fixture: Fixture) {
-  const keyRead = useReadContract({
-    ...market,
-    functionName: "computeFixtureKey",
-    args: [fixture.provider_id, fixture.game_id, fixture.external_match_id],
-    query: { enabled: PREDICTION_MARKET_ADDRESS !== undefined },
-  });
+  const key = fixtureKey(fixture.provider_id, fixture.game_id, fixture.external_match_id);
   const fixtureRead = useReadContract({
     ...market,
     functionName: "getFixture",
-    args: [keyRead.data ?? "0x"],
-    query: { enabled: keyRead.data !== undefined, refetchInterval: 10_000 },
+    args: [key],
+    query: { enabled: PREDICTION_MARKET_ADDRESS !== undefined, refetchInterval: 10_000, retry: retryUnlessNotRegistered },
   });
-  return { key: keyRead.data, onChain: fixtureRead.data as OnChainFixture | undefined };
+  const data = fixtureRead.data as OnChainFixture | undefined;
+  return {
+    key,
+    onChain: data,
+    read: registrationRead({ fixtureError: fixtureRead.error, data }),
+    retry: () => void fixtureRead.refetch(),
+  };
 }
 
 // Funds the one market a registered fixture may have. The chain, not the
@@ -70,7 +103,7 @@ export function CreateMarket({ fixture }: { fixture: Fixture }) {
   const { status, run, reset } = useContractAction();
   const [deadlineInput, setDeadlineInput] = useState<string | null>(null);
 
-  const { key, onChain } = useOnChainFixture(fixture);
+  const { key, read, retry } = useOnChainFixture(fixture);
   const wallet = useReadContracts({
     contracts: [
       { address: ACON_TOKEN_ADDRESS, abi: aconTokenAbi, functionName: "balanceOf", args: [address ?? zeroAddress], chainId: CHAIN.id },
@@ -82,14 +115,26 @@ export function CreateMarket({ fixture }: { fixture: Fixture }) {
   const [acon, allowance] = wallet.data ?? [];
 
   if (!PREDICTION_MARKET_ADDRESS) return null;
-  if (!onChain) return <p className="text-xs text-dust">Checking the on-chain registration…</p>;
-  if (!onChain.registered) {
+  if (read.kind === "loading") return <p className="text-xs text-dust">Checking the on-chain registration…</p>;
+  if (read.kind === "error") {
+    return (
+      <div className="flex flex-col gap-1.5">
+        <p className="text-sm text-signal">Couldn't read the on-chain registration. Check the network and try again.</p>
+        <p className="break-words font-mono text-[11px] text-dust">{read.message}</p>
+        <button type="button" onClick={retry} className="btn-ghost self-start">
+          Retry
+        </button>
+      </div>
+    );
+  }
+  if (read.kind === "not-registered") {
     return (
       <button type="button" disabled className="btn-gold w-full">
         Create market · after on-chain registration
       </button>
     );
   }
+  const onChain = read.fixture;
   if (onChain.hasMarket) {
     return (
       <a href={marketHref(onChain.marketId)} className="btn-gold block w-full text-center">

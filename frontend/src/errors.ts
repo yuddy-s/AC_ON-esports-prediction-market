@@ -8,6 +8,14 @@ export function isUserRejection(error: unknown): boolean {
   return false;
 }
 
+// True only when the call reached the contract and it reverted with this
+// custom error. RPC, network and decoding failures are not contract answers.
+export function isContractRevert(error: unknown, errorName: string): boolean {
+  if (!(error instanceof BaseError)) return false;
+  const reverted = error.walk((e) => e instanceof ContractFunctionRevertedError);
+  return reverted instanceof ContractFunctionRevertedError && reverted.data?.errorName === errorName;
+}
+
 // Maps the contracts' custom errors (by name, never by free-form strings) to
 // messages a user can act on. See contracts/README.md "Reverts and limits".
 export function describeContractError(errorName: string, args: readonly unknown[] = []): string {

@@ -5,7 +5,7 @@ import {
   encodeErrorResult,
   UserRejectedRequestError,
 } from "viem";
-import { describeContractError, describeError, isUserRejection } from "./errors";
+import { describeContractError, describeError, isContractRevert, isUserRejection } from "./errors";
 import { predictionMarketAbi } from "./predictionMarket";
 
 // Builds the same error shape viem throws when buy() reverts with a custom error.
@@ -74,5 +74,17 @@ describe("describeContractError", () => {
 describe("describeError: other errors", () => {
   it("uses the message of a plain Error", () => {
     expect(describeError(new Error("network down"))).toBe("network down");
+  });
+});
+
+describe("isContractRevert", () => {
+  it("matches only the named custom error", () => {
+    expect(isContractRevert(revert("TradingClosed"), "TradingClosed")).toBe(true);
+    expect(isContractRevert(revert("TradingClosed"), "FixtureNotRegistered")).toBe(false);
+  });
+
+  it("is false for non-contract errors", () => {
+    expect(isContractRevert(new Error("fetch failed"), "TradingClosed")).toBe(false);
+    expect(isContractRevert(undefined, "TradingClosed")).toBe(false);
   });
 });
