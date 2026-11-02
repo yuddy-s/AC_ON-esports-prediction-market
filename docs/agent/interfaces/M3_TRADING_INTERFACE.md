@@ -2,6 +2,10 @@
 
 Status: approved in PR #12 on 2026-10-20
 
+Historical deployment interface: the current product source has advanced to the
+[current contract ABI](CONTRACT_ABI.md). Use this record only with its published source-versioned
+ABI and deployed addresses; its build/deployment commands describe the recorded source revision.
+
 This document is the approved cross-layer contract for the Milestone 3 guarded-buy vertical slice. Code and tests remain the source of truth for implemented behavior; this document must be updated through team review if validation forces a different bound, tolerance, or dependency version.
 
 ## Scope

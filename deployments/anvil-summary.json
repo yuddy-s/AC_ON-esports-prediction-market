@@ -1,0 +1,15 @@
+{
+  "chain_id": 31337,
+  "journeys": [
+    "normal proposal, guarded buy/sell, winning claim, creator surplus",
+    "disputed result, captured VRF request failure, recovery/retry/stale callback, committee, three votes, bond refund, claim",
+    "unchallenged VOID, combined YES/NO claim",
+    "seven-day no-proposal timeout, permissionless selection, claim",
+    "replacement committee, second-round no-quorum VOID, claim",
+    "insufficient resolver pool, fixed selection deadline, VOID, claim"
+  ],
+  "successful_transactions": 104,
+  "observed_head": 114,
+  "safe_checkpoint_at_depth_two": 112,
+  "scope": "Contract journeys only; frontend/backend integration and real VRF/Safe release verification remain separate"
+}

@@ -1,8 +1,8 @@
 # Milestone 4 Feature-Complete Design Decision
 
-> **Provider amendment proposed in backend M4 work:** Implementing a PandaScore fixture/result adapter is now planned as required M4 backend work. The team must review whether permitted live PandaScore ingestion is an acceptance gate. The approved no-cost manual/mock requirement below remains in force until that decision is recorded. PandaScore responses alone are not independent organizer evidence and must not trigger an automatic proposal without a reviewed source-verification rule.
+> **Provider amendment implemented but gated:** PR #39 merged the PandaScore fixture/result adapter and independent-review workflow. Live ingestion remains disabled until written permission and team approval confirm this educational test-token use. PandaScore responses alone are not independent organizer evidence and cannot trigger automatic proposals.
 
-Status: **target design approved and merged in PR #28 on 2026-10-29; implementation pending**. Matthew's GitHub approval and Yudhveer's confirmation established the decision set. These rules define target behavior; exact Solidity types, indexed event fields, and compiled ABI remain an implementation freeze gate. The [M3 interface](M3_TRADING_INTERFACE.md) is the historical deployed baseline; M4 needs a new contract and manifest.
+Status: **target design approved and merged in PR #28 on 2026-10-29; locally verified contract and backend slices are available for final integration**. Matthew's economic proof/invariants are included in PR #37's combined contract head, whose [exact-build ABI](CONTRACT_ABI.md), event fixtures, verification record, and deployment tooling are under final consumer review. PRs #30–#34 and #39 provide the off-chain catalog and guarded registrar/proposer workflows. None of this is a deployed M4 release: fresh Sepolia deployment, role/VRF handoff, frontend/backend contract integration, and cross-layer acceptance remain required. The [M3 interface](M3_TRADING_INTERFACE.md) describes the historical live baseline.
 
 ## Fixture and result source
 
@@ -12,13 +12,29 @@ Only a restricted registrar registers a selected fixture on-chain. Its key is `k
 
 ## Trading, proposal, and settlement
 
-`quoteSell(marketId, outcome, shares)` returns the LMSR cost decrease `C(q) - C(q after sale)`, rounded down to ACON base units. `sell(marketId, outcome, shares, minReturn)` requires owned shares, at most `100e18` shares per trade, stored `OPEN` state, and `block.timestamp < tradingDeadline`; it reverts when proceeds fall below `minReturn`. The frontend derives `minReturn` from user slippage. Under a reentrancy guard, accounting and positions update before ACON transfers. M3 `quoteBuy` and guarded `buy` retain their meanings.
+`quoteBuy` returns the certified mathematical ceiling of the LMSR cost increase and
+`quoteSell(marketId, outcome, shares)` returns the certified mathematical floor of the cost
+decrease. `sell(marketId, outcome, shares, minReturn)` requires owned shares, at most `100e18`
+shares per trade, stored `OPEN` state, and `block.timestamp < tradingDeadline`; it reverts when
+proceeds fall below `minReturn`. The frontend derives `minReturn` from user slippage. Under a
+reentrancy guard, accounting and positions update before ACON transfers. Successful rounding
+leaves a nonnegative residue in collateral rather than an exact rounded-potential equality. The
+regression vector and solvency inequality are recorded in the
+[M4 economic proof](../testing/M4_ECONOMIC_PROOF.md).
+
+**Local rounding correction under final review:** the current draft preserves the mathematical
+floor for sells and changes executable buy amounts to the mathematical ceiling of the cost
+increase. Benny authorized the paired correction to prevent reverse-trade gains from mixing
+strict-floor sells with the previous rounded-potential buys. The updated proof and invariants now
+use this rule; the numeric amendment and interval error behavior still require reviewer/consumer
+approval and are not retroactive PR #28 approval. See
+[the pricing review record](../testing/PRICING_ROUNDING.md).
 
 An authorized proposer submits YES, NO, or VOID with evidence hash and reference after trading closes. One immutable proposal opens a fixed 24-hour challenge window. Any address except its proposer may submit the first challenge with a 10 ACON bond; subsequent challenges revert. If the final outcome differs, including YES/NO becoming VOID, refund the challenger; if upheld, forfeit the bond to market collateral, available as creator surplus only after claims are reserved. Anyone may finalize an unchallenged proposal after the window. A challenged proposal proceeds to resolver selection. The seven-day no-proposal path also proceeds to resolver selection.
 
 The **stored** M4 market-state enum, in order, is `OPEN`, `CLOSED`, `PROPOSED`, `DISPUTED`, `RESOLVER_SELECTION`, `RESOLVER_VOTING`, `FINALIZED`, `VOID`. Resolver round 1 or 2 is stored separately. `CLAIMABLE` is a derived read from terminal state, position, and claimed status; `POSTPONED` and `ORACLE_TIMEOUT` are not market states. Expired transitions require an on-chain caller; time passing does not mutate storage.
 
-Final YES/NO pays 1 ACON per outstanding winning share. VOID pays 0.5 ACON per outstanding YES and NO share. A wallet claims once per market; a VOID claim combines both holdings. Mark claimed, clear/decrement positions and liabilities, and update collateral before token transfer; duplicate claims revert. Winning liability equals outstanding winning quantity; VOID reserves `ceil((outstandingYes + outstandingNo) / 2)` base units. Challenge bonds remain separate until disposition. Creator surplus can be withdrawn only in `FINALIZED` or `VOID`, only above conservative remaining liabilities. No fees. Matthew's fixed-point collateral invariant and payout review are mandatory before payout code merges.
+Final YES/NO pays 1 ACON per outstanding winning share. VOID pays 0.5 ACON per outstanding YES and NO share. A wallet claims once per market; a VOID claim combines both holdings. Mark claimed, clear/decrement positions and liabilities, and update collateral before token transfer; duplicate claims revert. Winning liability equals outstanding winning quantity; VOID reserves `ceil((outstandingYes + outstandingNo) / 2)` base units. Challenge bonds remain separate until disposition. Creator surplus can be withdrawn only in `FINALIZED` or `VOID`, only above conservative remaining liabilities. No fees. Matthew's rounded-ledger collateral proof and payout review are mandatory before payout code merges.
 
 ## Resolver selection and voting
 
