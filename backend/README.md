@@ -40,6 +40,8 @@ PREDICTION_MARKET_ABI_PATH=../deployments/abi/PredictionMarket.6e30d516669e.792f
 
 Two confirmations are the approved Sepolia demo default; deployments may override the value. Before touching indexer state, the worker verifies `eth_chainId` against `INDEXER_CHAIN_ID` and validates the supplied ABI against the approved `MarketCreated` and `TradeExecuted` event contracts. It fails closed for a wrong network or while the final deployed ABI is unavailable.
 
+The indexer also has a generic JSON-ABI event decoder that can decode tuple fields, including nested tuple payloads. The production M3 worker continues to use a strict allowlist of exact canonical event signatures and validates each event's indexed-field layout; an overloaded event with an unapproved signature is ignored even if its name matches. The generic decoder does not enable M4 events or create projections. M4 event mapping remains gated on the reviewed ABI plus explicit event-to-projection tests.
+
 The completed [M3 manifest](../deployments/sepolia-m3.json) follows the [public deployment handoff convention](../deployments/README.md) and passes `python -m scripts.validate_handoff ../deployments/sepolia-m3.json`. It records the deployed source, token/market addresses, exact-build ABIs, and successful creation/buy receipts. The worker records the ABI filename as its version and refuses to resume an existing contract record with a different ABI version or deployment block. Use the completed manifest, not `sepolia-m3.template.json`.
 
 Run one backfill/live synchronization pass, continuous polling, or a deterministic rebuild:
