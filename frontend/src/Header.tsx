@@ -27,6 +27,7 @@ import {
 const NAV = [
   { href: "#/", label: "Markets", pages: ["markets", "market"] },
   { href: "#/fixtures", label: "Fixtures", pages: ["fixtures", "fixture"] },
+  { href: "#/portfolio", label: "Portfolio", pages: ["portfolio"] },
 ] as const;
 
 export function Header({ route }: { route: Route }) {

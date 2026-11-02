@@ -4,6 +4,7 @@ import { API_URL, FIXTURE_SOURCE } from "./config";
 import { Badge } from "./Badge";
 import { fetchFixtures, type Fixture } from "./fixturesApi";
 import { describeRegistration, gameLabel, MATCH_STATUS_LABELS, matchStatusTone } from "./fixtureStatus";
+import { useOnChainRegistrations } from "./CreateMarket";
 import { fixtureHref } from "./router";
 import { Tag } from "./ui";
 
@@ -31,6 +32,7 @@ export function FixtureCatalog() {
   const items = fixtures.data?.items ?? [];
   const games = useMemo(() => [...new Set(items.map((f) => f.game_id))].sort(), [items]);
   const shown = items.filter((f) => matchesFilter(f, status, game));
+  const onChain = useOnChainRegistrations(FIXTURE_SOURCE === "api" ? items : []);
 
   return (
     <div className="flex flex-col gap-6">
@@ -84,15 +86,18 @@ export function FixtureCatalog() {
 
       <ul className="flex flex-col gap-2">
         {shown.map((f) => (
-          <FixtureRow key={f.id} fixture={f} />
+          <FixtureRow key={f.id} fixture={f} registeredOnChain={onChain.get(f.id) === true} />
         ))}
       </ul>
     </div>
   );
 }
 
-function FixtureRow({ fixture }: { fixture: Fixture }) {
-  const registration = describeRegistration(fixture.registration_request_status);
+function FixtureRow({ fixture, registeredOnChain }: { fixture: Fixture; registeredOnChain: boolean }) {
+  // The chain is authoritative for registration; the backend job only until then.
+  const registration = registeredOnChain
+    ? { label: "Registered", tone: "good" as const }
+    : describeRegistration(fixture.registration_request_status);
   const start = new Date(fixture.scheduled_start);
   return (
     <li>

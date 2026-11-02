@@ -46,6 +46,7 @@ export function useMarkets() {
     teams,
     isLoading: count.isLoading || markets.isLoading,
     error: count.error ?? markets.error,
+    refetch: () => void (count.error ? count.refetch() : markets.refetch()),
   };
 }
 

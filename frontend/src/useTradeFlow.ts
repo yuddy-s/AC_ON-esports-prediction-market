@@ -120,7 +120,9 @@ export function useTradeFlow() {
         ]);
         const deploymentProblem = indexerDeploymentProblem(indexerStatus, CHAIN.id, PREDICTION_MARKET_ADDRESS);
         if (deploymentProblem) {
-          setIndexer({ state: "unavailable", detail: deploymentProblem });
+          // A different deployment will never index this trade: stop waiting.
+          setIndexer({ state: "not-tracking", detail: deploymentProblem.replace(/\.$/, "") });
+          return;
         } else if (trades.length > 0) {
           setStatus((current) =>
             current.kind === "mined" && current.hash === minedHash
