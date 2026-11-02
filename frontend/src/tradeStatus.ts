@@ -7,6 +7,7 @@ export type IndexerWait =
   | { state: "waiting"; lastSafeBlock: number | null }
   | { state: "stale"; lastSafeBlock: number | null }
   | { state: "unavailable"; detail: string }
+  | { state: "not-tracking"; detail: string }
   | { state: "not-configured" }
   | { state: "timed-out" };
 
@@ -77,6 +78,8 @@ export function statusMessage(status: TradeStatus): string {
           }. Retrying…`;
         case "unavailable":
           return `Mined in block ${status.blockNumber}. Your shares are on-chain, but the indexer API cannot confirm this trade yet (${status.indexer.detail}). Retrying…`;
+        case "not-tracking":
+          return `Mined in block ${status.blockNumber}. Your trade is on-chain. The indexer is not tracking this contract (${status.indexer.detail}), so the indexed step is skipped.`;
         case "not-configured":
           return `Mined in block ${status.blockNumber}. Your shares are on-chain. (No indexer API configured, so the indexed step is skipped.)`;
         case "timed-out":

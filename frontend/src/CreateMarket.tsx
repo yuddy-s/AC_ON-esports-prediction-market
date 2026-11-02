@@ -95,6 +95,28 @@ export function useOnChainFixture(fixture: Fixture) {
   };
 }
 
+// Registration as the chain sees it for a list of catalog fixtures: true or
+// false when the contract answered, missing when the read failed (the caller
+// then falls back to the backend job status rather than guessing).
+export function useOnChainRegistrations(fixtures: readonly Fixture[]): Map<number, boolean> {
+  const records = useReadContracts({
+    contracts: fixtures.map((f) => ({
+      ...market,
+      functionName: "getFixture" as const,
+      args: [fixtureKey(f.provider_id, f.game_id, f.external_match_id)] as const,
+    })),
+    // Unregistered keys revert; one revert must not fail the whole list.
+    allowFailure: true,
+    query: { enabled: PREDICTION_MARKET_ADDRESS !== undefined && fixtures.length > 0, refetchInterval: 15_000 },
+  });
+  const map = new Map<number, boolean>();
+  records.data?.forEach((r, i) => {
+    if (r.status === "success") map.set(fixtures[i].id, (r.result as OnChainFixture).registered);
+    else if (isContractRevert(r.error, "FixtureNotRegistered")) map.set(fixtures[i].id, false);
+  });
+  return map;
+}
+
 // Funds the one market a registered fixture may have. The chain, not the
 // backend job status, decides whether the fixture is registered and free.
 export function CreateMarket({ fixture }: { fixture: Fixture }) {

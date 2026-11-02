@@ -28,6 +28,17 @@ const statuses: Record<TradeStatus["kind"], TradeStatus> = {
   error: { kind: "error", message: "Not enough ACON for this trade." },
 };
 
+it("skips the indexed step when the indexer tracks another deployment", () => {
+  const message = statusMessage({
+    kind: "mined",
+    hash,
+    blockNumber: 12n,
+    indexer: { state: "not-tracking", detail: "The indexer has no active market deployment" },
+  });
+  expect(message).toContain("indexed step is skipped");
+  expect(message).not.toContain("Retrying");
+});
+
 it("names the sale in the wallet step", () => {
   expect(statusMessage({ kind: "trade-wallet", side: "sell" })).toBe("Confirm the sale in your wallet…");
 });
