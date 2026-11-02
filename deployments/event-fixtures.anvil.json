@@ -1,0 +1,488 @@
+{
+  "chain_id": 31337,
+  "source": "Local contract-only Anvil smoke; VRF is an explicit mock, not live Chainlink",
+  "abi_sha256": "4af9297937eb1b1b277a8c8d83e78ceb05c5db66cb120f1d39b80fdfc1015a91",
+  "fixtures": [
+    {
+      "event_name": "ChallengeBondResolved",
+      "signature": "ChallengeBondResolved(uint256,address,uint256,bool)",
+      "raw_log": {
+        "address": "0xdc64a140aa3e981100a9beca4e685f962f0cf6c9",
+        "topics": [
+          "0x96272b4efab2dd74022bc2de363272058d428e68bc0bf3b850d7fd316adf2ab0",
+          "0x0000000000000000000000000000000000000000000000000000000000000001",
+          "0x00000000000000000000000090f79bf6eb2c4f870365e785982e1f101e93b906"
+        ],
+        "data": "0x0000000000000000000000000000000000000000000000008ac7230489e800000000000000000000000000000000000000000000000000000000000000000001",
+        "blockHash": "0x97e1e83489e8f712f8dc298023663bc5c55ceb9ac5a0999005f94c63e7439c27",
+        "blockNumber": "0x34",
+        "blockTimestamp": "0x6ae68f1c",
+        "transactionHash": "0x994e0f01e9a0871a243063c1280868f55f1cd419824a3c46e8f86d79ec12dd00",
+        "transactionIndex": "0x0",
+        "logIndex": "0x2",
+        "removed": false
+      },
+      "nonindexed_values_in_abi_order": [
+        "10000000000000000000",
+        true
+      ]
+    },
+    {
+      "event_name": "CreatorSurplusWithdrawn",
+      "signature": "CreatorSurplusWithdrawn(uint256,address,uint256)",
+      "raw_log": {
+        "address": "0xdc64a140aa3e981100a9beca4e685f962f0cf6c9",
+        "topics": [
+          "0x6655c8348973016e123c15423275696d7662ada13bf3c7473a39cf768de8da9d",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+        ],
+        "data": "0x000000000000000000000000000000000000000000000001c5c45119cd725eec",
+        "blockHash": "0xcf1b629ce99c2711b4e3c889763839801c8ead4091982f589c73a1111d3ce222",
+        "blockNumber": "0x22",
+        "blockTimestamp": "0x6ae6810b",
+        "transactionHash": "0xbe885f631cbb1cbf647fef2933826d272c72a7b03e3bdc2a8f6183c130e04dc7",
+        "transactionIndex": "0x0",
+        "logIndex": "0x1",
+        "removed": false
+      },
+      "nonindexed_values_in_abi_order": [
+        "32697348365879500524"
+      ]
+    },
+    {
+      "event_name": "FixtureRegistered",
+      "signature": "FixtureRegistered(bytes32,address,(string,string,string,string,string,string,string,uint256,bytes32,string),bytes32)",
+      "raw_log": {
+        "address": "0xdc64a140aa3e981100a9beca4e685f962f0cf6c9",
+        "topics": [
+          "0x81532db08c92777bac2a4c7a25df1401dadc4d6c1ea4793f7b41a3b873bdc1ed",
+          "0x87906938b1985044d816720d29e169d386b5b3c5e9a83ae2003ef8c9b9bba08d",
+          "0x00000000000000000000000070997970c51812dc3a010c7d01b50e0d17dc79c8"
+        ],
+        "data": "0x00000000000000000000000000000000000000000000000000000000000000408a3a20ccdd063ae501f0b2cf004421d793cf3cf8589f8270d4971cd6d92579180000000000000000000000000000000000000000000000000000000000000140000000000000000000000000000000000000000000000000000000000000018000000000000000000000000000000000000000000000000000000000000001c000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000240000000000000000000000000000000000000000000000000000000000000028000000000000000000000000000000000000000000000000000000000000002c0000000000000000000000000000000000000000000000000000000006af8f60acf0675489e74097bcb19a3ef43169b71235f75f22e65e32d2c5ff9d83599b251000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000000066d616e75616c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000876616c6f72616e740000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007616e76696c2d300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000067465616d2d61000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000067465616d2d62000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000065465616d2041000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000065465616d20420000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001d68747470733a2f2f6578616d706c652e696e76616c69642f616e76696c000000",
+        "blockHash": "0x7e0e6a46afa6ae3301ff871c8d8fa87b976673c2028436fa448ada53b2614f08",
+        "blockNumber": "0x18",
+        "blockTimestamp": "0x6ae52f8a",
+        "transactionHash": "0x83adbb0bc8283d9e9359f9c80bd5534d0e168079c66f9d53b5d4023b765e1414",
+        "transactionIndex": "0x0",
+        "logIndex": "0x0",
+        "removed": false
+      },
+      "nonindexed_values_in_abi_order": [
+        [
+          "manual",
+          "valorant",
+          "anvil-0",
+          "team-a",
+          "team-b",
+          "Team A",
+          "Team B",
+          "1794700810",
+          "0xcf0675489e74097bcb19a3ef43169b71235f75f22e65e32d2c5ff9d83599b251",
+          "https://example.invalid/anvil"
+        ],
+        "0x8a3a20ccdd063ae501f0b2cf004421d793cf3cf8589f8270d4971cd6d9257918"
+      ]
+    },
+    {
+      "event_name": "MarketClosed",
+      "signature": "MarketClosed(uint256,uint256,address,bytes32)",
+      "raw_log": {
+        "address": "0xdc64a140aa3e981100a9beca4e685f962f0cf6c9",
+        "topics": [
+          "0xc863b1a83ecc47cbe83090b908369864d68ec91f4a6e475ce94aba337350eee2",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x00000000000000000000000070997970c51812dc3a010c7d01b50e0d17dc79c8"
+        ],
+        "data": "0x000000000000000000000000000000000000000000000000000000006ae52f8acf0675489e74097bcb19a3ef43169b71235f75f22e65e32d2c5ff9d83599b251",
+        "blockHash": "0x98983be17da11e6f77a1d8521387614640d8ea4002acb9456c93737042fe3a33",
+        "blockNumber": "0x1d",
+        "blockTimestamp": "0x6ae52f8a",
+        "transactionHash": "0x9c0fe18ce2b7143bf2a47b0af27c2061b3f26e476ee6b81e9c71f3744caf838a",
+        "transactionIndex": "0x0",
+        "logIndex": "0x0",
+        "removed": false
+      },
+      "nonindexed_values_in_abi_order": [
+        "1793404810",
+        "0xcf0675489e74097bcb19a3ef43169b71235f75f22e65e32d2c5ff9d83599b251"
+      ]
+    },
+    {
+      "event_name": "MarketCreated",
+      "signature": "MarketCreated(uint256,address,string,uint256,bytes32)",
+      "raw_log": {
+        "address": "0xdc64a140aa3e981100a9beca4e685f962f0cf6c9",
+        "topics": [
+          "0x8aea930da14dfdb51fa478bb983d47585a4e29dbfb958d29ee23e2208c51f0bc",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x87906938b1985044d816720d29e169d386b5b3c5e9a83ae2003ef8c9b9bba08d"
+        ],
+        "data": "0x0000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000006ae7d28a000000000000000000000000000000000000000000000000000000000000001857696c6c205465616d20412062656174205465616d20423f0000000000000000",
+        "blockHash": "0xa95b1a07e4b39b636b83f06eb3c16240ccdf948622b417ba2a1cf60c767462e8",
+        "blockNumber": "0x19",
+        "blockTimestamp": "0x6ae52f8a",
+        "transactionHash": "0x589a74de716bb2cc30f5292a8202b7318b1de3fe0385cb6f90c4615bbb000da2",
+        "transactionIndex": "0x0",
+        "logIndex": "0x2",
+        "removed": false
+      },
+      "nonindexed_values_in_abi_order": [
+        "Will Team A beat Team B?",
+        "1793577610"
+      ]
+    },
+    {
+      "event_name": "MarketFinalized",
+      "signature": "MarketFinalized(uint256,uint8,uint256)",
+      "raw_log": {
+        "address": "0xdc64a140aa3e981100a9beca4e685f962f0cf6c9",
+        "topics": [
+          "0x816109f8ef0bdeb532f29fa51078082b24b0ca10088fd24665c053a77141a154",
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
+        ],
+        "data": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006f05b59d3b200000",
+        "blockHash": "0x87ad785a553089a8dd6ff9333de5434b380c8c1af7ecbd5349da9cd2db8f6f75",
+        "blockNumber": "0x20",
+        "blockTimestamp": "0x6ae6810b",
+        "transactionHash": "0xe73f60ec8185edbb1c011e3c72c8aaaa026f26b857bad12b24016871bc09665a",
+        "transactionIndex": "0x0",
+        "logIndex": "0x0",
+        "removed": false
+      },
+      "nonindexed_values_in_abi_order": [
+        0,
+        "8000000000000000000"
+      ]
+    },
+    {
+      "event_name": "MarketVoided",
+      "signature": "MarketVoided(uint256,uint256)",
+      "raw_log": {
+        "address": "0xdc64a140aa3e981100a9beca4e685f962f0cf6c9",
+        "topics": [
+          "0x87c7b4bdc9cd6e26fb67b201f9799449bea444423109a4658eb74478b466cbc1",
+          "0x0000000000000000000000000000000000000000000000000000000000000002"
+        ],
+        "data": "0x0000000000000000000000000000000000000000000000004563918244f40000",
+        "blockHash": "0x7fad6c3f5761a124055841c35bccdc9135a49a63d040130311ef3c77759430dc",
+        "blockNumber": "0x3e",
+        "blockTimestamp": "0x6ae7e09d",
+        "transactionHash": "0xf0334a2396fbec9608ace416b9486e31d481609d55b1fd08255517a7fed0e2d5",
+        "transactionIndex": "0x0",
+        "logIndex": "0x0",
+        "removed": false
+      },
+      "nonindexed_values_in_abi_order": [
+        "5000000000000000000"
+      ]
+    },
+    {
+      "event_name": "OutcomeChallenged",
+      "signature": "OutcomeChallenged(uint256,address,bytes32,uint256)",
+      "raw_log": {
+        "address": "0xdc64a140aa3e981100a9beca4e685f962f0cf6c9",
+        "topics": [
+          "0xa4cfd669afafdd4e7d37249b32e41fd1ee842b189025ad92d2f270fb26f4cc02",
+          "0x0000000000000000000000000000000000000000000000000000000000000001",
+          "0x00000000000000000000000090f79bf6eb2c4f870365e785982e1f101e93b906"
+        ],
+        "data": "0xcf0675489e74097bcb19a3ef43169b71235f75f22e65e32d2c5ff9d83599b2510000000000000000000000000000000000000000000000008ac7230489e80000",
+        "blockHash": "0x5b0201728ac191c83f914fd1f9cda73f7722115148e68780a929e0297392baa6",
+        "blockNumber": "0x29",
+        "blockTimestamp": "0x6ae6810b",
+        "transactionHash": "0x4186ace39026ce7027ed7efd6a1b13f65b771e5f1360ddf6896f6bbdfa6b125f",
+        "transactionIndex": "0x0",
+        "logIndex": "0x2",
+        "removed": false
+      },
+      "nonindexed_values_in_abi_order": [
+        "0xcf0675489e74097bcb19a3ef43169b71235f75f22e65e32d2c5ff9d83599b251",
+        "10000000000000000000"
+      ]
+    },
+    {
+      "event_name": "OutcomeProposed",
+      "signature": "OutcomeProposed(uint256,address,uint8,bytes32,string,uint256)",
+      "raw_log": {
+        "address": "0xdc64a140aa3e981100a9beca4e685f962f0cf6c9",
+        "topics": [
+          "0x13123d71aeaf01714f768b2707932f8745855757e65ee80afd7c0011f6df9c8f",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000003c44cdddb6a900fa2b585dd299e03d12fa4293bc",
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
+        ],
+        "data": "0xcf0675489e74097bcb19a3ef43169b71235f75f22e65e32d2c5ff9d83599b2510000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000006ae6810a000000000000000000000000000000000000000000000000000000000000001e68747470733a2f2f6578616d706c652e696e76616c69642f726573756c740000",
+        "blockHash": "0xdf843a8b5c03dfcc255b3fd07f5cbe4b932f7eb179f60f47ad8b0e8672bc71fb",
+        "blockNumber": "0x1e",
+        "blockTimestamp": "0x6ae52f8a",
+        "transactionHash": "0xa2cc13227336a67736aff38d9c0de57f4500576f34caede71cef0246a858f625",
+        "transactionIndex": "0x0",
+        "logIndex": "0x0",
+        "removed": false
+      },
+      "nonindexed_values_in_abi_order": [
+        "0xcf0675489e74097bcb19a3ef43169b71235f75f22e65e32d2c5ff9d83599b251",
+        "https://example.invalid/result",
+        "1793491210"
+      ]
+    },
+    {
+      "event_name": "PayoutClaimed",
+      "signature": "PayoutClaimed(uint256,address,uint256,uint256,uint256,uint256)",
+      "raw_log": {
+        "address": "0xdc64a140aa3e981100a9beca4e685f962f0cf6c9",
+        "topics": [
+          "0x1278e8ff251bf1b9e9c39b52026fae011e56085b444161079112608ea41df683",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x00000000000000000000000015d34aaf54267db7d7c367839aaf71a00a2c6a65"
+        ],
+        "data": "0x0000000000000000000000000000000000000000000000006f05b59d3b2000000000000000000000000000000000000000000000000000006f05b59d3b2000000000000000000000000000000000000000000000000000003782dace9d9000000000000000000000000000000000000000000000000000000000000000000000",
+        "blockHash": "0xc250ff5a2437c6bab82c7e7d6a825dd527f2106415264ae5b173ab7d5fa8bb87",
+        "blockNumber": "0x21",
+        "blockTimestamp": "0x6ae6810b",
+        "transactionHash": "0xa5178cc1431a943f527ae44401377ba7fe2d32d13332c4bd71268e019da065ed",
+        "transactionIndex": "0x0",
+        "logIndex": "0x1",
+        "removed": false
+      },
+      "nonindexed_values_in_abi_order": [
+        "8000000000000000000",
+        "8000000000000000000",
+        "4000000000000000000",
+        "0"
+      ]
+    },
+    {
+      "event_name": "ResolverCommitteeSelected",
+      "signature": "ResolverCommitteeSelected(uint256,uint8,uint256,address[5],uint256)",
+      "raw_log": {
+        "address": "0xdc64a140aa3e981100a9beca4e685f962f0cf6c9",
+        "topics": [
+          "0x0d9b76d8006576c3fda1ae42ec2feb8eeaadb0fe90b61d9b07309a5259fa2464",
+          "0x0000000000000000000000000000000000000000000000000000000000000001",
+          "0x0000000000000000000000000000000000000000000000000000000000000001",
+          "0x0000000000000000000000000000000000000000000000000000000000000002"
+        ],
+        "data": "0x00000000000000000000000000000000000000000000000000000000000010090000000000000000000000000000000000000000000000000000000000001004000000000000000000000000000000000000000000000000000000000000100600000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001002000000000000000000000000000000000000000000000000000000006ae9321c",
+        "blockHash": "0x56d36336689e8aafeabe3a9913f9f8b1daa89077efe22dcc46fb539eb585b929",
+        "blockNumber": "0x31",
+        "blockTimestamp": "0x6ae68f1c",
+        "transactionHash": "0xef42a7eec746e1eac595b51133477be1a393b1950c95895b30485cd5cad1ca73",
+        "transactionIndex": "0x0",
+        "logIndex": "0x0",
+        "removed": false
+      },
+      "nonindexed_values_in_abi_order": [
+        [
+          "0x0000000000000000000000000000000000001009",
+          "0x0000000000000000000000000000000000001004",
+          "0x0000000000000000000000000000000000001006",
+          "0x0000000000000000000000000000000000001000",
+          "0x0000000000000000000000000000000000001002"
+        ],
+        "1793667612"
+      ]
+    },
+    {
+      "event_name": "ResolverSelectionPending",
+      "signature": "ResolverSelectionPending(uint256,uint8,uint256,uint256)",
+      "raw_log": {
+        "address": "0xdc64a140aa3e981100a9beca4e685f962f0cf6c9",
+        "topics": [
+          "0xbdc41488b824e5705183c6326681f9b2862a7c1df63aa87f7aa4644a84dbfc11",
+          "0x0000000000000000000000000000000000000000000000000000000000000005",
+          "0x0000000000000000000000000000000000000000000000000000000000000001"
+        ],
+        "data": "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006aff9ba0",
+        "blockHash": "0x7856214b2eba681a40a72b7b505b1ad5bb8484b1637ee78ec3f66ed4dfb888cd",
+        "blockNumber": "0x6c",
+        "blockTimestamp": "0x6af66120",
+        "transactionHash": "0x4bed1afc990c5a9086d071c80aa5c5c89f514a28ae8eee62531ecb2c5dc52e57",
+        "transactionIndex": "0x0",
+        "logIndex": "0x0",
+        "removed": false
+      },
+      "nonindexed_values_in_abi_order": [
+        "0",
+        "1795136416"
+      ]
+    },
+    {
+      "event_name": "ResolverSelectionRequestFailed",
+      "signature": "ResolverSelectionRequestFailed(uint256,uint8,bytes32,uint256)",
+      "raw_log": {
+        "address": "0xdc64a140aa3e981100a9beca4e685f962f0cf6c9",
+        "topics": [
+          "0xb10ecda84c5cd29c70056832b805b70b907c6ff568e7c8815882518fc2e7b5cd",
+          "0x0000000000000000000000000000000000000000000000000000000000000001",
+          "0x0000000000000000000000000000000000000000000000000000000000000001"
+        ],
+        "data": "0xa4c020e5ab5e436fb475904c49da780ec3c06b0093dfb78f4edb6412838ebe7f000000000000000000000000000000000000000000000000000000006ae68813",
+        "blockHash": "0x485eef26a6250ebc3fe36e3fab06f69da412494af67a2bf64510b92ffd3f98ad",
+        "blockNumber": "0x2a",
+        "blockTimestamp": "0x6ae6810b",
+        "transactionHash": "0x63c614b36f6fa1180b58f3b9ad936ba73d446e6eb38a4c3ee21f54c9842f2333",
+        "transactionIndex": "0x0",
+        "logIndex": "0x0",
+        "removed": false
+      },
+      "nonindexed_values_in_abi_order": [
+        "0xa4c020e5ab5e436fb475904c49da780ec3c06b0093dfb78f4edb6412838ebe7f",
+        "1793493011"
+      ]
+    },
+    {
+      "event_name": "ResolverSelectionRequested",
+      "signature": "ResolverSelectionRequested(uint256,uint8,uint256,uint256,bytes32)",
+      "raw_log": {
+        "address": "0xdc64a140aa3e981100a9beca4e685f962f0cf6c9",
+        "topics": [
+          "0xc4d6281749762a1c9218c0cc44dbb28c02187adea4ad40f1eac067391cde51eb",
+          "0x0000000000000000000000000000000000000000000000000000000000000001",
+          "0x0000000000000000000000000000000000000000000000000000000000000001",
+          "0x0000000000000000000000000000000000000000000000000000000000000001"
+        ],
+        "data": "0x000000000000000000000000000000000000000000000000000000006aefbb8b1eef84c249b7395b62dc4a7f54d5a447584385340a836664cae85fb07c0a8ce5",
+        "blockHash": "0x355577db6854f15567e50321390bab43b20181eb059fb8a8fe885178e8210927",
+        "blockNumber": "0x2d",
+        "blockTimestamp": "0x6ae68814",
+        "transactionHash": "0xdd67696c51d88030eba6f2d9ff6061bf77eaa5bc17a70eb62530d5907c65f7c2",
+        "transactionIndex": "0x0",
+        "logIndex": "0x0",
+        "removed": false
+      },
+      "nonindexed_values_in_abi_order": [
+        "1794096011",
+        "0x1eef84c249b7395b62dc4a7f54d5a447584385340a836664cae85fb07c0a8ce5"
+      ]
+    },
+    {
+      "event_name": "ResolverVoteCast",
+      "signature": "ResolverVoteCast(uint256,address,uint8,uint8,uint8)",
+      "raw_log": {
+        "address": "0xdc64a140aa3e981100a9beca4e685f962f0cf6c9",
+        "topics": [
+          "0xf05a71a5ffb2bef26ef988ca30208439ade218ee6a8b3b8e1291cde5a074aacc",
+          "0x0000000000000000000000000000000000000000000000000000000000000001",
+          "0x0000000000000000000000000000000000000000000000000000000000001009",
+          "0x0000000000000000000000000000000000000000000000000000000000000001"
+        ],
+        "data": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001",
+        "blockHash": "0xa438505ff8b0a4e3cf7002743a5431cd6789d122b431040639f74b193f27dcc8",
+        "blockNumber": "0x32",
+        "blockTimestamp": "0x6ae68f1c",
+        "transactionHash": "0x7625460a379cfff6327bc492d348d4e78f20e61f4cd13051e395d3c4a7034140",
+        "transactionIndex": "0x0",
+        "logIndex": "0x0",
+        "removed": false
+      },
+      "nonindexed_values_in_abi_order": [
+        0,
+        1
+      ]
+    },
+    {
+      "event_name": "RoleGranted",
+      "signature": "RoleGranted(bytes32,address,address)",
+      "raw_log": {
+        "address": "0xdc64a140aa3e981100a9beca4e685f962f0cf6c9",
+        "topics": [
+          "0x2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+        ],
+        "data": "0x",
+        "blockHash": "0x4cc1b1bac71e44fc640193c505b1100bd5a57f8fa94d479509a7c4720d7bed9e",
+        "blockNumber": "0x5",
+        "blockTimestamp": "0x6ae52f89",
+        "transactionHash": "0xc96b35eb21ae21dc0a146ac408aa7e06329cf580a05b4472c0b01bc0cbd3b200",
+        "transactionIndex": "0x0",
+        "logIndex": "0x0",
+        "removed": false
+      },
+      "nonindexed_values_in_abi_order": []
+    },
+    {
+      "event_name": "SellExecuted",
+      "signature": "SellExecuted(uint256,address,uint8,uint256,uint256,uint256,uint256)",
+      "raw_log": {
+        "address": "0xdc64a140aa3e981100a9beca4e685f962f0cf6c9",
+        "topics": [
+          "0x49109ea463db248ecf7f302dafdf87877dfc5db1b7c4227ae23bbd745e91ec92",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x00000000000000000000000015d34aaf54267db7d7c367839aaf71a00a2c6a65",
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
+        ],
+        "data": "0x0000000000000000000000000000000000000000000000001bc16d674ec800000000000000000000000000000000000000000000000000000e923211819db9b80000000000000000000000000000000000000000000000006f05b59d3b2000000000000000000000000000000000000000000000000000003782dace9d900000",
+        "blockHash": "0xd01f8fedeff219232ec7a7c37220ac52e5c00cbe105f3eeb282f3ca7b65b2218",
+        "blockNumber": "0x1c",
+        "blockTimestamp": "0x6ae52f8a",
+        "transactionHash": "0xee4e258a0d1cef90a84136a0244a2a39f0d97e98a01923b8189bf842068e280a",
+        "transactionIndex": "0x0",
+        "logIndex": "0x1",
+        "removed": false
+      },
+      "nonindexed_values_in_abi_order": [
+        "2000000000000000000",
+        "1049956713901177272",
+        "8000000000000000000",
+        "4000000000000000000"
+      ]
+    },
+    {
+      "event_name": "TradeExecuted",
+      "signature": "TradeExecuted(uint256,address,uint8,uint256,uint256,uint256,uint256)",
+      "raw_log": {
+        "address": "0xdc64a140aa3e981100a9beca4e685f962f0cf6c9",
+        "topics": [
+          "0xbf7d726b38e2af587802bf22adc582447a08463ab527fc8fc56c36437ca4c78e",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x00000000000000000000000015d34aaf54267db7d7c367839aaf71a00a2c6a65",
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
+        ],
+        "data": "0x0000000000000000000000000000000000000000000000008ac7230489e8000000000000000000000000000000000000000000000000000048da453c55212df20000000000000000000000000000000000000000000000008ac7230489e800000000000000000000000000000000000000000000000000000000000000000000",
+        "blockHash": "0xd0d4f88f216f389b733caffededc1e414242e8857cf60cbe9e5f3f3012a59280",
+        "blockNumber": "0x1a",
+        "blockTimestamp": "0x6ae52f8a",
+        "transactionHash": "0xd26388abd883bae92eb733ac0bceb274181d282feb698a696c6c569d7b1d071e",
+        "transactionIndex": "0x0",
+        "logIndex": "0x2",
+        "removed": false
+      },
+      "nonindexed_values_in_abi_order": [
+        "10000000000000000000",
+        "5249584441082326514",
+        "10000000000000000000",
+        "0"
+      ]
+    },
+    {
+      "event_name": "VRFFulfillmentIgnored",
+      "signature": "VRFFulfillmentIgnored(uint256,uint256,uint8,uint8)",
+      "raw_log": {
+        "address": "0xdc64a140aa3e981100a9beca4e685f962f0cf6c9",
+        "topics": [
+          "0x1f7d79fa26c7822dc2b3a0bfd85043292b3f43c1bf8630463e87689d90ccab0d",
+          "0x0000000000000000000000000000000000000000000000000000000000000001",
+          "0x0000000000000000000000000000000000000000000000000000000000000001",
+          "0x0000000000000000000000000000000000000000000000000000000000000001"
+        ],
+        "data": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "blockHash": "0x1310624d0f5c29af407c6a27a04bf5d4bf9377f96e2ee2ad22ab6c981a02aed8",
+        "blockNumber": "0x30",
+        "blockTimestamp": "0x6ae68f1c",
+        "transactionHash": "0x50a88cd60ee3cc0dd5ab23e6429f8bd678f5500dae610af798024328eec48cb6",
+        "transactionIndex": "0x0",
+        "logIndex": "0x0",
+        "removed": false
+      },
+      "nonindexed_values_in_abi_order": [
+        1
+      ]
+    }
+  ]
+}

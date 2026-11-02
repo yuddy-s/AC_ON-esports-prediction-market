@@ -6,7 +6,7 @@ PandaScore listings return `detail.code=fixture_unreviewed` (HTTP 409) from the 
 
 Catalog and detail items include `registration_eligible` as a current off-chain precheck for scheduled start, teams, result absence, and curation. It can change between reads; a signed challenge is still required and `registration_request_status=confirmed` remains the separate on-chain gate before market creation.
 
-Status, **2026-11-01:** PRs #30–#34 and #39 are merged. The fixture catalog, signed registration requests, recovery audit, result assessments/reviews, and optional PandaScore adapter are implemented off-chain. They do not submit registrar or proposer transactions. PR #37 is open with candidate ABI artifacts; exact ABI freeze and deployment handoff remain pending. Keep the [M3 trading interface](M3_TRADING_INTERFACE.md) as the deployed baseline.
+Current status: PRs #30-#39 are merged. PR #37 provides the locally verified M4 contract implementation and exact-build ABI/event fixtures; PR #38 merges the economic proof and invariants. These do not constitute an M4 Sepolia deployment. The registrar/proposer still use mock gateways, and the M4 event projections and lifecycle APIs are not implemented. Keep the [M3 trading interface](M3_TRADING_INTERFACE.md) as the deployed baseline.
 
 ## Fixture browsing
 
@@ -27,7 +27,7 @@ EOA signatures are the M4 registration scope. Coinbase Smart Wallet can connect 
 
 ## Indexed market data
 
-`GET /api/indexer/status` includes nullable `abi_version` alongside chain, contract, safe block, and freshness; compare all of them to the selected deployment. The current decoder handles the M3 `MarketCreated` and `TradeExecuted` events. M4 event projections and M4 market/history/resolution/committee/claims/portfolio APIs are pending the reviewed ABI and implementation. The planned M4 read surface uses `/api/v2` to keep M3 route behavior stable. Indexed values are derived; frontend contract reads decide spendable positions, claimability, and whether a write is currently valid. Do not use an off-chain job status or result assessment as a settlement result.
+`GET /api/indexer/status` includes nullable `abi_version` alongside chain, contract, safe block, and freshness; compare all of them to the selected deployment. The production indexer currently projects M3 `MarketCreated` and `TradeExecuted`. PR #42 is under review with a generic tuple-aware decoder and exact-signature filtering for the strict M3 path; it does not add M4 projections. M4 event projections and market/history/resolution/committee/claims/portfolio APIs remain unimplemented. The planned M4 read surface uses `/api/v2` to keep M3 route behavior stable. Indexed values are derived; frontend contract reads decide spendable positions, claimability, and whether a write is currently valid.
 
 ### Planned M4 read routes (not implemented)
 
@@ -39,4 +39,4 @@ EOA signatures are the M4 registration scope. Coinbase Smart Wallet can connect 
 - `GET /api/v2/portfolio/{wallet_address}` returns derived market positions and activity. It does not replace contract reads for current balances or claimable amounts.
 - Existing `GET /api/fixtures/{id}` and catalog reads gain nullable confirmed on-chain registration and linked-market information after the M4 `FixtureRegistered` and `MarketCreated` projections exist. Existing `registration_request_status` continues to describe the off-chain job only.
 
-Every M4 indexed response is derived and carries chain, contract, ABI version, and safe-block/freshness metadata. The paths are scoped to the configured M4 deployment; exact response fields must follow the frozen ABI and frontend review. These routes do not submit transactions.
+Every M4 indexed response is derived and carries chain, contract, ABI version, and safe-block/freshness metadata. The paths are scoped to the configured M4 deployment; exact response fields must follow the merged ABI and frontend review. These routes do not submit transactions.

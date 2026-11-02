@@ -2,6 +2,10 @@
 
 Status: approved in PR #12 on 2026-10-20
 
+Historical deployment interface: the current product source has advanced to the
+[current contract ABI](CONTRACT_ABI.md). Use this record only with its published source-versioned
+ABI and deployed addresses; its build/deployment commands describe the recorded source revision.
+
 This document is the approved cross-layer contract for the Milestone 3 guarded-buy vertical slice. Code and tests remain the source of truth for implemented behavior; this document must be updated through team review if validation forces a different bound, tolerance, or dependency version.
 
 ## Scope
@@ -228,7 +232,7 @@ These decisions do not block the Milestone 3 guarded-buy slice:
 - Settlement, claims, and at-most-once payout execution.
 - Release or disposition of creator subsidy after finalization or VOID.
 - Complete VOID accounting across terminal states.
-- Resolver implementation is deferred. Proposed admission/removal, candidate snapshot, Chainlink VRF request-identity, address-level conflict, three-of-five quorum, replacement-round, fixed seven-day selection-deadline, and direct-vote wallet rules are documented for team review in [`../milestones/MILESTONE_3.md`](../milestones/MILESTONE_3.md); approval and the exact Milestone 4 contract/event ABI remain outstanding.
+- Resolver implementation was deferred from M3. The M4 design was approved in PR #28 and implemented with the exact contract/event ABI in merged PR #37; deployment and application integration remain tracked in [`MILESTONE_4.md`](../milestones/MILESTONE_4.md).
 - Oracle proposal/challenge implementation and real esports API selection.
 - Mainnet deployment.
 
