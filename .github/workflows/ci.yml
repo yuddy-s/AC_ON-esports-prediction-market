@@ -176,6 +176,10 @@ jobs:
         env:
           FOUNDRY_OUT: out/coverage
           FOUNDRY_CACHE_PATH: cache/coverage
+          # Coverage measures exercised code; the normal test job runs the full
+          # 256 x 500 economic campaigns. Limit only this instrumented rerun.
+          FOUNDRY_INVARIANT_RUNS: "32"
+          FOUNDRY_INVARIANT_DEPTH: "100"
         # Minimum-IR coverage bytecode differs from production. Runtime-size assertions
         # run in the production test/build job, not on instrumentation output.
         run: >-
