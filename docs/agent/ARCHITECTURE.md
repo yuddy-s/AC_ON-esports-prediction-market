@@ -1,6 +1,6 @@
 # AC_ON Architecture
 
-> Proposed M4 data-source addition: a server-side PandaScore REST adapter normalizes fixtures and results into the existing source tables. Its token stays outside the browser and Git. This is not a trusted settlement authority; live activation and independent result verification remain team decisions. The approved manual/mock path below is still the current target baseline.
+> The merged M4 backend stack includes a server-side PandaScore REST adapter that normalizes fixtures and results into the existing source tables. Its token stays outside the browser and Git, and live activation remains disabled pending written permission and team approval. PandaScore is not a trusted settlement authority; manual/mock ingestion remains the accepted no-cost path, and proposal intents require independently reviewed evidence.
 
 AC_ON is a testnet-only decentralized esports prediction market. Users connect an Ethereum wallet and trade YES/NO shares on binary esports match outcomes. The planned product is not fully trustless or fully permissionless: contract state should be authoritative for markets and payouts, while esports APIs, oracle automation, initial resolver bootstrapping, and indexing are trusted/off-chain support systems.
 
@@ -13,9 +13,9 @@ This document describes the repository as currently inspected. Do not treat plan
 | Frontend | implemented; locally integrated | React + Vite + TypeScript app under `frontend/` supports M3 quotes, guarded buys, positions, indexed trades, and submitted/mined/indexed progress. |
 | Wallet | implemented | Coinbase Smart Wallet and injected-wallet connectors through wagmi. Use MetaMask for Ethereum Sepolia writes because Coinbase Smart Wallet does not support sending transactions on that network; the local Anvil demo uses the development wallet. |
 | Chain config | implemented | Environment-driven configuration supports local Anvil and the deployed Ethereum Sepolia M3 token/market pair (chain ID `11155111`) with the published six-output ABI. |
-| Contracts | deployed and smoke-tested | ACON-funded creation, LMSR quotes, guarded buys, positions, and `TradeExecuted` are deployed from `6e30d51`. Market `0` and a ten-share YES buy are confirmed. |
-| Backend | implemented; locally integrated | FastAPI app has health, deprecated sample-match endpoints, and paginated indexed market/trade/status reads. The local frontend/indexer/API path is verified; hosted acceptance remains. |
-| Oracle | planned | No oracle service found. |
+| Contracts | M3 deployed; M4 locally verified | The M3 guarded-buy build is live. The current source adds the M4 fixture lifecycle, sells, challenge/resolver settlement, claims, exact ABI/event fixtures, and deployment tooling; fresh Sepolia deployment and cross-layer integration remain. |
+| Backend | M3 integrated; M4 workflows implemented off-chain | FastAPI includes indexed M3 reads plus the M4 fixture catalog, audited registration/proposal state machines, and guarded provider ingestion. Production contract gateways and M4 lifecycle projections remain deployment-gated. |
+| Oracle | mock workflows implemented | Result assessments, correction review, proposal intents, retries, and audit records are implemented against a mockable gateway. No production proposer signer or live M4 contract connection is configured. |
 | Indexer | implemented; locally integrated | Confirmed projections, checkpoints, rebuild/reorg recovery, RPC polling, and ABI decoding exist. Canonical Sepolia event decoding and the complete local projection/API flow passed; hosted persistent indexing/API verification remains. |
 | Database | Sepolia projections locally verified | Supabase revision `20261018_0001` is applied. A local worker populated one Sepolia market and two trades on 2026-10-22; the local API smoke check passed. Persistent hosted worker/API operation remains pending. |
 | CI | implemented | GitHub Actions runs frontend build, backend tests, and contract formatting/build/tests. |
@@ -74,21 +74,29 @@ The sample matches are fake display data only. They are not on-chain markets and
 
 ## Milestone 4 Target Design
 
-Status: [target design approved and merged in PR #28](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md); no fixture registration, sell, proposal, challenge, resolver, settlement, or claim code is deployed. The [M4 owner/test plan](milestones/MILESTONE_4.md) requires local feature completeness and a fresh Sepolia contract smoke test; public Vercel/Render/Supabase integration is a stretch target and remains an M5 deliverable if unfinished.
+Status: [target design approved and merged in PR #28](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md); the current source implements and locally verifies fixture registration, sells, proposals, challenges, resolver selection/voting, settlement, and claims, but no M4 build is deployed. The [M4 owner/test plan](milestones/MILESTONE_4.md) still requires consumer integration, a fresh Sepolia contract smoke test, and final acceptance; public Vercel/Render/Supabase integration is a stretch target and remains an M5 deliverable if unfinished.
 
 The fixture flow is deterministic mock or manual JSON fixture/result import with organizer evidence → restricted on-chain registration of selected fixture IDs and Team A/YES, Team B/NO → one user-funded market per registered fixture. The key is `keccak256(abi.encode(providerId, gameId, externalMatchId))`. A PandaScore adapter is optional only with written permission for this use; no paid plan is required. Importing a listing does not create a market. The contract checks its registry, so the registrar/source remain trusted inputs. The backend and PostgreSQL remain derived; users submit trades, challenges, resolver votes, and claims through wallets.
 
-The M4 design adds guarded LMSR sells rounded down with `minReturn`, 1 ACON per winning share, 0.5 ACON per outstanding share on VOID, separate 10 ACON challenge-bond accounting, and creator surplus only above claim reserves after settlement. Matthew must prove fixed-point solvency before payout code merges. A proposal is immutable and has a 24-hour challenge window. After exact events/reads freeze, the indexer/API will project sells, proposals, challenges, committees/votes, outcomes, and claims; contract reads remain authoritative for spendable and claimable amounts.
+The M4 design adds guarded LMSR sells with `minReturn`, mathematical ceiling rounding for buys,
+mathematical floor rounding for sells, 1 ACON per winning share, 0.5 ACON per outstanding share on
+VOID, separate 10 ACON challenge-bond accounting, and creator surplus only above claim reserves
+after settlement. Successful trade rounding leaves a nonnegative residue in collateral, yielding
+the solvency inequality recorded with stateful invariants in the
+[M4 economic proof](testing/M4_ECONOMIC_PROOF.md). A proposal is immutable and has a 24-hour
+challenge window. After exact events/reads freeze, the indexer/API will project sells, proposals,
+challenges, committees/votes, outcomes, and claims; contract reads remain authoritative for
+spendable and claimable amounts.
 
 ## Oracle
 
-Status: planned.
+Status: off-chain assessment and proposal workflows implemented; production chain integration pending.
 
-No oracle service exists yet. M4 requires deterministic mock and manual JSON adapters with organizer evidence URL/hash; PandaScore is optional only after written permission. Result parsing is separate from a least-privilege on-chain proposer. Proposals are immutable; corrections use challenges. A proposer cannot settle a challenged market. Seven days without a proposal after the trading deadline enables anyone to start resolver selection.
+The backend implements deterministic mock/manual JSON ingestion, guarded PandaScore parsing, result assessment, correction review, immutable proposal intents, retries, and audit records. PandaScore remains optional and disabled until written permission. The real least-privilege proposer key, production gateway, deployed contract, and role grant are not configured. Proposals are immutable; corrections use challenges. A proposer cannot settle a challenged market. Seven days without a proposal after the trading deadline enables anyone to start resolver selection.
 
 ## Resolver Protocol
 
-Status: target design approved in merged PR #28; not implemented. Exact ABI types still need a freeze.
+Status: target design approved in PR #28 and implemented/tested in the current contract source; deployment and consumer acceptance remain pending.
 
 Resolution remains authoritative on-chain. A 2-of-3 Sepolia Safe controlled by Benny, Matthew, and Adriel owns the allowlist, role recovery, and VRF subscription. Registry changes apply to future selections; removal does not rewrite an active round. PostgreSQL may project registry, selection, votes, deadlines, and outcomes, but never selects resolvers or decides outcomes.
 
@@ -98,7 +106,7 @@ Chainlink VRF v2.5 on Sepolia selects five distinct addresses using one random w
 
 Each selected resolver casts one direct YES, NO, or VOID vote during a 48-hour period. Three matching YES or NO votes finalize the winner; three VOID votes make the market VOID. Round 2 takes a new snapshot and excludes round-1 resolvers if five alternatives exist; otherwise still-eligible round-1 addresses may be reused. No round-2 quorum leads to VOID. Both terminal states expose claims.
 
-Direct voting authorizes `msg.sender`; relayed voting and EIP-1271 are outside M4. Exact Solidity types/indexed event fields and Matthew's collateral proof still gate dependent implementation. The approved event/read categories are in the [M4 design decision](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md).
+Direct voting authorizes `msg.sender`; relayed voting and EIP-1271 are outside M4. Exact Solidity types and indexed event fields are available in the merged ABI handoff, and Matthew's collateral proof is merged in PR #38. Fresh deployment, role setup, and frontend/backend consumer integration remain. The target behavior is in the [M4 design decision](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md).
 
 ## Indexer
 
@@ -148,7 +156,7 @@ The project should not be described as fully trustless or fully permissionless.
 
 ## Planned Market Lifecycle
 
-M3 creates markets directly in `OPEN` and checks the deadline without changing stored state. The decided M4 lifecycle below is **not implemented**; the current M3 enum remains the deployed interface. M4 stores only `OPEN`, `CLOSED`, `PROPOSED`, `DISPUTED`, `RESOLVER_SELECTION`, `RESOLVER_VOTING`, `FINALIZED`, and `VOID`, in that order. Resolver round 1/2 is stored separately. `CLAIMABLE` is a derived read, never a state. The [target diagram](../architecture-preview.md#market-state-machine) uses the same transitions.
+M3 creates markets directly in `OPEN` and checks the deadline without changing stored state. The M4 lifecycle below is implemented and locally tested in the current source but is not deployed; the M3 enum remains the live interface. M4 stores only `OPEN`, `CLOSED`, `PROPOSED`, `DISPUTED`, `RESOLVER_SELECTION`, `RESOLVER_VOTING`, `FINALIZED`, and `VOID`, in that order. Resolver round 1/2 is stored separately. `CLAIMABLE` is a derived read, never a state. The [target diagram](../architecture-preview.md#market-state-machine) uses the same transitions.
 
 ```text
 REGISTERED FIXTURE -> one user-funded OPEN market -> CLOSED at deadline or evidenced early close
@@ -225,5 +233,5 @@ Contract setup and deployment commands are documented in `contracts/README.md`. 
 - Coinbase Smart Wallet connects and reads but cannot send Ethereum Sepolia transactions; use MetaMask for the hosted Sepolia demo. The local Anvil demo uses the development wallet.
 - The reproducible local cross-layer flow has been manually verified, but it is not yet an automated end-to-end CI job.
 - Local SQLite is suitable for the reproducible Anvil demo; PostgreSQL/Supabase preserves exact large-integer Sepolia projections and passed the local API smoke check.
-- Resolver randomness, address-level conflicts, quorum, snapshot, retry, and timeout/liveness behavior are part of the PR #28-approved M4 design; contracts and exact ABI remain outstanding.
+- Resolver randomness, address-level conflicts, quorum, snapshot, retry, and timeout/liveness behavior are implemented and locally tested with exact ABI/event fixtures; fresh deployment, VRF/Safe handoff, and frontend/backend consumer integration remain outstanding.
 - Backend sample-match data is fake/off-chain and exists only for Milestone 2 fallback display.
