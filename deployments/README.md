@@ -2,7 +2,7 @@
 
 ## Current product build
 
-**The current local build is a review draft, not a new Sepolia deployment.**
+**The current M4 build/ABI was merged and locally verified; this local build record is not a new Sepolia deployment manifest.**
 
 - `abi/PredictionMarket.abi.json`, `abi/ResolverRegistry.abi.json`, `abi/MarketPricing.abi.json`,
   `abi/ACONTestToken.abi.json`: exact current compiled ABIs.

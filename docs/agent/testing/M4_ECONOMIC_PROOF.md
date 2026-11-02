@@ -1,8 +1,8 @@
 # M4 economic and collateral proof
 
-Status: **review draft against PR #37 source `6b64d599e3e34fdce5c1e4998b70eeef8ca6bbac`**.
-This record becomes Matthew's economic sign-off only after the stacked proof PR, its invariants,
-and the exact source/build artifacts are reviewed together.
+Status: **economic and collateral proof merged in PR #38 with the M4 contract stack in PR #37; locally verified against the recorded source/build artifacts**.
+The proof and stateful invariants are the accounting baseline for integration. Recheck them if
+contract source, payout rules, or ABI numeric units change.
 
 ## Canonical mathematical trade rounding
 

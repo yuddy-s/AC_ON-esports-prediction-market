@@ -1,7 +1,6 @@
 # Contract verification record
 
-Status: **mathematical floor-sell / ceiling-buy correction and stacked economic proof locally tested
-on 2026-11-01; numerical/ABI/economic review and fresh deployment pending**.
+Status: **M4 contract and economic implementation merged in PRs #37/#38 and locally verified; fresh Sepolia deployment, Safe/VRF setup, and role handoff pending**.
 Source/dependency/ABI/runtime-template digests are in
 [`deployments/build.json`](../../../deployments/build.json).
 This record covers Benny's contract slice. The [M4 milestone test plan](../milestones/MILESTONE_4.md#full-documented-test-plan)
@@ -220,13 +219,9 @@ smoke uses ten addresses, not an unbounded-pool gas guarantee.
 
 The existing contract build/test check now also validates the exact handoff and runs disposable
 Anvil journeys. A separate analysis job runs pinned Slither and coverage and uploads their reports.
-PR #37's original CI passed, and the rounding correction was published at `28fa936`. This
-failed-request fixture update has been validated locally and still needs publication and hosted
-CI. Final source/build digest pinning remains pending PR #38 reconciliation and team approval;
-regenerate and recheck the handoff if that reconciliation changes the source or ABI.
+The M4 implementation, rounding correction, failed-request fixture, economic proof, and generated ABI/build digests were merged in PRs #37/#38. The exact handoff validates locally; later source or ABI changes must regenerate and recheck those artifacts. This record does not claim an M4 live deployment.
 
-Before M4 release: record Matthew's economics/payout approval and consumer ABI freeze; verify
-the team Safe, ten real resolver-only wallets and funded Safe-owned subscription; deploy fresh
+Before M4 release: verify the team Safe, ten real resolver-only wallets and funded Safe-owned subscription; deploy fresh
 Sepolia contracts; record role/consumer/admin receipts and a real VRF fulfillment with focused
 transaction smoke. Full local cross-layer normal/disputed/timeout/VOID/claim comparisons remain
 whole-team acceptance work. Public hosted integration is the M4 stretch/M5 requirement.

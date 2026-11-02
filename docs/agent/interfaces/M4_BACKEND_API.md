@@ -1,12 +1,12 @@
 # M4 Backend to Frontend Handoff
 
-Provider update proposed in draft PR #39: `provider_id=pandascore` fixtures and result observations may enter the same catalog after permitted operator ingestion. They remain non-authoritative. A PandaScore result is not an on-chain proposal; the proposer creates an intent only when an operator has attached independent evidence to that exact observation in the append-only review log. The UI should show the source and update time, never infer settlement or claimability from a provider result.
+Provider status: PR #39 merged the optional, gated PandaScore adapter and operator review path. PandaScore fixtures and result observations remain non-authoritative. A provider result is not an on-chain proposal; a future proposer gateway may use an assessment only after independent evidence is attached to that exact observation. The UI should show the source and update time, never infer settlement or claimability from provider data.
 
 PandaScore listings return `detail.code=fixture_unreviewed` (HTTP 409) from the registration challenge route until an operator approves that specific fixture with independent evidence. Approval is bound to the team mapping and scheduled start and is revoked by a change to either. It is an off-chain selection, not an on-chain registration or permission to create a market.
 
 Catalog and detail items include `registration_eligible` as a current off-chain precheck for scheduled start, teams, result absence, and curation. It can change between reads; a signed challenge is still required and `registration_request_status=confirmed` remains the separate on-chain gate before market creation.
 
-Status: **stacked review PRs #30–#34**, 2026-10-30. These routes are off-chain source data and request tracking. On-chain M4 registration, market linkage, and result proposals require Benny's compiled ABI and deployment. Keep the [M3 trading interface](M3_TRADING_INTERFACE.md) as the deployed baseline.
+Current status: PRs #30-#39 are merged. PR #37 provides the locally verified M4 contract implementation and exact-build ABI/event fixtures; PR #38 merges the economic proof and invariants. These do not constitute an M4 Sepolia deployment. The registrar/proposer still use mock gateways, and the M4 event projections and lifecycle APIs are not implemented. Keep the [M3 trading interface](M3_TRADING_INTERFACE.md) as the deployed baseline.
 
 ## Fixture browsing
 
@@ -18,7 +18,7 @@ Status: **stacked review PRs #30–#34**, 2026-10-30. These routes are off-chain
 
 1. With an EOA wallet on the configured chain, call `POST /api/fixtures/{id}/registration-challenges` with `{"wallet_address":"0x..."}`. The response contains `nonce`, `message`, `expires_at`, and `chain_id`. The challenge lasts five minutes. Sign the exact `message` using EIP-191 `personal_sign`; do not reconstruct its fields in the browser. It binds the fixture source identity and a SHA-256 snapshot of teams, start time, and evidence.
 2. Call `POST /api/fixtures/{id}/registration-requests` with `wallet_address`, `nonce`, and the `0x` signature. A valid request returns HTTP 202 and a job. The same nonce cannot be used twice; a changed, already-resulted, or too-near fixture is rejected. Only one active job is stored per fixture. After certain terminal failures, a fresh signed challenge may reauthorize that job while its earlier audit remains intact; submitted/uncertain/confirmed jobs cannot be replaced.
-3. Poll `GET /api/fixtures/{id}/registration`; `null` means no request. `awaiting_abi`, `queued`, `retryable_failure`, `submitted`, and `submission_unknown` mean the player **cannot create a market yet**. `terminal_failure` needs operator resolution. Only `confirmed` means a registrar gateway matched the on-chain fixture after the configured confirmation depth. The present draft returns `awaiting_abi` and performs no chain write.
+3. Poll `GET /api/fixtures/{id}/registration`; `null` means no request. `awaiting_abi`, `queued`, `retryable_failure`, `submitted`, and `submission_unknown` mean the player **cannot create a market yet**. `terminal_failure` needs operator resolution. Only `confirmed` means a registrar gateway matched the on-chain fixture after the configured confirmation depth. The current implementation has no production chain gateway and does not confirm registrations on-chain.
 4. Once registered, the player separately signs the contract's market-creation and funding transaction. The backend never submits that user transaction. The M4 ABI and frontend contract read must establish that the fixture is still available and has no market.
 
 The job includes `id`, `fixture_id`, `requested_by`, `chain_id`, `status`, `transaction_hash`, `error_code`, `attempts`, `next_attempt_at`, `created_at`, and `updated_at`. `transaction_hash` can be null even after an uncertain network submission; do not treat it as proof of failure. Errors return `detail:{code,message}`; stable codes include `invalid_address`, `fixture_not_found`, `fixture_ineligible`, `fixture_changed`, `invalid_challenge`, `invalid_signature`, `already_requested`, `registration_conflict`, and `rate_limited`. User-facing text should use the code and provide a way to retry a fresh challenge when appropriate.
@@ -27,4 +27,16 @@ EOA signatures are the M4 registration scope. Coinbase Smart Wallet can connect 
 
 ## Indexed market data
 
-`GET /api/indexer/status` now includes nullable `abi_version` alongside chain, contract, safe block, and freshness; compare all of them to the selected deployment. The M4 market, history, resolution, committee, claim, and portfolio API shapes are pending the exact event ABI. All indexed values are derived; frontend contract reads decide spendable positions, claimability, and whether a write is currently valid. Do not use an off-chain job status or result assessment as a settlement result.
+`GET /api/indexer/status` includes nullable `abi_version` alongside chain, contract, safe block, and freshness; compare all of them to the selected deployment. The production indexer currently projects M3 `MarketCreated` and `TradeExecuted`. PR #42 merged a generic tuple-aware decoder with exact-signature filtering for the strict M3 path; it does not add M4 projections. M4 event projections and market/history/resolution/committee/claims/portfolio APIs remain unimplemented. The planned M4 read surface uses `/api/v2` to keep M3 route behavior stable. Indexed values are derived; frontend contract reads decide spendable positions, claimability, and whether a write is currently valid.
+
+### Planned M4 read routes (not implemented)
+
+- `GET /api/v2/indexer/status` reports the indexed M4 chain, contract, ABI version, latest/safe block, lag, and status freshness.
+- `GET /api/v2/markets` and `GET /api/v2/markets/{market_id}` expose indexed M4 markets and deployment metadata.
+- `GET /api/v2/markets/{market_id}/history` returns confirmed buy and sell activity in chain order.
+- `GET /api/v2/markets/{market_id}/resolution` returns derived proposal, challenge, resolver-round, committee, vote, and final-outcome history.
+- `GET /api/v2/markets/{market_id}/claims` returns indexed payout and creator-surplus events.
+- `GET /api/v2/portfolio/{wallet_address}` returns derived market positions and activity. It does not replace contract reads for current balances or claimable amounts.
+- Existing `GET /api/fixtures/{id}` and catalog reads gain nullable confirmed on-chain registration and linked-market information after the M4 `FixtureRegistered` and `MarketCreated` projections exist. Existing `registration_request_status` continues to describe the off-chain job only.
+
+Every M4 indexed response is derived and carries chain, contract, ABI version, and safe-block/freshness metadata. The paths are scoped to the configured M4 deployment; exact response fields must follow the merged ABI and frontend review. These routes do not submit transactions.

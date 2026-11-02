@@ -1,8 +1,8 @@
 # Mathematical trade rounding correction
 
-Status: **local correction authorized by Benny and reconciled with Matthew's revised economic
-proof; final reviewer and consumer sign-off remain pending**. This selects mathematical floor for
-sells and matched ceiling for buys, replacing the superseded integer-potential draft.
+Status: **mathematical floor-sell / matched ceiling-buy correction and economic proof merged in
+PRs #37/#38 and locally verified**. This replaces the superseded integer-potential draft; consumers
+must use the merged implementation and generated ABI/build artifacts.
 
 ## Rule and motivating regressions
 
@@ -25,9 +25,9 @@ reserve. There is no platform fee or fixed per-trade error buffer.
 | Sell those 10 YES back to `(0,0)` | 5,249,584,441,082,326,050 | **5,249,584,441,082,326,513** (floor) |
 
 Changing only the sell calculation would let that second/third pair gain 463 base units per
-round trip under the old buy calculation. Benny explicitly authorized the corresponding buy
-correction. This changes executable numeric quotes from the original draft; it is a proposed
-numeric amendment for team review, not an assertion that PR #28 already approved ceil-buy pricing.
+round trip under the old buy calculation. Benny authorized the corresponding buy correction, and
+the team merged its implementation and revised economic proof in PRs #37/#38. It supersedes the
+original PR #28 rounding behavior for executable M4 quotes.
 
 ## Directed interval calculation
 

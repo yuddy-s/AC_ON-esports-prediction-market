@@ -106,7 +106,7 @@ Chainlink VRF v2.5 on Sepolia selects five distinct addresses using one random w
 
 Each selected resolver casts one direct YES, NO, or VOID vote during a 48-hour period. Three matching YES or NO votes finalize the winner; three VOID votes make the market VOID. Round 2 takes a new snapshot and excludes round-1 resolvers if five alternatives exist; otherwise still-eligible round-1 addresses may be reused. No round-2 quorum leads to VOID. Both terminal states expose claims.
 
-Direct voting authorizes `msg.sender`; relayed voting and EIP-1271 are outside M4. Exact Solidity types/indexed event fields and Matthew's collateral proof still gate dependent implementation. The approved event/read categories are in the [M4 design decision](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md).
+Direct voting authorizes `msg.sender`; relayed voting and EIP-1271 are outside M4. Exact Solidity types and indexed event fields are available in the merged ABI handoff, and Matthew's collateral proof is merged in PR #38. Fresh deployment, role setup, and frontend/backend consumer integration remain. The target behavior is in the [M4 design decision](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md).
 
 ## Indexer
 

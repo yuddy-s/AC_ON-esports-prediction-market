@@ -8,9 +8,9 @@ and separate; M4 requires new token, pricing, registry and market addresses.
 
 ## 1. Establish the reviewed release inputs
 
-- Record Matthew's M4 integer-rounding/solvency/payout approval and consumer approval of the exact
-  ABI, events, fixture encoding, enums and manifest schema. Record a full source commit and build
-  settings only after the reviewed code is committed. The local draft currently uses content hashes.
+- Use the merged PR #37/#38 implementation and economic proof as the approved code baseline; have
+  frontend/backend consumers validate against the exact ABI, events, fixture encoding, enums and
+  manifest schema. Record the full source commit and build settings for the actual deployment.
 - Obtain the deployed **2-of-3 Sepolia Safe** with exactly Benny, Matthew and Adriel as owners.
   Confirm the three expected public addresses independently and compare them to `getOwners()`.
 - Obtain Yudhveer's **distinct registrar and proposer** addresses and at least ten distinct,

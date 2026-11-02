@@ -1,5 +1,5 @@
 {
-  "status": "LOCAL DRAFT - NOT DEPLOYED OR TEAM-FROZEN",
+  "status": "MERGED M4 IMPLEMENTATION - NOT DEPLOYED",
   "target_chain_id": 11155111,
   "compiler": "solc 0.8.24; optimizer 200; via_ir true",
   "source_sha256": {
@@ -87,10 +87,10 @@
     }
   },
   "release_gates": [
-    "exact ABI/event/fixture-key consumer review",
-    "Matthew economic proof and payout sign-off",
     "2-of-3 team Safe and funded VRF v2.5 subscription",
-    "ten resolver-only Sepolia addresses",
-    "fresh Sepolia deployment, completed Safe roles/ownership, real VRF and transaction smoke"
+    "at least ten resolver-only eligible Sepolia addresses",
+    "fresh Sepolia deployment with deployment manifest",
+    "completed Safe ownership and narrow service-role receipts",
+    "consumer integration and local Anvil/Sepolia lifecycle acceptance"
   ]
 }

@@ -1,11 +1,8 @@
-# Current contract ABI draft
+# M4 Contract ABI and Handoff
 
-Status: **local implementation draft authorized by Benny; not a team-frozen ABI or deployed release**.
-The approved [M4 decision](M4_FEATURE_COMPLETE_INTERFACE.md) remains authoritative. Matthew,
-Adriel, and Yudhveer must review the exact generated ABI, numeric behavior, and event fields
-before dependent releases. Matthew's economic proof/payout sign-off remains a merge gate.
+Status: **M4 contract implementation and exact ABI/event artifacts merged in PR #37; economic proof and invariants merged in PR #38; locally verified, not deployed to Sepolia.** This is the ABI baseline for dependent work. A deployment-specific manifest, Safe/VRF setup, role handoff, and consumer integration remain pending. ABI changes require coordinated review and regenerated build artifacts.
 
-## Local clarifications approved by Benny
+## Implemented interface constraints
 
 - Entering resolver selection starts its fixed seven-day deadline immediately. If fewer than
   five eligible addresses exist, the pool may be replenished. Freeze the first viable pool
@@ -13,11 +10,10 @@ before dependent releases. Matthew's economic proof/payout sign-off remains a me
 - Oracle proposals must arrive strictly before `tradingDeadline + 7 days`, even if no caller
   has yet advanced the expired state. At the cutoff only resolver selection is available.
 - Positive sells with nonpositive rounded cost decrease revert with `TradeTooSmall`.
-- For the rounding correction, preserve the mathematical floor for sells and use the matched
-  mathematical ceiling for buys. Benny authorized this local numeric correction after the
-  reverse-trade gain was identified. Matthew and consumers must approve it before merge.
+- For rounding, preserve the mathematical floor for sells and use the matched mathematical
+  ceiling for buys. This correction and its accounting proof are included in merged PR #38.
 - The product is updated in place under `contracts/src/`, with a single `PredictionMarket`.
-  `MarketPricing` uses directed mathematical bounds; Matthew's economic review remains required.
+  `MarketPricing` uses directed mathematical bounds; the economic review is recorded in PR #38.
   Tests are grouped by behavior under `contracts/test/`, and `contracts/script/Deploy.s.sol`
   deploys the current product. Previous on-chain deployment records retain their original ABIs.
 
@@ -223,11 +219,4 @@ must remain supported. Full signatures are generated rather than duplicated here
 
 ### Review handoff
 
-Matthew's [economic proof](../testing/M4_ECONOMIC_PROOF.md) reviews mathematical bounds, matched
-ceil-buy/floor-sell rounding, the rounded-ledger collateral inequality, terminal liabilities, bond
-disposition, dust, and surplus. Its stacked PR must be approved against the exact source/build
-before sign-off is final. Adriel reviews tuple/enum decoding, guarded user writes and derived
-claimability.
-Yudhveer reviews fixture encoding/revisions, restricted calls, indexed event fields, ignored
-callbacks and reorg-safe projection. Record their approvals against the exact ABI/source
-digests before declaring the interface frozen.
+Matthew's [economic proof](../testing/M4_ECONOMIC_PROOF.md) and accounting invariants were merged with the contract stack in PRs #37/#38. Adriel and Yudhveer should validate their frontend and backend consumers against this exact ABI before integration. Any contract change requires a regenerated ABI/source digest and coordinated review; deployment-specific addresses and role receipts belong in the M4 manifest, not this local build artifact.
