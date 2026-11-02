@@ -1,0 +1,2 @@
+# Local/CI static analysis only; not an application runtime dependency.
+slither-analyzer==0.11.3

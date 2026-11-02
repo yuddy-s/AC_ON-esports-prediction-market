@@ -6,7 +6,7 @@ from eth_utils import keccak
 import httpx
 import pytest
 
-from app.indexer.decoder import JsonAbiLogDecoder
+from app.indexer.decoder import JsonAbiEventDecoder, JsonAbiLogDecoder
 from app.indexer.rpc import (
     EthereumJsonRpcClient,
     RawEthereumLog,
@@ -200,6 +200,69 @@ def test_approved_market_event_is_decoded(tmp_path: Path) -> None:
     assert decoded.payload["question"] == "Will A win?"
 
 
+@pytest.mark.parametrize("event_name", ["MarketCreated", "TradeExecuted"])
+def test_strict_decoder_ignores_overloaded_same_name_events(tmp_path: Path, event_name: str) -> None:
+    if event_name == "MarketCreated":
+        overload = {
+            "type": "event",
+            "name": event_name,
+            "inputs": [
+                {"name": "marketId", "type": "uint256", "indexed": True},
+                {"name": "creator", "type": "address", "indexed": True},
+                {"name": "opaque", "type": "bytes32", "indexed": False},
+                {"name": "deadline", "type": "uint256", "indexed": False},
+            ],
+        }
+        signature = "MarketCreated(uint256,address,bytes32,uint256)"
+        topics = (
+            "0x" + keccak(text=signature).hex(),
+            "0x" + encode(["uint256"], [4]).hex(),
+            "0x" + encode(["address"], [ADDRESS]).hex(),
+        )
+        data = "0x" + encode(["bytes32", "uint256"], [bytes.fromhex("44" * 32), 1_900_000_000]).hex()
+    else:
+        overload = {
+            "type": "event",
+            "name": event_name,
+            "inputs": [
+                {"name": "marketId", "type": "uint256", "indexed": True},
+                {"name": "trader", "type": "address", "indexed": True},
+                {"name": "outcome", "type": "uint8", "indexed": True},
+                {"name": "opaque", "type": "bytes32", "indexed": False},
+                {"name": "cost", "type": "uint256", "indexed": False},
+                {"name": "yesQuantity", "type": "uint256", "indexed": False},
+                {"name": "noQuantity", "type": "uint256", "indexed": False},
+            ],
+        }
+        signature = "TradeExecuted(uint256,address,uint8,bytes32,uint256,uint256,uint256)"
+        topics = (
+            "0x" + keccak(text=signature).hex(),
+            "0x" + encode(["uint256"], [4]).hex(),
+            "0x" + encode(["address"], [ADDRESS]).hex(),
+            "0x" + encode(["uint8"], [1]).hex(),
+        )
+        data = "0x" + encode(
+            ["bytes32", "uint256", "uint256", "uint256"],
+            [bytes.fromhex("44" * 32), 2 * 10**18, 3 * 10**18, 4 * 10**18],
+        ).hex()
+
+    # Put the overload first: a name-only allowlist used to overwrite its
+    # lookup by name with the valid event while still admitting both topics.
+    path = tmp_path / "abi-with-overload.json"
+    path.write_text(json.dumps([overload, *approved_abi()]), encoding="utf-8")
+    raw = RawEthereumLog(
+        address=ADDRESS,
+        block_number=7,
+        block_hash=BLOCK_HASH,
+        transaction_hash=TX_HASH,
+        log_index=0,
+        topics=topics,
+        data=data,
+    )
+
+    assert JsonAbiLogDecoder(path).decode(11155111, raw) is None
+
+
 def test_approved_trade_event_is_decoded(tmp_path: Path) -> None:
     path = tmp_path / "abi.json"
     path.write_text(json.dumps(approved_abi()), encoding="utf-8")
@@ -245,3 +308,74 @@ def test_decoder_rejects_nonapproved_abi(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="MarketCreated"):
         JsonAbiLogDecoder(path)
+
+
+def test_generic_decoder_supports_nested_tuple_event_fields(tmp_path: Path) -> None:
+    components = [
+        {"name": "providerId", "type": "string"},
+        {"name": "gameId", "type": "string"},
+        {"name": "externalMatchId", "type": "string"},
+        {"name": "teamAId", "type": "string"},
+        {"name": "teamBId", "type": "string"},
+        {"name": "teamAName", "type": "string"},
+        {"name": "teamBName", "type": "string"},
+        {"name": "scheduledStart", "type": "uint256"},
+        {"name": "evidenceHash", "type": "bytes32"},
+        {"name": "evidenceURI", "type": "string"},
+    ]
+    abi = [{
+        "type": "event",
+        "name": "FixtureRegistered",
+        "inputs": [
+            {"name": "fixtureKey", "type": "bytes32", "indexed": True},
+            {"name": "registrar", "type": "address", "indexed": True},
+            {"name": "data", "type": "tuple", "components": components, "indexed": False},
+            {"name": "revisionHash", "type": "bytes32", "indexed": False},
+        ],
+    }]
+    path = tmp_path / "m4-candidate.abi.json"
+    path.write_text(json.dumps(abi), encoding="utf-8")
+
+    tuple_type = "(string,string,string,string,string,string,string,uint256,bytes32,string)"
+    tuple_values = (
+        "manual", "valorant", "match-1", "team-a", "team-b", "Alpha", "Bravo",
+        1_900_000_000, bytes.fromhex("44" * 32), "https://example.test/match-1",
+    )
+    fixture_key = bytes.fromhex("55" * 32)
+    revision_hash = bytes.fromhex("66" * 32)
+    topic0 = "0x" + keccak(text=(
+        "FixtureRegistered(bytes32,address,(string,string,string,string,string,string,string,uint256,bytes32,string),bytes32)"
+    )).hex()
+    raw = RawEthereumLog(
+        address=ADDRESS,
+        block_number=9,
+        block_hash=BLOCK_HASH,
+        transaction_hash=TX_HASH,
+        log_index=3,
+        topics=(
+            topic0,
+            "0x" + encode(["bytes32"], [fixture_key]).hex(),
+            "0x" + encode(["address"], [ADDRESS]).hex(),
+        ),
+        data="0x" + encode([tuple_type, "bytes32"], [tuple_values, revision_hash]).hex(),
+    )
+
+    decoded = JsonAbiEventDecoder(path).decode(11155111, raw)
+
+    assert decoded is not None
+    assert decoded.event_name == "FixtureRegistered"
+    assert decoded.payload["fixture_key"] == "0x" + fixture_key.hex()
+    assert decoded.payload["registrar"] == ADDRESS.lower()
+    assert decoded.payload["revision_hash"] == "0x" + revision_hash.hex()
+    assert decoded.payload["data"] == {
+        "provider_id": "manual",
+        "game_id": "valorant",
+        "external_match_id": "match-1",
+        "team_a_id": "team-a",
+        "team_b_id": "team-b",
+        "team_a_name": "Alpha",
+        "team_b_name": "Bravo",
+        "scheduled_start": 1_900_000_000,
+        "evidence_hash": "0x" + ("44" * 32),
+        "evidence_uri": "https://example.test/match-1",
+    }

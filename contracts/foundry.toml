@@ -7,6 +7,9 @@ cache_path = "cache"
 solc_version = "0.8.24"
 optimizer = true
 optimizer_runs = 200
+# The market lifecycle uses IR optimization to stay below the EIP-170 runtime limit.
+# Historical deployments must still be reproduced from their recorded source commit.
+via_ir = true
 
 [profile.default.fuzz]
 runs = 256
