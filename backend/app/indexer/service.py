@@ -7,7 +7,10 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.indexer.provider import ChainLog, EthereumLogProvider
-from app.models import IndexedContract, IndexedMarket, IndexedTrade, IndexerCheckpoint, ProcessedLog
+from app.models import (
+    IndexedContract, IndexedFixtureRegistration, IndexedMarket, IndexedMarketEvent,
+    IndexedPosition, IndexedTrade, IndexerCheckpoint, ProcessedLog,
+)
 
 
 logger = logging.getLogger("acon.indexer.service")
@@ -29,6 +32,7 @@ class IndexerConfig:
     confirmation_depth: int = 2
     block_batch_size: int = 500
     abi_version: str = "milestone-3-foundation"
+    m4_enabled: bool = False
 
     def __post_init__(self) -> None:
         if self.deployment_block < 0:
@@ -198,6 +202,18 @@ class EventIndexer:
             IndexedTrade.chain_id == contract.chain_id,
             IndexedTrade.contract_address == contract.contract_address,
         ))
+        session.execute(delete(IndexedPosition).where(
+            IndexedPosition.chain_id == contract.chain_id,
+            IndexedPosition.contract_address == contract.contract_address,
+        ))
+        session.execute(delete(IndexedMarketEvent).where(
+            IndexedMarketEvent.chain_id == contract.chain_id,
+            IndexedMarketEvent.contract_address == contract.contract_address,
+        ))
+        session.execute(delete(IndexedFixtureRegistration).where(
+            IndexedFixtureRegistration.chain_id == contract.chain_id,
+            IndexedFixtureRegistration.contract_address == contract.contract_address,
+        ))
         session.execute(delete(IndexedMarket).where(*filters))
         session.execute(delete(ProcessedLog).where(ProcessedLog.indexed_contract_id == contract.id))
         checkpoint.next_block = contract.deployment_block
@@ -229,8 +245,12 @@ class EventIndexer:
     ) -> None:
         if chain_log.event_name == "MarketCreated":
             self._apply_market_created(session, contract, chain_log)
+            # Autoflush is intentionally disabled; M4 linkage queries the row immediately.
+            session.flush()
         elif chain_log.event_name == "TradeExecuted":
             self._apply_trade_executed(session, contract, chain_log)
+        if self.config.m4_enabled:
+            self._apply_m4_projection(session, contract, chain_log)
 
     def _apply_market_created(
         self, session: Session, contract: IndexedContract, chain_log: ChainLog
@@ -308,6 +328,172 @@ class EventIndexer:
         market.source_transaction_hash = chain_log.transaction_hash.lower()
         market.source_log_index = chain_log.log_index
 
+    def _apply_m4_projection(
+        self, session: Session, contract: IndexedContract, chain_log: ChainLog
+    ) -> None:
+        payload = chain_log.payload
+        name = chain_log.event_name
+        if name == "FixtureRegistered":
+            self._apply_fixture_registered(session, contract, chain_log)
+            return
+        if name not in M4_MARKET_EVENTS:
+            return
+        market_id = int(payload["market_id"])
+        market = self._market(session, contract, market_id)
+        if market is None:
+            raise IndexerProjectionError(f"{name} references unknown market {market_id}")
+
+        if name == "MarketCreated":
+            fixture_key = str(payload["fixture_key"]).lower()
+            market.fixture_key = fixture_key
+            registration = session.scalar(select(IndexedFixtureRegistration).where(
+                IndexedFixtureRegistration.chain_id == contract.chain_id,
+                IndexedFixtureRegistration.contract_address == contract.contract_address,
+                IndexedFixtureRegistration.fixture_key == fixture_key,
+            ))
+            if registration is not None:
+                registration.market_id = market_id
+        elif name == "TradeExecuted":
+            self._change_position(session, contract, chain_log, add=True)
+        elif name == "SellExecuted":
+            market.yes_quantity = Decimal(str(payload["yes_quantity"]))
+            market.no_quantity = Decimal(str(payload["no_quantity"]))
+            self._change_position(session, contract, chain_log, add=False)
+        elif name == "MarketClosed":
+            market.state = "CLOSED"
+        elif name == "OutcomeProposed":
+            market.state = "PROPOSED"
+        elif name == "OutcomeChallenged":
+            market.state = "DISPUTED"
+        elif name in {"ResolverSelectionRequested", "ResolverSelectionRequestFailed", "ResolverSelectionPending"}:
+            market.state = "RESOLVER_SELECTION"
+        elif name == "ResolverCommitteeSelected":
+            market.state = "RESOLVER_VOTING"
+        elif name == "MarketFinalized":
+            market.state = "FINALIZED"
+            market.final_outcome = int(payload["outcome"])
+        elif name == "MarketVoided":
+            market.state = "VOID"
+            market.final_outcome = 2
+        elif name == "PayoutClaimed":
+            position = self._position(session, contract, market_id, str(payload["account"]), chain_log.block_number)
+            position.yes_shares = Decimal(0)
+            position.no_shares = Decimal(0)
+            position.claimed = True
+            position.payout = Decimal(str(payload["payout"]))
+
+        market.source_block_number = chain_log.block_number
+        market.source_block_hash = chain_log.block_hash.lower()
+        market.source_transaction_hash = chain_log.transaction_hash.lower()
+        market.source_log_index = chain_log.log_index
+        session.add(IndexedMarketEvent(
+            chain_id=contract.chain_id,
+            contract_address=contract.contract_address,
+            market_id=market_id,
+            event_name=name,
+            actor=self._event_actor(payload),
+            payload=self._json_safe(payload),
+            block_number=chain_log.block_number,
+            block_hash=chain_log.block_hash.lower(),
+            transaction_hash=chain_log.transaction_hash.lower(),
+            log_index=chain_log.log_index,
+        ))
+
+    def _apply_fixture_registered(
+        self, session: Session, contract: IndexedContract, chain_log: ChainLog
+    ) -> None:
+        payload = chain_log.payload
+        fixture_key = str(payload["fixture_key"]).lower()
+        registration = session.scalar(select(IndexedFixtureRegistration).where(
+            IndexedFixtureRegistration.chain_id == contract.chain_id,
+            IndexedFixtureRegistration.contract_address == contract.contract_address,
+            IndexedFixtureRegistration.fixture_key == fixture_key,
+        ))
+        values = {
+            "registrar": str(payload["registrar"]).lower(),
+            "data": self._json_safe(payload["data"]),
+            "revision_hash": str(payload["revision_hash"]).lower(),
+            "block_number": chain_log.block_number,
+            "block_hash": chain_log.block_hash.lower(),
+            "transaction_hash": chain_log.transaction_hash.lower(),
+            "log_index": chain_log.log_index,
+        }
+        if registration is None:
+            registration = IndexedFixtureRegistration(
+                chain_id=contract.chain_id, contract_address=contract.contract_address,
+                fixture_key=fixture_key, **values,
+            )
+            session.add(registration)
+        else:
+            for field, value in values.items():
+                setattr(registration, field, value)
+
+    def _change_position(
+        self, session: Session, contract: IndexedContract, chain_log: ChainLog, *, add: bool
+    ) -> None:
+        payload = chain_log.payload
+        market_id = int(payload["market_id"])
+        position = self._position(
+            session, contract, market_id, str(payload["trader"]), chain_log.block_number
+        )
+        shares = Decimal(str(payload["shares"]))
+        field = "yes_shares" if int(payload["outcome"]) == 0 else "no_shares"
+        current = Decimal(getattr(position, field))
+        updated = current + shares if add else current - shares
+        if updated < 0:
+            raise IndexerProjectionError(f"{chain_log.event_name} makes {field} negative")
+        setattr(position, field, updated)
+        position.updated_block_number = chain_log.block_number
+
+    @staticmethod
+    def _market(session: Session, contract: IndexedContract, market_id: int) -> IndexedMarket | None:
+        return session.scalar(select(IndexedMarket).where(
+            IndexedMarket.chain_id == contract.chain_id,
+            IndexedMarket.contract_address == contract.contract_address,
+            IndexedMarket.market_id == market_id,
+        ))
+
+    @staticmethod
+    def _position(
+        session: Session, contract: IndexedContract, market_id: int, wallet: str, block_number: int
+    ) -> IndexedPosition:
+        normalized = wallet.lower()
+        position = session.scalar(select(IndexedPosition).where(
+            IndexedPosition.chain_id == contract.chain_id,
+            IndexedPosition.contract_address == contract.contract_address,
+            IndexedPosition.market_id == market_id,
+            IndexedPosition.wallet_address == normalized,
+        ))
+        if position is None:
+            position = IndexedPosition(
+                chain_id=contract.chain_id, contract_address=contract.contract_address,
+                market_id=market_id, wallet_address=normalized,
+                yes_shares=Decimal(0), no_shares=Decimal(0), claimed=False,
+                payout=Decimal(0), updated_block_number=block_number,
+            )
+            session.add(position)
+        return position
+
+    @staticmethod
+    def _event_actor(payload: dict[str, object]) -> str | None:
+        for field in ("trader", "caller", "proposer", "challenger", "resolver", "account", "creator"):
+            value = payload.get(field)
+            if isinstance(value, str) and len(value) == 42:
+                return value.lower()
+        return None
+
+    @classmethod
+    def _json_safe(cls, value: object) -> object:
+        if isinstance(value, bool) or value is None or isinstance(value, str):
+            return value
+        if isinstance(value, int):
+            return str(value)
+        if isinstance(value, dict):
+            return {str(key): cls._json_safe(item) for key, item in value.items()}
+        if isinstance(value, (tuple, list)):
+            return [cls._json_safe(item) for item in value]
+        return str(value)
+
     @staticmethod
     def _processed_log(contract: IndexedContract, chain_log: ChainLog) -> ProcessedLog:
         return ProcessedLog(
@@ -321,3 +507,13 @@ class EventIndexer:
             event_name=chain_log.event_name,
             payload=chain_log.payload,
         )
+
+
+M4_MARKET_EVENTS = {
+    "MarketCreated", "TradeExecuted", "SellExecuted", "MarketClosed",
+    "OutcomeProposed", "OutcomeChallenged", "ChallengeBondResolved",
+    "ResolverSelectionRequested", "ResolverSelectionRequestFailed",
+    "ResolverSelectionPending", "ResolverCommitteeSelected", "VRFFulfillmentIgnored",
+    "ResolverVoteCast", "MarketFinalized", "MarketVoided", "PayoutClaimed",
+    "CreatorSurplusWithdrawn",
+}

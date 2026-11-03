@@ -1,6 +1,10 @@
 # AC_ON Backend
 
-FastAPI backend and Milestone 3 indexer foundation. The indexed market/trade APIs expose derived Ethereum Sepolia projections. The older sample-match endpoints remain temporarily as deprecated Milestone 2 fallback data.
+FastAPI backend for the deployed M4 fixture, market, lifecycle, portfolio, registrar, proposer, PandaScore, and indexed `/api/v2` flows. The older M3 and sample-match routes remain compatibility/fallback surfaces.
+
+For the current full-application startup, live Sepolia acceptance flow, known-good
+transactions, and troubleshooting learned during integration, use the
+[M4 full-application runbook](../docs/agent/M4_APPLICATION_RUNBOOK.md).
 
 This data is **non-authoritative**. Blockchain contracts remain the source of truth for real markets, balances, settlement, and payouts.
 
@@ -22,23 +26,25 @@ Apply schema migrations before running the API or indexer:
 alembic upgrade head
 ```
 
-Indexer configuration is environment-driven. For the deployed M3 market, with the worker launched from `backend/`, use these public values and set the RPC URL privately:
+Indexer configuration is environment-driven. For the current M4 market, with the worker launched from `backend/`, use these public values and set the RPC URL privately:
 
 ```env
 INDEXER_CHAIN_ID=11155111
 SEPOLIA_RPC_URL=https://your-sepolia-rpc.example
-PREDICTION_MARKET_ADDRESS=0x19EF739001038Ce9DFB1E12Cf45A10c9250A60a7
-PREDICTION_MARKET_DEPLOYMENT_BLOCK=11963761
+PREDICTION_MARKET_ADDRESS=0x03ae48f03C7822540a91DA2168602bd49dC510E9
+PREDICTION_MARKET_DEPLOYMENT_BLOCK=12051223
 INDEXER_CONFIRMATION_DEPTH=2
 INDEXER_POLL_INTERVAL_SECONDS=5
-INDEXER_BLOCK_BATCH_SIZE=500
+INDEXER_BLOCK_BATCH_SIZE=10
 INDEXER_RPC_TIMEOUT_SECONDS=10
 INDEXER_RPC_MAX_ATTEMPTS=3
 INDEXER_RPC_BACKOFF_SECONDS=0.5
-PREDICTION_MARKET_ABI_PATH=../deployments/abi/PredictionMarket.6e30d516669e.792fa9f230ed.abi.json
+PREDICTION_MARKET_ABI_PATH=../deployments/abi/PredictionMarket.721a6fef039a.4af9297937eb.abi.json
 ```
 
 Two confirmations are the approved Sepolia demo default; deployments may override the value. Before touching indexer state, the worker verifies `eth_chainId` against `INDEXER_CHAIN_ID` and validates the supplied ABI against the approved `MarketCreated` and `TradeExecuted` event contracts. It fails closed for a wrong network or while the final deployed ABI is unavailable.
+
+The indexer also has a generic JSON-ABI event decoder that can decode tuple fields, including nested tuple payloads. The production M3 worker continues to use a strict allowlist of exact canonical event signatures and validates each event's indexed-field layout; an overloaded event with an unapproved signature is ignored even if its name matches. The generic decoder does not enable M4 events or create projections. M4 event mapping remains gated on the reviewed ABI plus explicit event-to-projection tests.
 
 The completed [M3 manifest](../deployments/sepolia-m3.json) follows the [public deployment handoff convention](../deployments/README.md) and passes `python -m scripts.validate_handoff ../deployments/sepolia-m3.json`. It records the deployed source, token/market addresses, exact-build ABIs, and successful creation/buy receipts. The worker records the ABI filename as its version and refuses to resume an existing contract record with a different ABI version or deployment block. Use the completed manifest, not `sepolia-m3.template.json`.
 
@@ -69,6 +75,113 @@ python -m scripts.seed_sample_matches
 ```
 
 The seed script creates the `sample_matches` table if needed and upserts three fake sample matches.
+
+## Milestone 4 Backend Status
+
+The backend includes the fixture/result catalog, manual/mock and live PandaScore imports,
+signed EOA registration requests and recovery audit, result assessments/reviews, real
+JSON-RPC registrar/proposer gateways, M4 projections, and `/api/v2`. The current Sepolia
+deployment and live registration/market/trade evidence are recorded in the
+[M4 runbook](../docs/agent/M4_APPLICATION_RUNBOOK.md).
+
+The indexer preserves historical M3 records and enables the complete M4 event projection
+for the frozen M4 ABI. Migration `20261102_0008` adds fixture-to-market linkage,
+lifecycle history, positions, claims, and portfolio state. The fresh Sepolia deployment,
+registrar/proposer grants, live PandaScore import, fixture registration, market creation,
+buy, indexer, API, and frontend reads have passed. Real VRF/dispute/vote/payout acceptance
+remains separate lifecycle evidence.
+
+Manual JSON and deterministic mock data remain the recovery and deterministic-test paths. The M4 release also performs a live PandaScore ingestion smoke when the team has approved use and privately configured a token. Provider data remains non-authoritative.
+
+## Milestone 4 Fixture Catalog
+
+The fixture catalog is imported **off-chain source data**, not an on-chain registration or market. An operator imports a JSON file from `backend/` after `alembic upgrade head` has applied the fixture migration (`20261029_0002`) to the chosen database. Use a local database for development; do not point the importer at Supabase unintentionally. No PandaScore account, API token, registrar key, or M4 ABI is needed for this slice.
+
+### PandaScore provider adapter and live smoke
+
+`app.pandascore` normalizes PandaScore's Valorant, Counter-Strike, and Rainbow Six Siege upcoming/past match pages into the same fixture/result document as the manual adapter. It uses a server-side Bearer token, bounded pagination, the provider's remaining-request header, and explicit failures for denied access, rate limits, and malformed responses. Missing teams, timestamps, and ambiguous winners produce no guessed result. A canceled forfeit with a winner also produces no result until reviewed. The source URL and SHA-256 of the provider record are evidence **of what PandaScore returned**, not independent organizer confirmation. Imported data remains non-authoritative.
+
+PR #39 implemented and tested this provider adapter. Live polling is deliberately operator-gated: set `PANDASCORE_USE_APPROVED=true` and `PANDASCORE_API_TOKEN` privately. From `backend/`, run `python -m scripts.import_pandascore all --validate-only` to verify authenticated normalization, or omit `--validate-only` to import into the configured database. `--max-pages` bounds each upcoming/past query. Check `DATABASE_URL` before an import. Never put the token in a frontend variable, URL, log, committed file, or screenshot. This command is operator-run, not a public API endpoint or automatic market creator.
+
+### M4 indexer and signer processes
+
+Migration `20261102_0008` adds rebuildable fixture-registration, lifecycle-event, and wallet-position projections. The indexer automatically selects the exact-signature M4 decoder when the configured ABI contains the complete M4 event surface; historical M3 deployments retain the strict M3 decoder. M4 reads are under `/api/v2` and always report chain, contract, ABI, safe-block, freshness, and `authoritative:false` metadata.
+
+Configure `REGISTRAR_PRIVATE_KEY` and `PROPOSER_PRIVATE_KEY` as distinct, narrowly permissioned accounts. Never commit either key. Run exactly one process of each kind:
+
+```powershell
+python -m app.indexer.worker
+python -m app.registrar_process --activate-job <job-id>
+python -m app.proposer_process
+```
+
+Use `--once` on any worker for a bounded local smoke. Registrar and proposer confirmation requires both a matching contract read and a successful receipt at `SIGNER_CONFIRMATION_DEPTH`; uncertain submissions are quarantined instead of blindly resent.
+
+For a registered match older than the bounded past-match pages, use `python -m scripts.import_pandascore valorant --match-id <provider-match-id>` to refresh its exact provider record. The adapter checks the returned game identity before importing. The same option works for `cs2` and `r6siege` and prevents a tracked result from being missed solely because it aged out of the recent list.
+
+Provider-only result observations do not become proposer intents. Migration `20261101_0007` adds append-only result reviews bound to one exact observation. After checking an independent organizer result, an operator may run `python -m scripts.review_result <observation-id> --reviewer <operator-id> --approve --evidence-url <organizer-url> --evidence-hash <0x-sha256>`. Both fixture and result approval reject `pandascore.co` and every `*.pandascore.co` hostname as non-independent evidence; the operator must still verify that any other URL genuinely belongs to an independent source. `--revoke` records a later rejection; a corrected PandaScore observation needs its own new review. The oracle mock worker uses the latest review and the independent evidence in its immutable intent. If any assessed outcome changed, a new intent stays in `correction_review` even after an observation receives independent evidence; it cannot auto-submit pending a separate correction disposition. The team must approve this verification policy before a production signer uses it. During provider outages, retain earlier observations, show their timestamps, and stop new proposals rather than inventing results. The deterministic mock and manual JSON importer remain available for tests and controlled recovery.
+
+Fetched PandaScore fixtures start catalog-only: registration challenges return `fixture_unreviewed`. An operator may review a selected match and independent organizer evidence from `backend/` with `python -m scripts.review_fixture <catalog-id> --reviewer <operator-id> --approve --evidence-url <organizer-url> --evidence-hash <0x-sha256>`. Use `--revoke` to remove current approval. Migration `20261101_0006` stores the current approval and append-only review events. The approval is bound to the fixture identity, team order, and scheduled start; a later change to those fields requires a fresh review. Approval does not submit an on-chain transaction. Check `DATABASE_URL` before the operator command, and keep it out of public API routes. The registrar worker needs a deployed contract, configured registrar role, and matching confirmed chain read before it may report `confirmed`; the exact ABI is available in the merged handoff.
+
+Fixture catalog/detail responses expose `registration_eligible` as an off-chain precheck. It is false for unreviewed or stale PandaScore listings and can change before a challenge is signed; it never means that on-chain registration is complete.
+
+Merged migrations through `20261101_0007` include registration requests, result assessments, recovery audit, and source-review records. Run `alembic upgrade head` against the intended development database before using these features. Do not infer that a hosted database has been migrated; hosted migration state must be checked separately.
+
+### Signed registration request (off-chain workflow)
+
+The player selects a **scheduled, curated** catalog fixture with two distinct teams, source evidence, no recorded result, and at least 30 minutes until the scheduled start. The frontend calls `POST /api/fixtures/{id}/registration-challenges` with `{"wallet_address":"0x..."}` and receives a five-minute EIP-191 message, nonce, chain ID, and expiry. The message binds a SHA-256 snapshot of identity, teams, start time, and evidence. The player signs that exact message with an EOA wallet. The frontend then calls `POST /api/fixtures/{id}/registration-requests` with `wallet_address`, `nonce`, and `signature`. The server recovers the signer, checks the chain/fixture/expiry and unchanged snapshot, consumes the challenge once, and stores at most one request per fixture. A wallet is limited to 12 challenges and 3 registration requests per rolling day. Expired challenges are cleaned after a one-day retention period. Errors include a stable `detail.code`.
+
+`GET /api/fixtures/{id}/registration` returns the job or `null`. Jobs begin at `awaiting_abi` until an operator activates them against a configured deployment. The state machine defines `queued`, `retryable_failure`, `submitted`, `submission_unknown`, `terminal_failure`, and `confirmed`, with an append-only audit log. A successful receipt alone cannot set `confirmed`; the production gateway also requires a matching on-chain registration after the configured confirmation depth. An uncertain submission is never resent automatically. Contract wallets are not supported by this EOA signature flow.
+
+The request is only permission for the narrow registrar to register a verified fixture. The player must sign a **separate market creation and funding transaction** after the registration is confirmed. The backend never creates or funds the player's market. Before exposing these POST endpoints publicly, configure an edge rate limit and bot protection in addition to the per-wallet database limits; arbitrary new addresses can otherwise consume challenge storage.
+
+Recovery migration `20261030_0005` retains each signed fixture snapshot, authorizing wallet, challenge ID, and SHA-256 nonce/message hashes in the append-only registrar audit. The current job's authorization fields may change on recovery, but earlier events remain attributable after challenge cleanup; raw nonces and signatures are not retained. Events created before this migration have null authorization metadata because the historical signer cannot safely be reconstructed from a mutable job. A terminal job caused by changed/ineligible fixture data, an explicitly reverted transaction, or exhausted known pre-submission attempts can accept a **new** five-minute wallet authorization. It resets the one job for that fixture while preserving earlier event snapshots, signer metadata, and transaction hashes. A submitted or uncertain transaction, a confirmed registration, and an on-chain conflict cannot be reauthorized this way. The importer also freezes Team A/B IDs after any recorded result and freezes those IDs and the scheduled start after confirmed registration, so result mapping cannot drift away from the registered fixture.
+
+### Result assessment (non-signing oracle slice)
+
+Migration `20261029_0004` adds append-only result assessments. After importing result observations, an operator can run `python -m scripts.assess_results` against the intended database. Each observation maps Team A to YES, Team B to NO, and canceled/tied/no-contest/unsupported to VOID. A corrected observation creates a new row; changed outcomes are flagged for challenge review. Re-running the command is idempotent. These rows are **source assessments**, not on-chain proposals, market outcomes, or proof that a result is true.
+
+The merged result-assessment migrations also store one proposal intent per `(chain_id, contract_address, market_id)` and append-only attempt events. `app.oracle_worker` defines a mockable closed-market gateway and bounded state machine. It chooses the latest assessment only after a gateway reports a closed, unproposed market. If the fixture's assessed result history contains a conflicting correction before intent creation, the intent starts in `correction_review` and cannot auto-submit. A new observation after intent creation also pauses a not-yet-submitted intent for review, even if the suggested outcome is unchanged. A known pre-submission outage may retry; an uncertain submission or invalid transaction hash is quarantined. Both registrar and proposer workers accept only `0x` followed by 64 hexadecimal characters as a transaction hash and store valid hashes in lowercase. A successful receipt is insufficient to report `confirmed` without a matching chain read after the confirmation depth. No public route can choose an outcome.
+
+The merged M3 indexer rebuild test proves imported fixtures, registration jobs/audit, assessments, and oracle intents/audit survive a replay; the derived M3 market/trade rows are recreated. M4 event tables and decoder changes still need the reviewed ABI, and their rebuild coverage must be added with actual event fixtures.
+
+The production proposer is gated operationally on the M4 deployment and role handoff. Its separate process links reviewed fixtures to confirmed indexed markets, checks the chain's closed/proposed state before submission, and signs with a distinct least-privilege proposer key. No key is configured in the repository. Corrections after an immutable on-chain proposal require the challenge/resolver path.
+
+```bash
+python -m scripts.import_fixtures path/to/fixtures.json --validate-only
+python -m scripts.import_fixtures path/to/fixtures.json
+```
+
+The file has `fixtures` and `results` arrays. A later file may contain only `results` for fixtures already imported. IDs are source identifiers, not the on-chain fixture key. The canonical on-chain fixture-key encoding and compiled calls are defined by the merged M4 interface and ABI handoff; use those exact types when implementing the chain gateway. Example **fictional** record:
+
+```json
+{
+  "fixtures": [{
+    "provider_id": "acon-mock", "game_id": "valorant", "external_match_id": "demo-1",
+    "scheduled_start": "2030-01-01T18:00:00Z", "match_status": "scheduled",
+    "team_a_id": "alpha", "team_a_name": "Mock Alpha",
+    "team_b_id": "bravo", "team_b_name": "Mock Bravo",
+    "evidence_url": "https://example.org/fictional-demo-schedule",
+    "evidence_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "source_updated_at": "2029-12-01T12:00:00Z"
+  }],
+  "results": [{
+    "provider_id": "acon-mock", "game_id": "valorant", "external_match_id": "demo-1",
+    "match_status": "completed", "winner_team_id": "alpha",
+    "source_updated_at": "2030-01-01T21:00:00Z",
+    "evidence_url": "https://example.org/fictional-demo-result",
+    "evidence_hash": "0x1111111111111111111111111111111111111111111111111111111111111111"
+  }]
+}
+```
+
+Results are append-only observations with their evidence reference and hash; importing the same file twice does not duplicate rows. A different result remains visible in `/api/fixtures/{id}/results` rather than silently replacing the earlier one. Catalog `match_status` and its filter use the latest result observation when one exists, including after a result-only import; the original fixture schedule row stays intact. The importer checks the winner against the fixture's two team IDs and freezes those IDs after any result, so later fixture updates cannot remap that winner. It does not independently verify an organizer or settle a market. The JSON source is operated by the team and is never accepted through a public write endpoint.
+
+- `GET /api/fixtures?game_id=valorant&match_status=scheduled&limit=50&offset=0` returns paginated fixture records, including nullable `registration_request_status`. This is an off-chain job status; only a future confirmed on-chain check can make it `confirmed`.
+- `GET /api/fixtures/{id}` returns one fixture and its latest result observation, or 404.
+- `GET /api/fixtures/{id}/results` returns all source observations oldest first.
+
+All catalog responses are non-authoritative. Merged registration code accepts on-demand wallet requests and reports off-chain job status; on-chain registration, linked markets, and result-proposer automation remain outstanding. The M3 market/trade indexer continues to use its existing deployment and ABI.
 
 ## Run Locally
 
@@ -103,6 +216,8 @@ After the wallet reports a successful mined `buy`, poll `GET /api/trades/by-tran
 `items` contains all confirmed `TradeExecuted` projections for that transaction on the active indexed contract, ordered by block and log index. Each item has the same fields as `/api/markets/{market_id}/trades`, including `market_id`, `transaction_hash`, `log_index`, and `authoritative: false`. HTTP 200 with an empty list means no matching trade has been indexed; it can also mean the indexer is not configured, the transaction is still inside the confirmation window, the transaction did not emit a trade, or the frontend is using another contract deployment. Do not interpret an empty list alone as a failed or pending wallet transaction.
 
 `GET /api/indexer/status` includes `configured`, `chain_id`, `contract_address`, `latest_observed_block`, `last_safe_block`, `lag_blocks`, and `updated_at`. `updated_at` is the checkpoint's last update in UTC ISO 8601 format, or `null` before a head has been observed. Each successful head observation refreshes it, even if a later indexing range fails. Compare the status chain and contract with the wallet transaction, check that `updated_at` is recent, and wait until `last_safe_block` reaches the receipt block. If the trade lookup is still empty after that, inspect the receipt and its logs. A healthy two-confirmation worker normally has nonzero `lag_blocks`; zero lag alone does not prove that the worker is current. Database failures return a server error from indexed read endpoints rather than an empty trade list.
+
+The status response also includes nullable `abi_version` from the active indexed contract. It is `null` when no worker has registered a contract; a frontend should compare a configured version with the deployed handoff before treating indexed results as belonging to its selected contract.
 
 ## Frontend Integration
 

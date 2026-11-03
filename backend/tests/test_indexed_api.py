@@ -12,7 +12,10 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.database import Base, get_session
 from app.main import app
-from app.models import IndexedContract, IndexedMarket, IndexedTrade, IndexerCheckpoint
+from app.models import (
+    IndexedContract, IndexedMarket, IndexedMarketEvent, IndexedPosition, IndexedTrade,
+    IndexerCheckpoint,
+)
 
 
 CONTRACT = "0x1111111111111111111111111111111111111111"
@@ -104,10 +107,56 @@ def test_empty_projection_endpoints(client_and_session: tuple[TestClient, sessio
 
     assert status.status_code == 200
     assert status.json()["configured"] is False
+    assert status.json()["abi_version"] is None
     assert status.json()["authoritative"] is False
     assert status.json()["updated_at"] is None
     assert markets.status_code == 200
     assert markets.json() == {"items": [], "total": 0, "limit": 50, "offset": 0}
+
+
+def test_m4_history_resolution_claims_and_portfolio(
+    client_and_session: tuple[TestClient, sessionmaker[Session]],
+) -> None:
+    client, SessionLocal = client_and_session
+    add_projection(SessionLocal)
+    wallet = "0x3333333333333333333333333333333333333333"
+    with SessionLocal() as session:
+        market = session.query(IndexedMarket).filter_by(market_id=0).one()
+        market.fixture_key = "0x" + "44" * 32
+        market.state = "FINALIZED"
+        market.final_outcome = 0
+        for index, (name, payload) in enumerate([
+            ("TradeExecuted", {"trader": wallet, "outcome": "0", "shares": str(10**18), "cost": str(5 * 10**17), "yes_quantity": str(10**18), "no_quantity": "0"}),
+            ("OutcomeProposed", {"proposer": wallet, "outcome": "0"}),
+            ("PayoutClaimed", {"account": wallet, "payout": str(10**18)}),
+        ]):
+            session.add(IndexedMarketEvent(
+                chain_id=11155111, contract_address=CONTRACT, market_id=0,
+                event_name=name, actor=wallet, payload=payload, block_number=130 + index,
+                block_hash="0x" + f"{130 + index:064x}",
+                transaction_hash="0x" + f"{230 + index:064x}", log_index=0,
+            ))
+        session.add(IndexedPosition(
+            chain_id=11155111, contract_address=CONTRACT, market_id=0,
+            wallet_address=wallet, yes_shares=0, no_shares=0, claimed=True,
+            payout=10**18, updated_block_number=132,
+        ))
+        session.commit()
+
+    markets = client.get("/api/v2/markets")
+    history = client.get("/api/v2/markets/0/history")
+    resolution = client.get("/api/v2/markets/0/resolution")
+    claims = client.get("/api/v2/markets/0/claims")
+    portfolio = client.get(f"/api/v2/portfolio/{wallet}")
+
+    assert markets.status_code == history.status_code == resolution.status_code == claims.status_code == portfolio.status_code == 200
+    assert markets.json()["items"][0]["yes_quantity"] == "0"
+    assert history.json()["items"][0]["kind"] == "BUY"
+    assert history.json()["items"][0]["amount"] == str(5 * 10**17)
+    assert resolution.json()["items"][0]["event"] == "OutcomeProposed"
+    assert claims.json()["items"][0]["event"] == "PayoutClaimed"
+    assert portfolio.json()["items"][0]["payout"] == str(10**18)
+    assert portfolio.json()["metadata"]["authoritative"] is False
 
 
 def test_market_pagination_and_projection_metadata(
@@ -145,6 +194,7 @@ def test_market_detail_trade_history_and_indexer_lag(
     assert trades.json()["items"][0]["shares"] == "1000000000000000000"
     assert trades.json()["items"][0]["authoritative"] is False
     assert status.json()["configured"] is True
+    assert status.json()["abi_version"] == "test"
     assert status.json()["lag_blocks"] == 3
     assert status.json()["next_block"] == 121
     assert status.json()["updated_at"] is not None

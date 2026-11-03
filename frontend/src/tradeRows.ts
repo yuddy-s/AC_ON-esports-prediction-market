@@ -9,8 +9,9 @@ export interface TradeRow {
   trader: string;
   isYou: boolean;
   side: "YES" | "NO";
+  kind: "BUY" | "SELL";
   shares: string;
-  cost: string;
+  amount: string;
   transactionHash: string;
 }
 
@@ -25,8 +26,9 @@ export function toTradeRows(trades: readonly IndexedTrade[], account?: string): 
       trader: shortenAddress(trade.trader),
       isYou: you !== undefined && trade.trader.toLowerCase() === you,
       side: trade.outcome === OUTCOME.YES ? "YES" : "NO",
+      kind: trade.kind,
       shares: formatTokenAmount(parseBaseUnits(trade.shares)),
-      cost: formatTokenAmount(parseBaseUnits(trade.cost)),
+      amount: formatTokenAmount(parseBaseUnits(trade.amount)),
       transactionHash: trade.transaction_hash,
     }));
 }

@@ -24,6 +24,15 @@ export function computeMaxCost(quote: bigint, slippageBps: number): bigint {
   return (numerator + 9_999n) / 10_000n;
 }
 
+// Sell guard: the least the user agrees to receive. Rounded down so
+// minReturn <= quote.
+export function computeMinReturn(quote: bigint, slippageBps: number): bigint {
+  if (!Number.isInteger(slippageBps) || slippageBps < 0 || slippageBps > 10_000) {
+    throw new Error("slippageBps must be an integer between 0 and 10000");
+  }
+  return (quote * BigInt(10_000 - slippageBps)) / 10_000n;
+}
+
 // "1" (%) -> 100 basis points. Returns undefined for invalid input.
 export function parseSlippagePercent(input: string): number | undefined {
   const value = Number(input);

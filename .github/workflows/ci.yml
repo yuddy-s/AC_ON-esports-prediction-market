@@ -87,6 +87,11 @@ jobs:
     name: Build and test Foundry contracts
     runs-on: ubuntu-latest
 
+    env:
+      FOUNDRY_OUT: out/current
+      FOUNDRY_CACHE_PATH: cache/current
+      CI_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
+
     defaults:
       run:
         working-directory: contracts
@@ -96,11 +101,37 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          fetch-depth: 0
+
+      - name: Determine contract check scope
+        id: scope
+        run: python3 ../.github/scripts/contract_ci.py
+
+      - name: Setup Python for contract handoff checks
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: v1.8.3
+
+      - name: Test CI change routing
+        run: python -m unittest discover -s ../.github/scripts/tests -v
+
+      - name: Restore production compiler outputs
+        id: build-cache
+        uses: actions/cache/restore@v4
+        with:
+          # Compiler data only: cache/current also contains sensitive deployment
+          # caches on developer machines, so never archive the entire directory.
+          path: |
+            contracts/out/current
+            contracts/cache/current/solidity-files-cache.json
+          key: ${{ runner.os }}-${{ runner.arch }}-foundry-v1.8.3-production-v1-${{ hashFiles('contracts/foundry.toml', 'contracts/foundry.lock', 'contracts/remappings.txt', '.gitmodules') }}-${{ hashFiles('contracts/src/**/*.sol', 'contracts/test/**/*.sol', 'contracts/script/**/*.sol', 'contracts/lib/**/*.sol') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-foundry-v1.8.3-production-v1-${{ hashFiles('contracts/foundry.toml', 'contracts/foundry.lock', 'contracts/remappings.txt', '.gitmodules') }}-
 
       - name: Check formatting
         run: forge fmt --check
@@ -108,5 +139,115 @@ jobs:
       - name: Build contracts and deployment script
         run: forge build && forge build script/Deploy.s.sol
 
+      - name: Save production compiler outputs
+        # Save before forge inspect changes compiler output selection/cache state.
+        # This cache stores compilation results; tests still run on every full path.
+        if: success() && steps.build-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            contracts/out/current
+            contracts/cache/current/solidity-files-cache.json
+          key: ${{ steps.build-cache.outputs.cache-primary-key }}
+
       - name: Run contract tests
+        if: steps.scope.outputs.fast_path != 'true'
         run: forge test
+
+      - name: Check exact draft ABI, event fixtures, source hashes and runtime sizes
+        run: python script/export_handoff.py --check
+
+      - name: Check independent mathematical pricing vectors
+        run: python script/pricing_reference.py --check
+
+      - name: Run six transaction journeys on disposable Anvil
+        if: steps.scope.outputs.fast_path != 'true'
+        run: python script/smoke.py --start-anvil
+
+      - name: Documentation-only test fast path
+        if: steps.scope.outputs.fast_path == 'true'
+        run: python -c "print('Documentation/static-record-only PR; formatting, build, exact ABI/source/runtime checks and pricing vectors passed. Full tests and Anvil journeys run for code/config changes and branch pushes.')"
+
+      - name: Upload local contract transaction evidence
+        if: always() && steps.scope.outputs.fast_path != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-anvil-evidence
+          path: contracts/cache/verification/anvil-smoke.json
+          if-no-files-found: ignore
+
+  contracts-analysis:
+    name: Contract static analysis and coverage
+    runs-on: ubuntu-latest
+    env:
+      CI_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
+    defaults:
+      run:
+        working-directory: contracts
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Determine contract check scope
+        id: scope
+        run: python3 ../.github/scripts/contract_ci.py
+
+      - name: Documentation-only analysis fast path
+        if: steps.scope.outputs.fast_path == 'true'
+        run: python3 -c "print('Documentation/static-record-only PR; the Build and test Foundry contracts check still builds and validates the exact compiled interface. Full analysis runs for code/config changes and branch pushes.')"
+
+      - name: Install Foundry
+        if: steps.scope.outputs.fast_path != 'true'
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.8.3
+
+      - name: Setup Python
+        if: steps.scope.outputs.fast_path != 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: contracts/security-requirements.txt
+
+      - name: Install static analyzer
+        if: steps.scope.outputs.fast_path != 'true'
+        run: pip install -r security-requirements.txt
+
+      - name: Analyze production contracts (fail on high severity)
+        if: steps.scope.outputs.fast_path != 'true'
+        env:
+          FOUNDRY_OUT: out/security
+          FOUNDRY_CACHE_PATH: cache/security
+        run: |
+          mkdir -p cache/verification
+          slither . --filter-paths 'lib/|test/|script/' --fail-high --json cache/verification/slither.json
+
+      - name: Generate contract coverage
+        if: steps.scope.outputs.fast_path != 'true'
+        env:
+          FOUNDRY_OUT: out/coverage
+          FOUNDRY_CACHE_PATH: cache/coverage
+          # Coverage measures exercised code; the normal test job runs the full
+          # 256 x 500 economic campaigns. Limit only this instrumented rerun.
+          FOUNDRY_INVARIANT_RUNS: "32"
+          FOUNDRY_INVARIANT_DEPTH: "100"
+        # Minimum-IR coverage bytecode differs from production. Runtime-size assertions
+        # run in the production test/build job, not on instrumentation output.
+        run: >-
+          forge coverage --ir-minimum --exclude-tests --no-match-coverage '^script/'
+          --no-match-test testProductionContractsFitEip170RuntimeLimit
+          --report summary --report lcov --report-file cache/verification/lcov.info
+
+      - name: Upload static-analysis and coverage reports
+        if: always() && steps.scope.outputs.fast_path != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-analysis
+          path: |
+            contracts/cache/verification/slither.json
+            contracts/cache/verification/lcov.info
+          if-no-files-found: ignore

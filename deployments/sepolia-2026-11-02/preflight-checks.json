@@ -1,0 +1,48 @@
+{
+  "source_revision_last_verified": "721a6fef039a479f46a76fd77fdc4f0f1937af7f",
+  "effective_configuration": {
+    "solc": "0.8.24",
+    "optimizer": true,
+    "optimizer_runs": 200,
+    "via_ir": true,
+    "evm_version": "cancun",
+    "fuzz_runs": 256,
+    "invariant": {
+      "runs": 256,
+      "depth": 500,
+      "fail_on_revert": true
+    }
+  },
+  "checks": [
+    {
+      "command": "forge fmt --check",
+      "status": "passed",
+      "elapsed_seconds": 0.03
+    },
+    {
+      "command": "forge build",
+      "status": "passed",
+      "elapsed_seconds": 127.22
+    },
+    {
+      "command": "forge build script/Deploy.s.sol",
+      "status": "passed",
+      "elapsed_seconds": 0.08
+    },
+    {
+      "command": "forge test",
+      "status": "passed",
+      "elapsed_seconds": 332.25
+    },
+    {
+      "command": "python script/export_handoff.py --check",
+      "status": "passed",
+      "elapsed_seconds": 6.98
+    },
+    {
+      "command": "python script/pricing_reference.py --check",
+      "status": "passed",
+      "elapsed_seconds": 0.19
+    }
+  ]
+}

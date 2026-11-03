@@ -1,6 +1,10 @@
 # Backend Deployment Runbook
 
-This runbook covers the Milestone 3 FastAPI service, PostgreSQL projections, and the single event-indexer worker. Ethereum contracts remain authoritative.
+> Current M4 local/Sepolia operations are documented in
+> [M4_APPLICATION_RUNBOOK.md](M4_APPLICATION_RUNBOOK.md). This file retains historical
+> M3 deployment and recovery context; do not copy its M3 addresses into M4 configuration.
+
+This runbook documents the deployed M3 API, PostgreSQL projections, and single indexer worker; M4 contract deployment and service integration are not yet operational. Ethereum contracts remain authoritative.
 
 ## Required handoff
 
@@ -22,7 +26,7 @@ INDEXER_CONFIRMATION_DEPTH=2
 
 ACON is `0x315FCA0DDAA367446f36A3184D8f6b2Df76b5618`; the frontend needs that token address and its versioned ABI for faucet/approval. Configure RPC/database values privately. These are the final deployed addresses; earlier simulation addresses are superseded. See the [deployment/trade record](../../contracts/deployments/sepolia-m3-2026-10-21/README.md) for receipts and gas-estimation recovery.
 
-Live contract state and RPC/ABI event decoding have passed verification. The complete frontend/indexer/API path also passed locally on Anvil. Hosted Sepolia database/indexer/API operation and deployed-frontend acceptance are still pending; use MetaMask for Sepolia writes because Coinbase Smart Wallet does not support sending transactions on that network.
+The deployed M3 contract/RPC/ABI path and local Anvil cross-layer demo have passed verification. Merged PRs #37/#38 provide locally verified M4 contract/economics artifacts and exact ABI, but no M4 Sepolia deployment, Safe/VRF ownership, registrar/proposer role grants, or cross-layer M4 smoke is recorded. Hosted M3 worker/API and frontend acceptance remain pending; use MetaMask for Sepolia writes because Coinbase Smart Wallet does not support transactions on that network.
 
 ## Supabase
 
@@ -73,3 +77,30 @@ Set `DATABASE_URL` and `FRONTEND_ORIGIN` on the web service. Set the same `DATAB
 For the published example, the trade is `0xe5f5ff239ff3939cfc34c1c7719f2b1db9ef83d75f77f501236d004cb2d10c16`, block `11964663`, log index `104`. After the safe checkpoint reaches that block, `/api/trades/by-transaction/0xe5f5ff239ff3939cfc34c1c7719f2b1db9ef83d75f77f501236d004cb2d10c16` should include exactly one matching log: market `0`, outcome `0` (YES), shares `10000000000000000000`, and cost `5249584441082326050` ACON base units.
 
 Market `0` accepts new buys only before **2026-10-28 17:01:12 UTC**. The recorded creation/trade events can still be backfilled and checked afterward, but a new wallet-trading demo will need a new funded market and updated example transaction references.
+
+## Historical M4 integration notes
+
+The deployment/gateway warnings below describe the earlier implementation baseline and
+are retained for audit context. The real gateways, role grants, M4 deployment, and initial
+live registration/market/trade smoke are now complete; use
+[M4_APPLICATION_RUNBOOK.md](M4_APPLICATION_RUNBOOK.md) for current commands and status.
+
+### Proposed PandaScore source process
+
+PR #39 merged the server-only PandaScore adapter. PandaScore remains optional under the approved M4 design. Before any live call, the team must choose to enable it and configure `PANDASCORE_USE_APPROVED=true` and `PANDASCORE_API_TOKEN` only in the operator process's secret environment. Run `python -m scripts.import_pandascore all --validate-only` from `backend/` to inspect normalized counts, then run without `--validate-only` against the intended database. Check `DATABASE_URL` first. Do not place the token in a URL, frontend variable, log, or repository file. A rate-limit, access-denied, or malformed-response failure stops the import; preserve existing source rows and retry in a later operator window. A PandaScore result needs a separate operator review tied to that exact observation before the oracle may create an intent. This process does not replace the single indexer worker or register/create a market.
+
+Apply migration `20261101_0006` before provider import. A selected fixture requires an operator review with separate organizer evidence: `python -m scripts.review_fixture <catalog-id> --reviewer <operator-id> --approve --evidence-url <organizer-url> --evidence-hash <0x-sha256>`. Fixture and result reviews reject `pandascore.co` and every `*.pandascore.co` hostname; the operator must verify that another URL is genuinely independent. `--revoke` removes current approval. Review events survive indexer rebuilds. Reapprove if team IDs/order or scheduled start change. An off-chain approval permits a player to request registrar action but does not make the fixture registered on-chain. Do not run this operator command through a public API.
+
+Apply migration `20261102_0008` before starting the M4 workers. After checking an organizer's result, run `python -m scripts.review_result <observation-id> --reviewer <operator-id> --approve --evidence-url <organizer-url> --evidence-hash <0x-sha256>`; use `--revoke` for a later rejection. A new or corrected observation needs its own review. These events survive indexer rebuilds. An approved review only permits intent planning; the proposer process still requires the merged ABI, narrow role, verified closed market, and confirmed chain read.
+
+PRs #30-#34 and #39 merged the fixture, registration, assessment, audit, and source-review migrations through `20261101_0007`. Before migrating any database, check its current Alembic revision and whether these revisions have already been applied. Back up the target and use one approved migration process. Verify that imported source and signer-audit tables survive any later indexer rebuild. Never point a local importer at a hosted database by accident.
+
+The registration worker currently has only a mock gateway. Its `awaiting_abi` jobs cannot be activated for a real chain. The operator must verify the merged compiled M4 ABI, deployment manifest, chain ID, deployment block, registrar role grant, and separate registrar key. The production gateway must read the contract and require the configured confirmation depth before reporting `confirmed`. It may retry only a failure known to precede submission; `submission_unknown` requires manual receipt/nonce and contract-state reconciliation before any resend. Preserve the job-event audit rows and never delete them during an indexer rebuild.
+
+The oracle worker likewise has only a mock gateway. It may plan an intent only for a chain-verified closed, unproposed market linked to a curated fixture and latest assessed result. Its separate signer must not start until the deployed contract, proposal call, market linkage, role grant, and key are verified. `correction_review` and `submission_unknown` require manual evidence/chain reconciliation; never silently edit an immutable intent or resubmit an uncertain transaction. The append-only assessment, intent, and attempt tables are operational records, not chain projections.
+
+The merged registration recovery migration (`20261030_0005`) stores a fixture snapshot, authorizing wallet, challenge ID, and nonce/message hashes on each new audit event. Earlier events remain attributable even after challenge cleanup; pre-migration event metadata remains null rather than guessing from the mutable job. A fresh signed request may reuse a terminal job only for the explicitly recoverable failure codes documented in `backend/README.md`; retain prior events and hashes. Do not reset a submitted, uncertain, confirmed, or chain-conflicting job. Verify fixture Team A/B IDs and start time remain consistent with confirmed registration before importing changed source data. The importer rejects frozen-field changes rather than silently altering the oracle's team mapping.
+
+Run exactly one indexer worker process. The registrar and proposer are separate processes with separate narrow role keys; no key belongs in Git, frontend variables, or logs. Keep local keys in ignored environment files and hosted keys in service secrets. On suspected compromise, stop the affected signer, revoke its role via the Safe, grant a replacement account, reconcile pending transactions, and restart only after recording the rotation in the private operator log. The proposal service must likewise reconcile chain state before retrying and must not expose a public arbitrary-outcome signing endpoint. Configure an edge rate limit for registration POST routes before public exposure; per-wallet limits do not stop requests from many fresh addresses.
+
+When M4 indexing is implemented, compare `/api/v2/indexer/status` `chain_id`, `contract_address`, `abi_version`, safe block, and `updated_at` with the published M4 deployment handoff before enabling M4 indexed reads. A fixture's `registration_request_status` is an off-chain job field; only a gateway-confirmed on-chain registration may permit the separate user-signed market creation action.

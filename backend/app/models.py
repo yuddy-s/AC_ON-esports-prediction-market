@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Integer, JSON, Numeric, String, Text, UniqueConstraint
+from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Index, Integer, JSON, Numeric, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -21,6 +21,198 @@ class SampleMatch(Base):
     yes_price: Mapped[float] = mapped_column(Numeric(6, 4), nullable=False)
     no_price: Mapped[float] = mapped_column(Numeric(6, 4), nullable=False)
     source_note: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+class Fixture(Base):
+    """Imported source data; never an authoritative on-chain registration."""
+
+    __tablename__ = "fixtures"
+    __table_args__ = (
+        UniqueConstraint("provider_id", "game_id", "external_match_id", name="uq_fixture_source_identity"),
+        Index("ix_fixtures_scheduled_start", "scheduled_start"),
+        Index("ix_fixtures_game_status", "game_id", "match_status"),
+        {"sqlite_autoincrement": True},
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    provider_id: Mapped[str] = mapped_column(String(80), nullable=False)
+    game_id: Mapped[str] = mapped_column(String(80), nullable=False)
+    external_match_id: Mapped[str] = mapped_column(String(160), nullable=False)
+    scheduled_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    match_status: Mapped[str] = mapped_column(String(32), nullable=False)
+    team_a_id: Mapped[str] = mapped_column(String(160), nullable=False)
+    team_a_name: Mapped[str] = mapped_column(String(160), nullable=False)
+    team_b_id: Mapped[str] = mapped_column(String(160), nullable=False)
+    team_b_name: Mapped[str] = mapped_column(String(160), nullable=False)
+    evidence_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    evidence_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    curated_evidence_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    curated_evidence_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    curated_identity_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    source_updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    imported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
+
+
+class FixtureResultObservation(Base):
+    """Append-only result source history; corrections do not rewrite earlier observations."""
+
+    __tablename__ = "fixture_result_observations"
+    __table_args__ = (
+        UniqueConstraint("fixture_id", "observation_hash", name="uq_fixture_result_observation_hash"),
+        {"sqlite_autoincrement": True},
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    fixture_id: Mapped[int] = mapped_column(ForeignKey("fixtures.id", ondelete="CASCADE"), nullable=False, index=True)
+    match_status: Mapped[str] = mapped_column(String(32), nullable=False)
+    winner_team_id: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    source_updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    evidence_url: Mapped[str] = mapped_column(Text, nullable=False)
+    evidence_hash: Mapped[str] = mapped_column(String(66), nullable=False)
+    observation_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    imported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
+
+
+class FixtureReviewEvent(Base):
+    """Append-only operator curation; source imports cannot grant approval."""
+
+    __tablename__ = "fixture_review_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    fixture_id: Mapped[int] = mapped_column(ForeignKey("fixtures.id"), nullable=False, index=True)
+    reviewer: Mapped[str] = mapped_column(String(120), nullable=False)
+    approved: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    identity_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    evidence_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    evidence_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    reviewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class ResultReviewEvent(Base):
+    """Append-only decision for one exact provider result observation."""
+
+    __tablename__ = "result_review_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    observation_id: Mapped[int] = mapped_column(ForeignKey("fixture_result_observations.id"), nullable=False, index=True)
+    reviewer: Mapped[str] = mapped_column(String(120), nullable=False)
+    approved: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    evidence_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    evidence_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    reviewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class RegistrationChallenge(Base):
+    """A short-lived, single-use EOA authorization for requesting fixture registration."""
+
+    __tablename__ = "registration_challenges"
+    __table_args__ = (UniqueConstraint("nonce_hash", name="uq_registration_nonce_hash"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    fixture_id: Mapped[int] = mapped_column(ForeignKey("fixtures.id"), nullable=False, index=True)
+    wallet_address: Mapped[str] = mapped_column(String(42), nullable=False, index=True)
+    chain_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    nonce_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    fixture_snapshot: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class FixtureRegistrationJob(Base):
+    """Off-chain request; registered status requires a confirmed on-chain receipt."""
+
+    __tablename__ = "fixture_registration_jobs"
+    __table_args__ = (UniqueConstraint("fixture_id", name="uq_fixture_registration_job"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    fixture_id: Mapped[int] = mapped_column(ForeignKey("fixtures.id"), nullable=False)
+    requested_by: Mapped[str] = mapped_column(String(42), nullable=False)
+    authorization_challenge_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    authorization_nonce_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    authorization_message_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    chain_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    fixture_snapshot: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False)
+    transaction_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    error_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    next_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class RegistrationJobEvent(Base):
+    """Append-only transitions and failures for the narrow registrar worker."""
+
+    __tablename__ = "registration_job_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey("fixture_registration_jobs.id"), nullable=False, index=True)
+    requested_by: Mapped[str | None] = mapped_column(String(42), nullable=True)
+    challenge_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    nonce_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    message_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    error_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    transaction_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    fixture_snapshot: Mapped[dict[str, object] | None] = mapped_column(JSON, nullable=True)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class OracleResultAssessment(Base):
+    """Append-only source assessment, never an on-chain proposal or settlement."""
+
+    __tablename__ = "oracle_result_assessments"
+    __table_args__ = (UniqueConstraint("observation_id", name="uq_oracle_assessment_observation"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    fixture_id: Mapped[int] = mapped_column(ForeignKey("fixtures.id"), nullable=False, index=True)
+    observation_id: Mapped[int] = mapped_column(ForeignKey("fixture_result_observations.id"), nullable=False)
+    outcome: Mapped[str] = mapped_column(String(8), nullable=False)
+    conflicts_with_prior: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    assessed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class OracleProposalIntent(Base):
+    """One immutable assessed result selected for a specific on-chain market."""
+
+    __tablename__ = "oracle_proposal_intents"
+    __table_args__ = (
+        UniqueConstraint("chain_id", "contract_address", "market_id", name="uq_oracle_intent_market"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    chain_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    contract_address: Mapped[str] = mapped_column(String(42), nullable=False)
+    market_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    fixture_id: Mapped[int] = mapped_column(ForeignKey("fixtures.id"), nullable=False)
+    observation_id: Mapped[int] = mapped_column(ForeignKey("fixture_result_observations.id"), nullable=False)
+    outcome: Mapped[str] = mapped_column(String(8), nullable=False)
+    evidence_url: Mapped[str] = mapped_column(Text, nullable=False)
+    evidence_hash: Mapped[str] = mapped_column(String(66), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    transaction_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    error_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False)
+    next_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    correction_observation_id: Mapped[int | None] = mapped_column(ForeignKey("fixture_result_observations.id"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class OracleProposalEvent(Base):
+    """Append-only signer intent/attempt history, retained across projection rebuilds."""
+
+    __tablename__ = "oracle_proposal_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    intent_id: Mapped[int] = mapped_column(ForeignKey("oracle_proposal_intents.id"), nullable=False, index=True)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    error_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    transaction_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
 class IndexedContract(Base):
@@ -91,6 +283,8 @@ class IndexedMarket(Base):
     creator: Mapped[str] = mapped_column(String(42), nullable=False)
     yes_quantity: Mapped[Decimal] = mapped_column(Numeric(78, 0), nullable=False, default=0)
     no_quantity: Mapped[Decimal] = mapped_column(Numeric(78, 0), nullable=False, default=0)
+    fixture_key: Mapped[str | None] = mapped_column(String(66), nullable=True, index=True)
+    final_outcome: Mapped[int | None] = mapped_column(Integer, nullable=True)
     source_block_number: Mapped[int] = mapped_column(BigInteger, nullable=False)
     source_block_hash: Mapped[str] = mapped_column(String(66), nullable=False)
     source_transaction_hash: Mapped[str] = mapped_column(String(66), nullable=False)
@@ -118,3 +312,71 @@ class IndexedTrade(Base):
     block_hash: Mapped[str] = mapped_column(String(66), nullable=False)
     transaction_hash: Mapped[str] = mapped_column(String(66), nullable=False)
     log_index: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class IndexedFixtureRegistration(Base):
+    """Confirmed on-chain fixture registry entry, scoped to one deployment."""
+
+    __tablename__ = "indexed_fixture_registrations"
+    __table_args__ = (
+        UniqueConstraint("chain_id", "contract_address", "fixture_key", name="uq_indexed_fixture_key"),
+        {"sqlite_autoincrement": True},
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    chain_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    contract_address: Mapped[str] = mapped_column(String(42), nullable=False)
+    fixture_key: Mapped[str] = mapped_column(String(66), nullable=False, index=True)
+    registrar: Mapped[str] = mapped_column(String(42), nullable=False)
+    data: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False)
+    revision_hash: Mapped[str] = mapped_column(String(66), nullable=False)
+    market_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    block_number: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    block_hash: Mapped[str] = mapped_column(String(66), nullable=False)
+    transaction_hash: Mapped[str] = mapped_column(String(66), nullable=False)
+    log_index: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class IndexedMarketEvent(Base):
+    """Append-only M4 event ledger used by history, resolution, and claim views."""
+
+    __tablename__ = "indexed_market_events"
+    __table_args__ = (
+        UniqueConstraint("chain_id", "transaction_hash", "log_index", name="uq_indexed_market_event_log"),
+        Index("ix_indexed_market_events_market_order", "chain_id", "contract_address", "market_id", "block_number", "log_index"),
+        {"sqlite_autoincrement": True},
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    chain_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    contract_address: Mapped[str] = mapped_column(String(42), nullable=False)
+    market_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    event_name: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    actor: Mapped[str | None] = mapped_column(String(42), nullable=True, index=True)
+    payload: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False)
+    block_number: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    block_hash: Mapped[str] = mapped_column(String(66), nullable=False)
+    transaction_hash: Mapped[str] = mapped_column(String(66), nullable=False)
+    log_index: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class IndexedPosition(Base):
+    """Rebuildable wallet position derived from confirmed M4 events."""
+
+    __tablename__ = "indexed_positions"
+    __table_args__ = (
+        UniqueConstraint("chain_id", "contract_address", "market_id", "wallet_address", name="uq_indexed_position"),
+        Index("ix_indexed_positions_wallet", "chain_id", "contract_address", "wallet_address"),
+        {"sqlite_autoincrement": True},
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    chain_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    contract_address: Mapped[str] = mapped_column(String(42), nullable=False)
+    market_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    wallet_address: Mapped[str] = mapped_column(String(42), nullable=False)
+    yes_shares: Mapped[Decimal] = mapped_column(Numeric(78, 0), nullable=False, default=0)
+    no_shares: Mapped[Decimal] = mapped_column(Numeric(78, 0), nullable=False, default=0)
+    claimed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    payout: Mapped[Decimal] = mapped_column(Numeric(78, 0), nullable=False, default=0)
+    updated_block_number: Mapped[int] = mapped_column(BigInteger, nullable=False)

@@ -10,16 +10,19 @@ import { aconTokenAbi, predictionMarketAbi, type Outcome } from "./predictionMar
 import type { IndexerWait, TradeStatus } from "./tradeStatus";
 import { config } from "./wagmi";
 
-export interface BuyRequest {
+interface TradeBase {
   account: Address;
   market: Address;
-  token: Address;
   marketId: bigint;
   outcome: Outcome;
   shares: bigint;
-  maxCost: bigint;
-  needsApproval: boolean;
 }
+
+// Buy pays at most maxCost (approving exactly that much ACON first if
+// needed); sell receives at least minReturn and needs no approval.
+export type TradeRequest =
+  | (TradeBase & { side: "buy"; token: Address; maxCost: bigint; needsApproval: boolean })
+  | (TradeBase & { side: "sell"; minReturn: bigint });
 
 const INDEXER_POLL_MS = 2_000;
 const INDEXER_TIMEOUT_MS = 3 * 60_000;
@@ -29,14 +32,14 @@ export function useTradeFlow() {
   const [status, setStatus] = useState<TradeStatus>({ kind: "idle" });
   const runId = useRef(0);
 
-  const buy = useCallback(
-    async (request: BuyRequest) => {
+  const trade = useCallback(
+    async (request: TradeRequest) => {
       const run = ++runId.current;
       const update = (next: TradeStatus) => {
         if (runId.current === run) setStatus(next);
       };
       try {
-        if (request.needsApproval) {
+        if (request.side === "buy" && request.needsApproval) {
           // Approve exactly maxCost, not an unlimited allowance.
           update({ kind: "approve-wallet" });
           const approveHash = await writeContract(config, {
@@ -56,16 +59,20 @@ export function useTradeFlow() {
 
         // Simulate first so contract errors (slippage, deadline, balance)
         // show before the wallet prompt, decoded by name.
-        update({ kind: "buy-wallet" });
-        const { request: buyCall } = await simulateContract(config, {
-          account: request.account,
-          address: request.market,
-          abi: predictionMarketAbi,
-          functionName: "buy",
-          args: [request.marketId, request.outcome, request.shares, request.maxCost],
-          chainId: CHAIN.id,
-        });
-        const hash = await writeContract(config, buyCall);
+        update({ kind: "trade-wallet", side: request.side });
+        const base = { account: request.account, address: request.market, abi: predictionMarketAbi, chainId: CHAIN.id } as const;
+        const hash =
+          request.side === "buy"
+            ? await writeContract(config, (await simulateContract(config, {
+                ...base,
+                functionName: "buy",
+                args: [request.marketId, request.outcome, request.shares, request.maxCost],
+              })).request)
+            : await writeContract(config, (await simulateContract(config, {
+                ...base,
+                functionName: "sell",
+                args: [request.marketId, request.outcome, request.shares, request.minReturn],
+              })).request);
         update({ kind: "submitted", hash });
 
         const receipt = await waitForTransactionReceipt(config, { hash, chainId: CHAIN.id });
@@ -78,6 +85,7 @@ export function useTradeFlow() {
           kind: "mined",
           hash,
           blockNumber: receipt.blockNumber,
+          marketId: request.marketId,
           indexer: API_URL ? { state: "waiting", lastSafeBlock: null } : { state: "not-configured" },
         });
       } catch (error) {
@@ -96,8 +104,9 @@ export function useTradeFlow() {
   // projection. An empty result means "not yet", not "failed".
   const minedHash = status.kind === "mined" && status.indexer.state !== "not-configured" ? status.hash : undefined;
   const minedBlock = status.kind === "mined" ? status.blockNumber : undefined;
+  const minedMarketId = status.kind === "mined" ? status.marketId : undefined;
   useEffect(() => {
-    if (!minedHash || minedBlock === undefined) return;
+    if (!minedHash || minedBlock === undefined || minedMarketId === undefined) return;
     const controller = new AbortController();
     const startedAt = Date.now();
     let timer: ReturnType<typeof setTimeout>;
@@ -108,12 +117,14 @@ export function useTradeFlow() {
     const poll = async () => {
       try {
         const [trades, indexerStatus] = await Promise.all([
-          fetchTradesByTransaction(minedHash, controller.signal),
+          fetchTradesByTransaction(minedMarketId, minedHash, controller.signal),
           fetchIndexerStatus(controller.signal),
         ]);
         const deploymentProblem = indexerDeploymentProblem(indexerStatus, CHAIN.id, PREDICTION_MARKET_ADDRESS);
         if (deploymentProblem) {
-          setIndexer({ state: "unavailable", detail: deploymentProblem });
+          // A different deployment will never index this trade: stop waiting.
+          setIndexer({ state: "not-tracking", detail: deploymentProblem.replace(/\.$/, "") });
+          return;
         } else if (trades.length > 0) {
           setStatus((current) =>
             current.kind === "mined" && current.hash === minedHash
@@ -143,7 +154,7 @@ export function useTradeFlow() {
       controller.abort();
       clearTimeout(timer);
     };
-  }, [minedHash, minedBlock, queryClient]);
+  }, [minedHash, minedBlock, minedMarketId, queryClient]);
 
-  return { status, buy, reset };
+  return { status, trade, reset };
 }

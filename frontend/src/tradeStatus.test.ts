@@ -3,11 +3,15 @@ import { isBusy, isFailure, statusMessage, stepIndex, TRADE_STEPS, type TradeSta
 
 const hash = `0x${"ab".repeat(32)}` as const;
 const trade = {
+  event: "TradeExecuted" as const,
+  kind: "BUY" as const,
   market_id: 0,
   trader: "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
   outcome: 0,
   shares: "10000000000000000000",
   cost: "5249584441082326050",
+  proceeds: null,
+  amount: "5249584441082326050",
   yes_quantity: "10000000000000000000",
   no_quantity: "0",
   block_number: 527,
@@ -19,19 +23,35 @@ const statuses: Record<TradeStatus["kind"], TradeStatus> = {
   idle: { kind: "idle" },
   "approve-wallet": { kind: "approve-wallet" },
   "approve-pending": { kind: "approve-pending", hash },
-  "buy-wallet": { kind: "buy-wallet" },
+  "trade-wallet": { kind: "trade-wallet", side: "buy" },
   submitted: { kind: "submitted", hash },
-  mined: { kind: "mined", hash, blockNumber: 527n, indexer: { state: "waiting", lastSafeBlock: 520 } },
+  mined: { kind: "mined", hash, blockNumber: 527n, marketId: 0n, indexer: { state: "waiting", lastSafeBlock: 520 } },
   indexed: { kind: "indexed", hash, blockNumber: 527n, trade },
   reverted: { kind: "reverted", hash },
   rejected: { kind: "rejected" },
   error: { kind: "error", message: "Not enough ACON for this trade." },
 };
 
+it("skips the indexed step when the indexer tracks another deployment", () => {
+  const message = statusMessage({
+    kind: "mined",
+    hash,
+    blockNumber: 12n,
+    marketId: 0n,
+    indexer: { state: "not-tracking", detail: "The indexer has no active market deployment" },
+  });
+  expect(message).toContain("indexed step is skipped");
+  expect(message).not.toContain("Retrying");
+});
+
+it("names the sale in the wallet step", () => {
+  expect(statusMessage({ kind: "trade-wallet", side: "sell" })).toBe("Confirm the sale in your wallet…");
+});
+
 describe("submitted, mined and indexed are separate states", () => {
   it("each sits on its own progress step", () => {
     expect(TRADE_STEPS).toEqual(["Wallet", "Submitted", "Mined", "Indexed"]);
-    expect(stepIndex(statuses["buy-wallet"])).toBe(0);
+    expect(stepIndex(statuses["trade-wallet"])).toBe(0);
     expect(stepIndex(statuses.submitted)).toBe(1);
     expect(stepIndex(statuses.mined)).toBe(2);
     expect(stepIndex(statuses.indexed)).toBe(3);
@@ -57,6 +77,7 @@ describe("indexer problems keep the trade marked as mined", () => {
     kind: "mined",
     hash,
     blockNumber: 527n,
+    marketId: 0n,
     indexer,
   });
 
@@ -85,8 +106,8 @@ describe("unhappy paths", () => {
     expect(failures.sort()).toEqual(["error", "rejected", "reverted"]);
   });
 
-  it("a reverted transaction says no ACON was spent", () => {
-    expect(statusMessage(statuses.reverted)).toMatch(/reverted\. No ACON was spent/);
+  it("a reverted transaction says nothing changed", () => {
+    expect(statusMessage(statuses.reverted)).toMatch(/reverted\. Your ACON and your position did not change/);
   });
 
   it("an error shows its message", () => {
@@ -98,7 +119,7 @@ describe("isBusy locks the form only while waiting on the wallet or chain", () =
   it.each([
     ["approve-wallet", true],
     ["approve-pending", true],
-    ["buy-wallet", true],
+    ["trade-wallet", true],
     ["submitted", true],
     ["idle", false],
     ["mined", false],

@@ -5,11 +5,15 @@ import { API_URL } from "./config";
 // show when a mined trade has reached the indexed projection.
 
 export interface IndexedTrade {
+  event: "TradeExecuted" | "SellExecuted";
+  kind: "BUY" | "SELL";
   market_id: number;
   trader: string;
   outcome: number;
   shares: string;
-  cost: string;
+  amount: string;
+  cost: string | null;
+  proceeds: string | null;
   yes_quantity: string;
   no_quantity: string;
   block_number: number;
@@ -33,14 +37,29 @@ async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   return (await response.json()) as T;
 }
 
-// An empty list means "not indexed yet", not "failed".
-export async function fetchTradesByTransaction(hash: string, signal?: AbortSignal): Promise<IndexedTrade[]> {
-  const body = await getJson<{ items: IndexedTrade[] }>(`/api/trades/by-transaction/${hash}`, signal);
-  return body.items;
+// An empty list means "not indexed yet", not "failed". M4 buys and sells live
+// in the market event ledger, so confirmation must use the M4 history route
+// rather than the legacy buy-only transaction lookup.
+export async function fetchTradesByTransaction(
+  marketId: bigint,
+  hash: string,
+  signal?: AbortSignal,
+): Promise<IndexedTrade[]> {
+  const path = `/api/v2/markets/${marketId}/history`;
+  const normalizedHash = hash.toLowerCase();
+  const first = await getJson<TradePage>(`${path}?limit=${PAGE}&offset=0`, signal);
+  const matches = first.items.filter((trade) => trade.transaction_hash.toLowerCase() === normalizedHash);
+  if (matches.length > 0 || first.total <= PAGE) return matches;
+
+  // The transaction being polled is normally the newest trade. Read the tail
+  // page as well without downloading an established market's entire history.
+  const offset = Math.max(0, first.total - PAGE);
+  const last = await getJson<TradePage>(`${path}?limit=${PAGE}&offset=${offset}`, signal);
+  return last.items.filter((trade) => trade.transaction_hash.toLowerCase() === normalizedHash);
 }
 
 export function fetchIndexerStatus(signal?: AbortSignal): Promise<IndexerStatus> {
-  return getJson<IndexerStatus>("/api/indexer/status", signal);
+  return getJson<IndexerStatus>("/api/v2/indexer/status", signal);
 }
 
 interface TradePage {
@@ -54,9 +73,30 @@ export async function fetchRecentMarketTrades(
   count: number,
   signal?: AbortSignal,
 ): Promise<{ trades: IndexedTrade[]; total: number }> {
-  const path = `/api/markets/${marketId}/trades`;
+  const path = `/api/v2/markets/${marketId}/history`;
   const first = await getJson<TradePage>(`${path}?limit=${count}&offset=0`, signal);
   if (first.total <= count) return { trades: first.items, total: first.total };
   const last = await getJson<TradePage>(`${path}?limit=${count}&offset=${first.total - count}`, signal);
   return { trades: last.items, total: last.total };
+}
+
+const PAGE = 100; // the API's maximum page size
+
+// Every indexed trade for a market, oldest first, for the price chart.
+// Stops after maxTrades so a very busy market cannot loop forever.
+export async function fetchAllMarketTrades(
+  marketId: bigint,
+  signal?: AbortSignal,
+  maxTrades = 2_000,
+): Promise<{ trades: IndexedTrade[]; total: number }> {
+  const path = `/api/v2/markets/${marketId}/history`;
+  const trades: IndexedTrade[] = [];
+  let total = 0;
+  do {
+    const page = await getJson<TradePage>(`${path}?limit=${PAGE}&offset=${trades.length}`, signal);
+    total = page.total;
+    trades.push(...page.items);
+    if (page.items.length === 0) break;
+  } while (trades.length < total && trades.length < maxTrades);
+  return { trades, total };
 }
