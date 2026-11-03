@@ -5,8 +5,8 @@
 @layer base {
   body {
     @apply bg-ink-800 font-sans text-cream antialiased;
-    /* Faint broadcast scanlines over the slide-deck brown. */
-    background-image: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.12) 0 1px, transparent 1px 4px);
+    /* Retain the broadcast texture, softened for the cleaner navy surface. */
+    background-image: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 4px);
   }
   ::selection {
     @apply bg-gold text-ink-900;

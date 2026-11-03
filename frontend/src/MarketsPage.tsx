@@ -97,7 +97,7 @@ function MarketTile({ market, teams, now, featured }: { market: Market; teams?: 
       <div>
         {teams && (
           <p className="font-display text-sm font-semibold uppercase tracking-wide">
-            <span className="text-gold">{teams.teamA}</span>
+            <span className="text-win">{teams.teamA}</span>
             <span className="mx-1.5 text-dust">vs</span>
             <span className="text-signal-soft">{teams.teamB}</span>
           </p>
@@ -108,7 +108,7 @@ function MarketTile({ market, teams, now, featured }: { market: Market; teams?: 
       <div className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between font-mono">
           <span>
-            <span className="font-display text-xs font-bold tracking-wider text-gold">YES </span>
+            <span className="font-display text-xs font-bold tracking-wider text-win">YES </span>
             <span className="num text-2xl text-paper">{formatPercent(prices.yes)}</span>
           </span>
           <span>

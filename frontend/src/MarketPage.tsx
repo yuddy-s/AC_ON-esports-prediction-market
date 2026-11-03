@@ -92,7 +92,7 @@ function MarketBody({ market, teams }: { market: Market; teams?: MarketTeams }) 
   );
 }
 
-// Broadcast-style score bug: YES side (Team A) in gold, NO side (Team B) in red.
+// Broadcast-style score bug: YES side (Team A) in green, NO side (Team B) in rose.
 function Scoreboard({ market, teams, yes, no, open }: { market: Market; teams?: MarketTeams; yes: number; no: number; open: boolean }) {
   return (
     <div className="hud overflow-hidden bg-ink-900">
@@ -105,7 +105,7 @@ function Scoreboard({ market, teams, yes, no, open }: { market: Market; teams?: 
       </div>
       <h1 className="px-5 pt-4 font-display text-2xl font-bold leading-tight text-paper sm:text-3xl">{market.question}</h1>
       <div className="grid grid-cols-[1fr_auto_1fr] items-stretch gap-0 px-5 pb-5 pt-4">
-        <Side label="YES" team={teams?.teamA} price={yes} align="left" color="text-gold" />
+        <Side label="YES" team={teams?.teamA} price={yes} align="left" color="text-win" />
         <div className="flex items-center px-4 font-display text-sm font-bold text-dust">VS</div>
         <Side label="NO" team={teams?.teamB} price={no} align="right" color="text-signal-soft" />
       </div>

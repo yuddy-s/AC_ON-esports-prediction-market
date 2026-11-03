@@ -29,7 +29,7 @@ export function PanelTitle({ tag, title, aside }: { tag?: string; title: string;
   );
 }
 
-// Red / gold / bronze dots from the slide deck.
+// Brand status dots: rose, blue, and slate.
 export function Dots({ size = "h-2 w-2" }: { size?: string }) {
   return (
     <span className="inline-flex gap-1" aria-hidden>
@@ -40,12 +40,12 @@ export function Dots({ size = "h-2 w-2" }: { size?: string }) {
   );
 }
 
-// Tug-of-war bar: gold YES share against red NO share.
+// Tug-of-war bar: green YES share against rose NO share.
 export function SplitBar({ yes, height = "h-2" }: { yes: number; height?: string }) {
   const pct = Math.min(100, Math.max(0, yes * 100));
   return (
     <div className={`flex ${height} w-full overflow-hidden bg-ink-900`} role="img" aria-label={`YES ${formatPercent(yes)}`}>
-      <div className="bg-gold" style={{ width: `${pct}%` }} />
+      <div className="bg-win" style={{ width: `${pct}%` }} />
       <div className="w-0.5 bg-ink-900" />
       <div className="flex-1 bg-signal-soft" />
     </div>

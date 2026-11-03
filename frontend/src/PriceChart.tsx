@@ -126,7 +126,7 @@ function Chart({ points }: { points: PricePoint[] }) {
 
         <path d={area} fill="#F5C842" fillOpacity={0.1} />
         <path d={line} fill="none" stroke="#F5C842" strokeWidth={2} strokeLinejoin="round" />
-        <circle cx={x(last)} cy={y(end.yes)} r={4} fill="#F5C842" stroke="#2C2117" strokeWidth={2} />
+        <circle cx={x(last)} cy={y(end.yes)} r={4} fill="#22C55E" stroke="#111827" strokeWidth={2} />
         <text x={x(last) + 8} y={y(end.yes) + 4} className="fill-paper font-mono text-[12px] font-medium">
           {formatPercent(end.yes)}
         </text>
@@ -134,7 +134,7 @@ function Chart({ points }: { points: PricePoint[] }) {
         {shown && (
           <g pointerEvents="none">
             <line x1={x(shown.index)} x2={x(shown.index)} y1={PAD.top} y2={PAD.top + plotH} stroke="#B7A98D" strokeWidth={1} />
-            <circle cx={x(shown.index)} cy={y(shown.yes)} r={4} fill="#F5C842" stroke="#2C2117" strokeWidth={2} />
+            <circle cx={x(shown.index)} cy={y(shown.yes)} r={4} fill="#22C55E" stroke="#111827" strokeWidth={2} />
           </g>
         )}
         <rect
@@ -166,7 +166,7 @@ function Tooltip({ point, left, width }: { point: PricePoint; left: number; widt
       {point.trade ? (
         <p className="mt-1 border-t border-bronze/40 pt-1 text-xs text-sand">
           Trade {point.index}: {formatTokenAmount(point.trade.shares)}{" "}
-          <span className={point.trade.side === "YES" ? "text-gold" : "text-signal-soft"}>{point.trade.side}</span> · block{" "}
+          <span className={point.trade.side === "YES" ? "text-win" : "text-signal-soft"}>{point.trade.side}</span> · block{" "}
           {point.trade.block}
         </p>
       ) : (

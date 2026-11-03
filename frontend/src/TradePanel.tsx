@@ -119,8 +119,8 @@ export function TradePanel({ marketId, teams }: { marketId: bigint; teams?: Mark
           const color =
             value === OUTCOME.YES
               ? selected
-                ? "bg-gold text-ink-900"
-                : "text-gold hover:bg-gold/10"
+                ? "bg-win text-ink-900"
+                : "text-win hover:bg-win/10"
               : selected
                 ? "bg-signal-soft text-paper"
                 : "text-signal-soft hover:bg-signal/10";
@@ -182,7 +182,7 @@ export function TradePanel({ marketId, teams }: { marketId: bigint; teams?: Mark
       <div className="grid grid-cols-2 border-t border-bronze/40 pt-3">
         <div>
           <p className="label">Your YES</p>
-          <p className="num font-mono text-lg text-gold">{yesShares !== undefined ? formatTokenAmount(yesShares) : "…"}</p>
+          <p className="num font-mono text-lg text-win">{yesShares !== undefined ? formatTokenAmount(yesShares) : "…"}</p>
         </div>
         <div className="text-right">
           <p className="label">Your NO</p>
