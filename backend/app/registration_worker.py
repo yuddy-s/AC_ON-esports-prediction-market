@@ -87,6 +87,15 @@ def process_registration_job(
                     error_code="chain_unavailable", next_attempt_at=now + timedelta(seconds=30))
         return job
     if chain_state == "matching":
+        if job.transaction_hash:
+            try:
+                confirmed_receipt = gateway.receipt_state(job.transaction_hash) == "success"
+            except GatewayUnavailable:
+                confirmed_receipt = False
+            if not confirmed_receipt:
+                _transition(session, job, "submitted", now, error_code="receipt_unknown",
+                            next_attempt_at=now + timedelta(seconds=30))
+                return job
         _transition(session, job, "confirmed", now)
         return job
     if chain_state == "conflicting":

@@ -2,14 +2,16 @@
 
 from datetime import UTC, datetime
 
+from eth_abi import encode
+from eth_utils import keccak
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.database import get_session
-from app.models import Fixture, FixtureResultObservation
+from app.models import Fixture, FixtureResultObservation, FixtureReviewEvent, IndexedContract, IndexedFixtureRegistration
 from app.models import FixtureRegistrationJob
 from app.registration_service import RegistrationError, _eligible, create_challenge, request_registration
 from app.config import get_settings
@@ -46,6 +48,28 @@ class FixtureRead(BaseModel):
     latest_result: ResultObservationRead | None
     registration_request_status: str | None
     registration_eligible: bool
+    operator_review: "OperatorReviewRead | None"
+    fixture_key: str
+    onchain_registration: "OnChainRegistrationRead | None"
+    authoritative: bool = False
+
+
+class OperatorReviewRead(BaseModel):
+    reviewer: str
+    approved: bool
+    evidence_url: str | None
+    evidence_hash: str | None
+    reviewed_at: datetime
+
+
+class OnChainRegistrationRead(BaseModel):
+    chain_id: int
+    contract_address: str
+    registrar: str
+    revision_hash: str
+    transaction_hash: str
+    block_number: int
+    market_id: int | None
     authoritative: bool = False
 
 
@@ -127,11 +151,29 @@ def _fixture_read(session: Session, fixture: Fixture) -> FixtureRead:
     registration_status = session.scalar(
         select(FixtureRegistrationJob.status).where(FixtureRegistrationJob.fixture_id == fixture.id)
     )
+    review = session.scalar(
+        select(FixtureReviewEvent)
+        .where(FixtureReviewEvent.fixture_id == fixture.id)
+        .order_by(FixtureReviewEvent.reviewed_at.desc(), FixtureReviewEvent.id.desc())
+        .limit(1)
+    )
     try:
         _eligible(session, fixture.id, datetime.now(UTC))
         registration_eligible = True
     except RegistrationError:
         registration_eligible = False
+    fixture_key = "0x" + keccak(encode(
+        ["string", "string", "string"],
+        [fixture.provider_id, fixture.game_id, fixture.external_match_id],
+    )).hex()
+    contract = session.scalar(select(IndexedContract).where(IndexedContract.active.is_(True)).order_by(IndexedContract.id.desc()))
+    chain_registration = None
+    if contract is not None:
+        chain_registration = session.scalar(select(IndexedFixtureRegistration).where(
+            IndexedFixtureRegistration.chain_id == contract.chain_id,
+            IndexedFixtureRegistration.contract_address == contract.contract_address,
+            IndexedFixtureRegistration.fixture_key == fixture_key,
+        ))
     return FixtureRead(
         id=fixture.id,
         provider_id=fixture.provider_id,
@@ -150,6 +192,23 @@ def _fixture_read(session: Session, fixture: Fixture) -> FixtureRead:
         latest_result=_result_read(latest) if latest else None,
         registration_request_status=registration_status,
         registration_eligible=registration_eligible,
+        operator_review=OperatorReviewRead(
+            reviewer=review.reviewer,
+            approved=review.approved,
+            evidence_url=review.evidence_url,
+            evidence_hash=review.evidence_hash,
+            reviewed_at=_aware(review.reviewed_at),
+        ) if review else None,
+        fixture_key=fixture_key,
+        onchain_registration=OnChainRegistrationRead(
+            chain_id=chain_registration.chain_id,
+            contract_address=chain_registration.contract_address,
+            registrar=chain_registration.registrar,
+            revision_hash=chain_registration.revision_hash,
+            transaction_hash=chain_registration.transaction_hash,
+            block_number=chain_registration.block_number,
+            market_id=chain_registration.market_id,
+        ) if chain_registration else None,
     )
 
 
@@ -178,7 +237,11 @@ def list_fixtures(
         filters.append(func.coalesce(latest_result_status, Fixture.match_status) == match_status)
     total = session.scalar(select(func.count()).select_from(Fixture).where(*filters)) or 0
     fixtures = session.scalars(
-        select(Fixture).where(*filters).order_by(Fixture.scheduled_start, Fixture.id).offset(offset).limit(limit)
+        select(Fixture).where(*filters).order_by(
+            case((func.coalesce(latest_result_status, Fixture.match_status).in_(("scheduled", "live", "postponed")), 0), else_=1),
+            Fixture.scheduled_start,
+            Fixture.id,
+        ).offset(offset).limit(limit)
     ).all()
     return FixtureListResponse(
         items=[_fixture_read(session, fixture) for fixture in fixtures],

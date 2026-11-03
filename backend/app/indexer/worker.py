@@ -7,12 +7,20 @@ import time
 
 from app.config import get_settings
 from app.database import SessionLocal
-from app.indexer.decoder import DecodingEthereumLogProvider, JsonAbiLogDecoder
+from app.indexer.decoder import DecodingEthereumLogProvider, JsonAbiEventDecoder, JsonAbiLogDecoder
 from app.indexer.rpc import EthereumJsonRpcClient, RpcError, RpcTransientError
 from app.indexer.service import EventIndexer, IndexerConfig, IndexerReorganizationError
 
 
 logger = logging.getLogger("acon.indexer")
+
+M4_EVENT_NAMES = {
+    "FixtureRegistered", "MarketCreated", "TradeExecuted", "SellExecuted", "MarketClosed",
+    "OutcomeProposed", "OutcomeChallenged", "ChallengeBondResolved",
+    "ResolverSelectionRequested", "ResolverSelectionRequestFailed", "ResolverSelectionPending",
+    "ResolverCommitteeSelected", "VRFFulfillmentIgnored", "ResolverVoteCast",
+    "MarketFinalized", "MarketVoided", "PayoutClaimed", "CreatorSurplusWithdrawn",
+}
 
 
 class PollingIndexerWorker:
@@ -80,7 +88,9 @@ def build_worker() -> tuple[PollingIndexerWorker, EthereumJsonRpcClient]:
                 f"expected {settings.indexer_chain_id}, received {actual_chain_id}"
             )
         abi_path = Path(settings.prediction_market_abi_path)
-        decoder = JsonAbiLogDecoder(abi_path)
+        generic_decoder = JsonAbiEventDecoder(abi_path, event_names=M4_EVENT_NAMES)
+        m4_enabled = M4_EVENT_NAMES.issubset(generic_decoder.events_by_name)
+        decoder = generic_decoder if m4_enabled else JsonAbiLogDecoder(abi_path)
     except Exception:
         rpc.close()
         raise
@@ -94,6 +104,7 @@ def build_worker() -> tuple[PollingIndexerWorker, EthereumJsonRpcClient]:
             confirmation_depth=settings.indexer_confirmation_depth,
             block_batch_size=settings.indexer_block_batch_size,
             abi_version=abi_path.name,
+            m4_enabled=m4_enabled,
         ),
     )
     return PollingIndexerWorker(indexer, poll_interval=settings.indexer_poll_interval_seconds), rpc
@@ -106,6 +117,9 @@ def main() -> int:
     mode.add_argument("--rebuild", action="store_true", help="clear and rebuild derived projections")
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+    # RPC credentials can be embedded in provider URLs; never emit them via
+    # httpx's request-level INFO logging.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
     try:
         worker, rpc = build_worker()
     except (ValueError, OSError, RpcError) as exc:

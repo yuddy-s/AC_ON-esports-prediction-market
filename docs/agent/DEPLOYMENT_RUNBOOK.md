@@ -1,5 +1,9 @@
 # Backend Deployment Runbook
 
+> Current M4 local/Sepolia operations are documented in
+> [M4_APPLICATION_RUNBOOK.md](M4_APPLICATION_RUNBOOK.md). This file retains historical
+> M3 deployment and recovery context; do not copy its M3 addresses into M4 configuration.
+
 This runbook documents the deployed M3 API, PostgreSQL projections, and single indexer worker; M4 contract deployment and service integration are not yet operational. Ethereum contracts remain authoritative.
 
 ## Required handoff
@@ -74,7 +78,12 @@ For the published example, the trade is `0xe5f5ff239ff3939cfc34c1c7719f2b1db9ef8
 
 Market `0` accepts new buys only before **2026-10-28 17:01:12 UTC**. The recorded creation/trade events can still be backfilled and checked afterward, but a new wallet-trading demo will need a new funded market and updated example transaction references.
 
-## M4 backend integration (in progress)
+## Historical M4 integration notes
+
+The deployment/gateway warnings below describe the earlier implementation baseline and
+are retained for audit context. The real gateways, role grants, M4 deployment, and initial
+live registration/market/trade smoke are now complete; use
+[M4_APPLICATION_RUNBOOK.md](M4_APPLICATION_RUNBOOK.md) for current commands and status.
 
 ### Proposed PandaScore source process
 
@@ -82,7 +91,7 @@ PR #39 merged the server-only PandaScore adapter. PandaScore remains optional un
 
 Apply migration `20261101_0006` before provider import. A selected fixture requires an operator review with separate organizer evidence: `python -m scripts.review_fixture <catalog-id> --reviewer <operator-id> --approve --evidence-url <organizer-url> --evidence-hash <0x-sha256>`. Fixture and result reviews reject `pandascore.co` and every `*.pandascore.co` hostname; the operator must verify that another URL is genuinely independent. `--revoke` removes current approval. Review events survive indexer rebuilds. Reapprove if team IDs/order or scheduled start change. An off-chain approval permits a player to request registrar action but does not make the fixture registered on-chain. Do not run this operator command through a public API.
 
-Apply migration `20261101_0007` before result review. After checking an organizer's result, run `python -m scripts.review_result <observation-id> --reviewer <operator-id> --approve --evidence-url <organizer-url> --evidence-hash <0x-sha256>`; use `--revoke` for a later rejection. A new or corrected observation needs its own review. These events survive indexer rebuilds. An approved review only permits off-chain intent planning; the production proposer still requires the merged ABI, narrow role, verified closed market, and confirmed chain read.
+Apply migration `20261102_0008` before starting the M4 workers. After checking an organizer's result, run `python -m scripts.review_result <observation-id> --reviewer <operator-id> --approve --evidence-url <organizer-url> --evidence-hash <0x-sha256>`; use `--revoke` for a later rejection. A new or corrected observation needs its own review. These events survive indexer rebuilds. An approved review only permits intent planning; the proposer process still requires the merged ABI, narrow role, verified closed market, and confirmed chain read.
 
 PRs #30-#34 and #39 merged the fixture, registration, assessment, audit, and source-review migrations through `20261101_0007`. Before migrating any database, check its current Alembic revision and whether these revisions have already been applied. Back up the target and use one approved migration process. Verify that imported source and signer-audit tables survive any later indexer rebuild. Never point a local importer at a hosted database by accident.
 

@@ -94,6 +94,41 @@ class EthereumJsonRpcClient:
             raise RpcResponseError("invalid ABI-encoded address from eth_call")
         return "0x" + result[-40:].lower()
 
+    def eth_call(self, contract_address: str, data: str) -> str:
+        if not ADDRESS.fullmatch(contract_address) or not DATA.fullmatch(data):
+            raise ValueError("invalid eth_call target or data")
+        result = self._request("eth_call", [{"to": contract_address, "data": data}, "latest"])
+        if not isinstance(result, str) or not DATA.fullmatch(result):
+            raise RpcResponseError("invalid eth_call result")
+        return result.lower()
+
+    def transaction_count(self, address: str) -> int:
+        if not ADDRESS.fullmatch(address):
+            raise ValueError("invalid account address")
+        return self._quantity(self._request("eth_getTransactionCount", [address, "pending"]), "nonce")
+
+    def gas_price(self) -> int:
+        return self._quantity(self._request("eth_gasPrice", []), "gas price")
+
+    def estimate_gas(self, transaction: dict[str, object]) -> int:
+        return self._quantity(self._request("eth_estimateGas", [transaction]), "gas estimate")
+
+    def send_raw_transaction(self, raw_transaction: bytes) -> str:
+        result = self._request("eth_sendRawTransaction", ["0x" + raw_transaction.hex()])
+        if not self._hash(result):
+            raise RpcResponseError("invalid transaction hash")
+        return str(result).lower()
+
+    def transaction_receipt(self, transaction_hash: str) -> dict[str, object] | None:
+        if not self._hash(transaction_hash):
+            raise ValueError("invalid transaction hash")
+        result = self._request("eth_getTransactionReceipt", [transaction_hash])
+        if result is None:
+            return None
+        if not isinstance(result, dict):
+            raise RpcResponseError("invalid transaction receipt")
+        return result
+
     def get_raw_logs(self, address: str, from_block: int, to_block: int) -> Sequence[RawEthereumLog]:
         if not ADDRESS.fullmatch(address):
             raise ValueError("contract address must be a 20-byte hex address")
@@ -155,9 +190,16 @@ class EthereumJsonRpcClient:
             raise RpcResponseError("malformed JSON-RPC error")
         code = error.get("code")
         message = str(error.get("message", "JSON-RPC error"))
+        error_data = error.get("data")
+        if isinstance(error_data, str) and error_data.startswith("0x"):
+            message = f"{message} ({error_data.lower()})"
         lowered = message.lower()
         if code == -32005 or any(term in lowered for term in ("too many results", "block range", "range too wide")):
             raise RpcRangeTooLargeError(message)
+        # Nodes commonly use -32000 for both transient failures and deterministic
+        # contract reverts. Revert data makes the latter safe to classify and inspect.
+        if isinstance(error_data, str) and error_data.startswith("0x"):
+            raise RpcResponseError(f"JSON-RPC error {code}: {message}")
         if code in {-32000, -32002, -32603}:
             raise RpcTransientError(message)
         raise RpcResponseError(f"JSON-RPC error {code}: {message}")

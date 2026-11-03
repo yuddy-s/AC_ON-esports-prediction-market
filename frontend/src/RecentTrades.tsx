@@ -61,9 +61,10 @@ export function RecentTrades({ marketId }: { marketId: bigint }) {
             <tr>
               <th className="pb-2 font-normal">Block</th>
               <th className="pb-2 font-normal">Trader</th>
+              <th className="pb-2 font-normal">Action</th>
               <th className="pb-2 font-normal">Side</th>
               <th className="pb-2 text-right font-normal">Shares</th>
-              <th className="pb-2 text-right font-normal">Cost (ACON)</th>
+              <th className="pb-2 text-right font-normal">Cost / proceeds</th>
             </tr>
           </thead>
           <tbody className="num font-mono">
@@ -82,9 +83,10 @@ export function RecentTrades({ marketId }: { marketId: bigint }) {
                   {row.trader}
                   {row.isYou && <span className="ml-1 font-sans text-xs text-gold">(you)</span>}
                 </td>
+                <td className="py-1.5">{row.kind}</td>
                 <td className={`py-1.5 ${row.side === "YES" ? "text-gold" : "text-signal-soft"}`}>{row.side}</td>
                 <td className="py-1.5 text-right">{row.shares}</td>
-                <td className="py-1.5 text-right">{row.cost}</td>
+                <td className="py-1.5 text-right">{row.amount}</td>
               </tr>
             ))}
           </tbody>

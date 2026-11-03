@@ -312,6 +312,7 @@ def test_correction_after_submission_is_retained_for_challenge(session: Session)
     corrected["results"][0]["evidence_hash"] = "0x" + "22" * 32
     import_document(session, FixtureImportDocument.model_validate(corrected))
     gateway.state = "proposed_matching"
+    gateway.receipt = "success"
     run_oracle_once(session, gateway, now=now + timedelta(seconds=31))
     assert intent.status == "confirmed"
     assert intent.outcome == "YES"

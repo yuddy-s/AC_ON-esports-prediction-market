@@ -17,7 +17,7 @@ export type TradeStatus =
   | { kind: "approve-pending"; hash: Hash }
   | { kind: "trade-wallet"; side: "buy" | "sell" }
   | { kind: "submitted"; hash: Hash }
-  | { kind: "mined"; hash: Hash; blockNumber: bigint; indexer: IndexerWait }
+  | { kind: "mined"; hash: Hash; blockNumber: bigint; marketId: bigint; indexer: IndexerWait }
   | { kind: "indexed"; hash: Hash; blockNumber: bigint; trade: IndexedTrade }
   | { kind: "reverted"; hash: Hash }
   | { kind: "rejected" }

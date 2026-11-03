@@ -6,11 +6,15 @@ const trader = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8";
 
 function trade(block: number, logIndex: number, outcome: number, shares: string, cost: string): IndexedTrade {
   return {
+    event: "TradeExecuted",
+    kind: "BUY",
     market_id: 0,
     trader,
     outcome,
     shares,
     cost,
+    proceeds: null,
+    amount: cost,
     yes_quantity: "0",
     no_quantity: "0",
     block_number: block,
@@ -36,8 +40,8 @@ describe("toTradeRows", () => {
 
   it("formats side, shares and cost from 1e18 base units", () => {
     const [newest, oldest] = toTradeRows(trades);
-    expect(newest).toMatchObject({ side: "NO", shares: "5", cost: "2.31", trader: "0x7099...79c8" });
-    expect(oldest).toMatchObject({ side: "YES", shares: "10", cost: "5.24" });
+    expect(newest).toMatchObject({ side: "NO", kind: "BUY", shares: "5", amount: "2.31", trader: "0x7099...79c8" });
+    expect(oldest).toMatchObject({ side: "YES", shares: "10", amount: "5.24" });
   });
 
   it("marks the connected wallet's trades regardless of address case", () => {

@@ -7,10 +7,21 @@ from app.config import get_settings
 from app.database import Base, engine, get_session
 from app.fixture_api import router as fixture_router
 from app.indexed_api import router as indexed_router
+from app.m4_api import router as m4_router
 from app.models import SampleMatch
 from app.schemas import HealthResponse, SampleMatchRead
 
 settings = get_settings()
+
+
+def _frontend_origins(origin: str) -> list[str]:
+    """Treat localhost and 127.0.0.1 as equivalent only for local dev."""
+    origins = {origin}
+    if "localhost" in origin:
+        origins.add(origin.replace("localhost", "127.0.0.1"))
+    elif "127.0.0.1" in origin:
+        origins.add(origin.replace("127.0.0.1", "localhost"))
+    return sorted(origins)
 
 app = FastAPI(
     title="AC_ON Backend",
@@ -20,13 +31,14 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.frontend_origin],
+    allow_origins=_frontend_origins(settings.frontend_origin),
     allow_credentials=True,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
 app.include_router(indexed_router)
+app.include_router(m4_router)
 app.include_router(fixture_router)
 
 
