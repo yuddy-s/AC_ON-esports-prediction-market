@@ -224,7 +224,8 @@ def test_fresh_sqlite_database_upgrades_through_fixture_migration(tmp_path: Path
     assert {"fixtures", "fixture_result_observations", "registration_challenges", "fixture_registration_jobs", "registration_job_events", "oracle_result_assessments", "oracle_proposal_intents", "oracle_proposal_events", "markets", "trades"} <= tables
     assert {"authorization_challenge_id", "authorization_nonce_hash", "authorization_message_hash"} <= job_columns
     assert {"requested_by", "challenge_id", "nonce_hash", "message_hash", "fixture_snapshot"} <= audit_columns
-    assert revision == "20261101_0007"
+    assert revision == "20261102_0008"
+    assert {"indexed_fixture_registrations", "indexed_market_events", "indexed_positions"} <= tables
 
 
 def test_existing_m3_contract_survives_fixture_migration(tmp_path: Path) -> None:
@@ -256,5 +257,5 @@ def test_existing_m3_contract_survives_fixture_migration(tmp_path: Path) -> None
     upgrade("head")
     with engine.connect() as connection:
         assert connection.execute(text("SELECT abi_version FROM indexed_contracts")).scalar_one() == "m3"
-        assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == "20261101_0007"
+        assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == "20261102_0008"
     engine.dispose()

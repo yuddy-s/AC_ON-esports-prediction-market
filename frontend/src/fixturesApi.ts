@@ -51,6 +51,25 @@ export interface Fixture {
   imported_at: string;
   latest_result: ResultObservation | null;
   registration_request_status: RegistrationStatus | null;
+  registration_eligible?: boolean;
+  operator_review?: {
+    reviewer: string;
+    approved: boolean;
+    evidence_url: string | null;
+    evidence_hash: string | null;
+    reviewed_at: string;
+  } | null;
+  fixture_key?: string;
+  onchain_registration?: {
+    chain_id: number;
+    contract_address: string;
+    registrar: string;
+    revision_hash: string;
+    transaction_hash: string;
+    block_number: number;
+    market_id: number | null;
+    authoritative: false;
+  } | null;
   authoritative: false;
 }
 

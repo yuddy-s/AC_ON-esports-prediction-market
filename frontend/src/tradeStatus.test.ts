@@ -3,11 +3,15 @@ import { isBusy, isFailure, statusMessage, stepIndex, TRADE_STEPS, type TradeSta
 
 const hash = `0x${"ab".repeat(32)}` as const;
 const trade = {
+  event: "TradeExecuted" as const,
+  kind: "BUY" as const,
   market_id: 0,
   trader: "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
   outcome: 0,
   shares: "10000000000000000000",
   cost: "5249584441082326050",
+  proceeds: null,
+  amount: "5249584441082326050",
   yes_quantity: "10000000000000000000",
   no_quantity: "0",
   block_number: 527,

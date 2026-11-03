@@ -97,7 +97,28 @@ function FixtureBody({
                 Provider <span className="font-mono text-paper">{fixture.provider_id}</span> · match{" "}
                 <span className="font-mono text-paper">{fixture.external_match_id}</span>
               </span>
+              <span>
+                Source updated <span className="font-mono text-paper">{new Date(fixture.source_updated_at).toLocaleString()}</span>
+              </span>
+              {fixture.onchain_registration && (
+                <span>
+                  Indexed registration block <span className="font-mono text-paper">{fixture.onchain_registration.block_number}</span>
+                  {fixture.onchain_registration.market_id !== null && <> · market #{fixture.onchain_registration.market_id}</>}
+                </span>
+              )}
               <Evidence url={fixture.evidence_url} hash={fixture.evidence_hash} />
+              {fixture.operator_review ? (
+                <span>
+                  Operator review <span className="font-semibold text-paper">{fixture.operator_review.approved ? "approved" : "revoked"}</span>
+                  {" by "}<span className="font-mono text-paper">{fixture.operator_review.reviewer}</span>
+                  {" · "}{new Date(fixture.operator_review.reviewed_at).toLocaleString()}
+                  {fixture.operator_review.evidence_url && (
+                    <>{" · "}<a href={fixture.operator_review.evidence_url} target="_blank" rel="noreferrer" className="link">independent evidence</a></>
+                  )}
+                </span>
+              ) : (
+                <span className="text-signal">No independent operator review recorded.</span>
+              )}
             </div>
           </Panel>
           <ResultHistory fixture={fixture} results={results} failed={resultsFailed} />

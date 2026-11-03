@@ -1,8 +1,7 @@
 """Operator-only PandaScore poll; requires an explicitly approved live-use setting."""
 
 import argparse
-import os
-
+from app.config import get_settings
 from app.fixture_service import import_document
 from app.pandascore import GAME_PATH, PandaScoreClient, PandaScoreError
 
@@ -14,11 +13,12 @@ def main() -> int:
     parser.add_argument("--match-id", help="refresh one tracked PandaScore match (requires a single game)")
     parser.add_argument("--validate-only", action="store_true", help="fetch and normalize without database writes")
     args = parser.parse_args()
-    if os.getenv("PANDASCORE_USE_APPROVED", "").lower() != "true":
+    settings = get_settings()
+    if not settings.pandascore_use_approved:
         parser.error("PANDASCORE_USE_APPROVED=true is required after team/provider-use review")
-    token = os.getenv("PANDASCORE_API_TOKEN", "")
-    if not token:
+    if settings.pandascore_api_token is None:
         parser.error("PANDASCORE_API_TOKEN is required")
+    token = settings.pandascore_api_token.get_secret_value()
     games = tuple(GAME_PATH) if args.game == "all" else (args.game,)
     if args.match_id and args.game == "all":
         parser.error("--match-id requires a single game")

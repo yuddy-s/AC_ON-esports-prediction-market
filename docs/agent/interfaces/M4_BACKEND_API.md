@@ -6,7 +6,7 @@ PandaScore listings return `detail.code=fixture_unreviewed` (HTTP 409) from the 
 
 Catalog and detail items include `registration_eligible` as a current off-chain precheck for scheduled start, teams, result absence, and curation. It can change between reads; a signed challenge is still required and `registration_request_status=confirmed` remains the separate on-chain gate before market creation.
 
-Current status: PRs #30-#39 are merged. PR #37 provides the locally verified M4 contract implementation and exact-build ABI/event fixtures; PR #38 merges the economic proof and invariants. These do not constitute an M4 Sepolia deployment. The registrar/proposer still use mock gateways, and the M4 event projections and lifecycle APIs are not implemented. Keep the [M3 trading interface](M3_TRADING_INTERFACE.md) as the deployed baseline.
+Current status: PRs #30-#39 are merged. PR #37 provides the locally verified M4 contract implementation and exact-build ABI/event fixtures; PR #38 merges the economic proof and invariants. These do not constitute an M4 Sepolia deployment. The current integration branch adds production JSON-RPC registrar/proposer gateways, M4 projections, and `/api/v2` lifecycle reads. These are locally test-verified but are not a live Sepolia claim until a fresh manifest, narrow role grants, private keys, and transaction evidence exist. Keep the [M3 trading interface](M3_TRADING_INTERFACE.md) as the historical deployed baseline.
 
 ## Fixture browsing
 
@@ -27,9 +27,9 @@ EOA signatures are the M4 registration scope. Coinbase Smart Wallet can connect 
 
 ## Indexed market data
 
-`GET /api/indexer/status` includes nullable `abi_version` alongside chain, contract, safe block, and freshness; compare all of them to the selected deployment. The production indexer currently projects M3 `MarketCreated` and `TradeExecuted`. PR #42 merged a generic tuple-aware decoder with exact-signature filtering for the strict M3 path; it does not add M4 projections. M4 event projections and market/history/resolution/committee/claims/portfolio APIs remain unimplemented. The planned M4 read surface uses `/api/v2` to keep M3 route behavior stable. Indexed values are derived; frontend contract reads decide spendable positions, claimability, and whether a write is currently valid.
+`GET /api/indexer/status` includes nullable `abi_version` alongside chain, contract, safe block, and freshness; compare all of them to the selected deployment. The strict M3 decoder remains compatible. With the complete M4 ABI configured, the worker projects fixture linkage, buys/sells, resolution activity, committees/votes, claims, surplus, and positions. The M4 read surface uses `/api/v2` to keep M3 route behavior stable. Indexed values are derived; frontend contract reads decide spendable positions, claimability, and whether a write is currently valid.
 
-### Planned M4 read routes (not implemented)
+### M4 read routes
 
 - `GET /api/v2/indexer/status` reports the indexed M4 chain, contract, ABI version, latest/safe block, lag, and status freshness.
 - `GET /api/v2/markets` and `GET /api/v2/markets/{market_id}` expose indexed M4 markets and deployment metadata.

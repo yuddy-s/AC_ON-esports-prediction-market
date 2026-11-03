@@ -6,11 +6,15 @@ const E18 = 10n ** 18n;
 
 function trade(block: number, logIndex: number, outcome: number, shares: number, yesQty: number, noQty: number): IndexedTrade {
   return {
+    event: "TradeExecuted",
+    kind: "BUY",
     market_id: 3,
     trader: "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
     outcome,
     shares: (BigInt(shares) * E18).toString(),
     cost: "1",
+    proceeds: null,
+    amount: "1",
     yes_quantity: (BigInt(yesQty) * E18).toString(),
     no_quantity: (BigInt(noQty) * E18).toString(),
     block_number: block,

@@ -5,11 +5,15 @@ import { API_URL } from "./config";
 // show when a mined trade has reached the indexed projection.
 
 export interface IndexedTrade {
+  event: "TradeExecuted" | "SellExecuted";
+  kind: "BUY" | "SELL";
   market_id: number;
   trader: string;
   outcome: number;
   shares: string;
-  cost: string;
+  amount: string;
+  cost: string | null;
+  proceeds: string | null;
   yes_quantity: string;
   no_quantity: string;
   block_number: number;
@@ -35,12 +39,18 @@ async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
 
 // An empty list means "not indexed yet", not "failed".
 export async function fetchTradesByTransaction(hash: string, signal?: AbortSignal): Promise<IndexedTrade[]> {
-  const body = await getJson<{ items: IndexedTrade[] }>(`/api/trades/by-transaction/${hash}`, signal);
-  return body.items;
+  const body = await getJson<{ items: Array<Omit<IndexedTrade, "event" | "kind" | "amount" | "proceeds">> }>(`/api/trades/by-transaction/${hash}`, signal);
+  return body.items.map((trade) => ({
+    ...trade,
+    event: "TradeExecuted",
+    kind: "BUY",
+    amount: trade.cost ?? "0",
+    proceeds: null,
+  }));
 }
 
 export function fetchIndexerStatus(signal?: AbortSignal): Promise<IndexerStatus> {
-  return getJson<IndexerStatus>("/api/indexer/status", signal);
+  return getJson<IndexerStatus>("/api/v2/indexer/status", signal);
 }
 
 interface TradePage {
@@ -54,7 +64,7 @@ export async function fetchRecentMarketTrades(
   count: number,
   signal?: AbortSignal,
 ): Promise<{ trades: IndexedTrade[]; total: number }> {
-  const path = `/api/markets/${marketId}/trades`;
+  const path = `/api/v2/markets/${marketId}/history`;
   const first = await getJson<TradePage>(`${path}?limit=${count}&offset=0`, signal);
   if (first.total <= count) return { trades: first.items, total: first.total };
   const last = await getJson<TradePage>(`${path}?limit=${count}&offset=${first.total - count}`, signal);
@@ -70,7 +80,7 @@ export async function fetchAllMarketTrades(
   signal?: AbortSignal,
   maxTrades = 2_000,
 ): Promise<{ trades: IndexedTrade[]; total: number }> {
-  const path = `/api/markets/${marketId}/trades`;
+  const path = `/api/v2/markets/${marketId}/history`;
   const trades: IndexedTrade[] = [];
   let total = 0;
   do {

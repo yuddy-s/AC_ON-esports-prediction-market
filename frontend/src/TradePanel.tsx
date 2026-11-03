@@ -267,7 +267,7 @@ function TradeStatusView({ status, onReset }: { status: TradeStatus; onReset: ()
       {status.kind === "indexed" && (
         <p className="text-xs text-dust">
           Indexed trade: {formatTokenAmount(parseBaseUnits(status.trade.shares))} shares for{" "}
-          {formatTokenAmount(parseBaseUnits(status.trade.cost), 18, 4)} ACON (block {status.trade.block_number}).
+          {formatTokenAmount(parseBaseUnits(status.trade.cost ?? status.trade.amount), 18, 4)} ACON (block {status.trade.block_number}).
         </p>
       )}
 

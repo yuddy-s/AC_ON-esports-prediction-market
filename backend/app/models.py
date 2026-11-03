@@ -283,6 +283,8 @@ class IndexedMarket(Base):
     creator: Mapped[str] = mapped_column(String(42), nullable=False)
     yes_quantity: Mapped[Decimal] = mapped_column(Numeric(78, 0), nullable=False, default=0)
     no_quantity: Mapped[Decimal] = mapped_column(Numeric(78, 0), nullable=False, default=0)
+    fixture_key: Mapped[str | None] = mapped_column(String(66), nullable=True, index=True)
+    final_outcome: Mapped[int | None] = mapped_column(Integer, nullable=True)
     source_block_number: Mapped[int] = mapped_column(BigInteger, nullable=False)
     source_block_hash: Mapped[str] = mapped_column(String(66), nullable=False)
     source_transaction_hash: Mapped[str] = mapped_column(String(66), nullable=False)
@@ -310,3 +312,71 @@ class IndexedTrade(Base):
     block_hash: Mapped[str] = mapped_column(String(66), nullable=False)
     transaction_hash: Mapped[str] = mapped_column(String(66), nullable=False)
     log_index: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class IndexedFixtureRegistration(Base):
+    """Confirmed on-chain fixture registry entry, scoped to one deployment."""
+
+    __tablename__ = "indexed_fixture_registrations"
+    __table_args__ = (
+        UniqueConstraint("chain_id", "contract_address", "fixture_key", name="uq_indexed_fixture_key"),
+        {"sqlite_autoincrement": True},
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    chain_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    contract_address: Mapped[str] = mapped_column(String(42), nullable=False)
+    fixture_key: Mapped[str] = mapped_column(String(66), nullable=False, index=True)
+    registrar: Mapped[str] = mapped_column(String(42), nullable=False)
+    data: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False)
+    revision_hash: Mapped[str] = mapped_column(String(66), nullable=False)
+    market_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    block_number: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    block_hash: Mapped[str] = mapped_column(String(66), nullable=False)
+    transaction_hash: Mapped[str] = mapped_column(String(66), nullable=False)
+    log_index: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class IndexedMarketEvent(Base):
+    """Append-only M4 event ledger used by history, resolution, and claim views."""
+
+    __tablename__ = "indexed_market_events"
+    __table_args__ = (
+        UniqueConstraint("chain_id", "transaction_hash", "log_index", name="uq_indexed_market_event_log"),
+        Index("ix_indexed_market_events_market_order", "chain_id", "contract_address", "market_id", "block_number", "log_index"),
+        {"sqlite_autoincrement": True},
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    chain_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    contract_address: Mapped[str] = mapped_column(String(42), nullable=False)
+    market_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    event_name: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    actor: Mapped[str | None] = mapped_column(String(42), nullable=True, index=True)
+    payload: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False)
+    block_number: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    block_hash: Mapped[str] = mapped_column(String(66), nullable=False)
+    transaction_hash: Mapped[str] = mapped_column(String(66), nullable=False)
+    log_index: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class IndexedPosition(Base):
+    """Rebuildable wallet position derived from confirmed M4 events."""
+
+    __tablename__ = "indexed_positions"
+    __table_args__ = (
+        UniqueConstraint("chain_id", "contract_address", "market_id", "wallet_address", name="uq_indexed_position"),
+        Index("ix_indexed_positions_wallet", "chain_id", "contract_address", "wallet_address"),
+        {"sqlite_autoincrement": True},
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    chain_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    contract_address: Mapped[str] = mapped_column(String(42), nullable=False)
+    market_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    wallet_address: Mapped[str] = mapped_column(String(42), nullable=False)
+    yes_shares: Mapped[Decimal] = mapped_column(Numeric(78, 0), nullable=False, default=0)
+    no_shares: Mapped[Decimal] = mapped_column(Numeric(78, 0), nullable=False, default=0)
+    claimed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    payout: Mapped[Decimal] = mapped_column(Numeric(78, 0), nullable=False, default=0)
+    updated_block_number: Mapped[int] = mapped_column(BigInteger, nullable=False)

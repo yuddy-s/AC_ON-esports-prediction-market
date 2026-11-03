@@ -152,6 +152,15 @@ def process_proposal(session: Session, intent_id: int, gateway: OracleGateway,
                 code="chain_unavailable", next_attempt_at=now + timedelta(seconds=30))
         return intent
     if state == "proposed_matching":
+        if intent.transaction_hash:
+            try:
+                confirmed_receipt = gateway.receipt_state(intent.transaction_hash) == "success"
+            except OracleGatewayUnavailable:
+                confirmed_receipt = False
+            if not confirmed_receipt:
+                _record(session, intent, "submitted", now, code="receipt_unknown",
+                        next_attempt_at=now + timedelta(seconds=30))
+                return intent
         _record(session, intent, "confirmed", now)
         return intent
     if state == "proposed_conflicting":
