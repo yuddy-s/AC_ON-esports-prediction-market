@@ -1,0 +1,361 @@
+{
+  "version": "1.0",
+  "chainId": "11155111",
+  "createdAt": 1793660109331,
+  "meta": {
+    "name": "AC_ON Sepolia administration and resolver setup",
+    "description": "Accept both admin handoffs, grant registrar/proposer roles, add the VRF consumer, and activate ten resolvers. All 15 inner transactions are zero-value CALLs.",
+    "createdFromSafeAddress": "0xE33DDf0E7224245efe3D6BFcb39A78C22fbbAaac",
+    "createdFromOwnerAddress": "0xB5ce8428DD6cB9FEfD54282CB49Ef7d2629d9A6A",
+    "checksum": "0xd68da08cc9a7fcecbdb9cdd9d6fcfb0ec9806c6a0f95bcb2b07f5c2685b3e8a2"
+  },
+  "transactions": [
+    {
+      "to": "0x03ae48f03C7822540a91DA2168602bd49dC510E9",
+      "value": "0",
+      "data": "0xf0025d96",
+      "contractMethod": {
+        "inputs": [],
+        "name": "acceptAdministration",
+        "payable": false
+      },
+      "contractInputsValues": {}
+    },
+    {
+      "to": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "value": "0",
+      "data": "0xf0025d96",
+      "contractMethod": {
+        "inputs": [],
+        "name": "acceptAdministration",
+        "payable": false
+      },
+      "contractInputsValues": {}
+    },
+    {
+      "to": "0x03ae48f03C7822540a91DA2168602bd49dC510E9",
+      "value": "0",
+      "data": "0x2f2ff15dedcc084d3dcd65a1f7f23c65c46722faca6953d28e43150a467cf43e5c309238000000000000000000000000ffb7c2d7b39a3da503ef30761ccd1b19b767edaa",
+      "contractMethod": {
+        "inputs": [
+          {
+            "internalType": "bytes32",
+            "name": "role",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          }
+        ],
+        "name": "grantRole",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "role": "0xedcc084d3dcd65a1f7f23c65c46722faca6953d28e43150a467cf43e5c309238",
+        "account": "0xFfb7c2D7B39A3da503Ef30761CCD1B19B767eDaa"
+      }
+    },
+    {
+      "to": "0x03ae48f03C7822540a91DA2168602bd49dC510E9",
+      "value": "0",
+      "data": "0x2f2ff15db09aa5aeb3702cfd50b6b62bc4532604938f21248a27a1d5ca736082b6819cc1000000000000000000000000137f79cc7ea5c59fa66bc09351b5f9331225c0df",
+      "contractMethod": {
+        "inputs": [
+          {
+            "internalType": "bytes32",
+            "name": "role",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          }
+        ],
+        "name": "grantRole",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "role": "0xb09aa5aeb3702cfd50b6b62bc4532604938f21248a27a1d5ca736082b6819cc1",
+        "account": "0x137F79Cc7eA5c59Fa66bc09351b5f9331225c0Df"
+      }
+    },
+    {
+      "to": "0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B",
+      "value": "0",
+      "data": "0xbec4c08c5fdd5366be11a37454a14c73bcbe31123de8d5af1ada5eb806e83e38c3783a3e00000000000000000000000003ae48f03c7822540a91da2168602bd49dc510e9",
+      "contractMethod": {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "subId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "consumer",
+            "type": "address"
+          }
+        ],
+        "name": "addConsumer",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "subId": "43360769431604264970977939572487330506316889248276568284147859733693920197182",
+        "consumer": "0x03ae48f03C7822540a91DA2168602bd49dC510E9"
+      }
+    },
+    {
+      "to": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "value": "0",
+      "data": "0xdc816a9f0000000000000000000000006a51348c2fe42f8cf4312c74445e211469cffacc0000000000000000000000000000000000000000000000000000000000000001",
+      "contractMethod": {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "resolver",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "active",
+            "type": "bool"
+          }
+        ],
+        "name": "setResolverStatus",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "resolver": "0x6a51348C2fe42f8Cf4312C74445e211469cffaCc",
+        "active": "true"
+      }
+    },
+    {
+      "to": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "value": "0",
+      "data": "0xdc816a9f000000000000000000000000cddb0148f527a44113c038b0109bf41b38615a8c0000000000000000000000000000000000000000000000000000000000000001",
+      "contractMethod": {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "resolver",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "active",
+            "type": "bool"
+          }
+        ],
+        "name": "setResolverStatus",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "resolver": "0xCDDB0148F527a44113C038B0109Bf41b38615A8C",
+        "active": "true"
+      }
+    },
+    {
+      "to": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "value": "0",
+      "data": "0xdc816a9f000000000000000000000000bedcedb7809b21c8d308383b876061f8c18e99f80000000000000000000000000000000000000000000000000000000000000001",
+      "contractMethod": {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "resolver",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "active",
+            "type": "bool"
+          }
+        ],
+        "name": "setResolverStatus",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "resolver": "0xBEDCEdb7809B21C8d308383B876061f8c18E99f8",
+        "active": "true"
+      }
+    },
+    {
+      "to": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "value": "0",
+      "data": "0xdc816a9f0000000000000000000000002897358d07b54a7b92af12936fa8f3a7e1f21b550000000000000000000000000000000000000000000000000000000000000001",
+      "contractMethod": {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "resolver",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "active",
+            "type": "bool"
+          }
+        ],
+        "name": "setResolverStatus",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "resolver": "0x2897358D07B54A7B92af12936FA8f3a7e1F21B55",
+        "active": "true"
+      }
+    },
+    {
+      "to": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "value": "0",
+      "data": "0xdc816a9f000000000000000000000000ffa3101454f5d73d7d7a2a11e5df9dd4309f4dce0000000000000000000000000000000000000000000000000000000000000001",
+      "contractMethod": {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "resolver",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "active",
+            "type": "bool"
+          }
+        ],
+        "name": "setResolverStatus",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "resolver": "0xFfA3101454f5d73D7d7A2A11e5df9Dd4309F4DCE",
+        "active": "true"
+      }
+    },
+    {
+      "to": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "value": "0",
+      "data": "0xdc816a9f000000000000000000000000b9ae38eebb262536482b6b614381e6666d287d440000000000000000000000000000000000000000000000000000000000000001",
+      "contractMethod": {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "resolver",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "active",
+            "type": "bool"
+          }
+        ],
+        "name": "setResolverStatus",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "resolver": "0xB9ae38EEbb262536482B6B614381e6666d287d44",
+        "active": "true"
+      }
+    },
+    {
+      "to": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "value": "0",
+      "data": "0xdc816a9f000000000000000000000000da38e0578afc3a180390b9a4ade1b5b0655930cd0000000000000000000000000000000000000000000000000000000000000001",
+      "contractMethod": {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "resolver",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "active",
+            "type": "bool"
+          }
+        ],
+        "name": "setResolverStatus",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "resolver": "0xda38E0578aFC3A180390b9a4adE1B5B0655930cD",
+        "active": "true"
+      }
+    },
+    {
+      "to": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "value": "0",
+      "data": "0xdc816a9f00000000000000000000000079391b2c3d123c59e0f2ca6970c5c4cad30ad7550000000000000000000000000000000000000000000000000000000000000001",
+      "contractMethod": {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "resolver",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "active",
+            "type": "bool"
+          }
+        ],
+        "name": "setResolverStatus",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "resolver": "0x79391B2C3d123c59e0F2Ca6970C5c4CAd30AD755",
+        "active": "true"
+      }
+    },
+    {
+      "to": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "value": "0",
+      "data": "0xdc816a9f000000000000000000000000748b388699054c5e395857b356369ea4367f0a560000000000000000000000000000000000000000000000000000000000000001",
+      "contractMethod": {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "resolver",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "active",
+            "type": "bool"
+          }
+        ],
+        "name": "setResolverStatus",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "resolver": "0x748b388699054c5e395857b356369ea4367F0a56",
+        "active": "true"
+      }
+    },
+    {
+      "to": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "value": "0",
+      "data": "0xdc816a9f0000000000000000000000009928272c65bf08b2d2ce2e8ba4e74c95bdeeec9c0000000000000000000000000000000000000000000000000000000000000001",
+      "contractMethod": {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "resolver",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "active",
+            "type": "bool"
+          }
+        ],
+        "name": "setResolverStatus",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "resolver": "0x9928272c65bf08b2d2Ce2E8Ba4e74c95BdEEeC9C",
+        "active": "true"
+      }
+    }
+  ]
+}
