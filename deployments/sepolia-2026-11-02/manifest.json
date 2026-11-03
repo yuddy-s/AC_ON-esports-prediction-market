@@ -1,0 +1,313 @@
+{
+  "schema_version": 1,
+  "consumer_schema_review_required": true,
+  "status": "DEPLOYED_SAFE_SETUP_PENDING",
+  "release_ready": false,
+  "chain_id": 11155111,
+  "network": "ethereum-sepolia",
+  "source_commit": "721a6fef039a479f46a76fd77fdc4f0f1937af7f",
+  "compiler": {
+    "version": "0.8.24",
+    "optimizer_enabled": true,
+    "optimizer_runs": 200,
+    "via_ir": true,
+    "evm_version": "cancun"
+  },
+  "build_snapshot_path": "deployments/sepolia-2026-11-02/build.snapshot.json",
+  "build_snapshot_sha256": "5836a0d4dd3ab3b341c0f14afb95570d0a0291bdf0c7c1ee5b287d219e5b2a8d",
+  "deployer": "0xB5ce8428DD6cB9FEfD54282CB49Ef7d2629d9A6A",
+  "contracts": {
+    "ACONTestToken": {
+      "address": "0xf85b2278a810410c6AE0b7490d34671E0C8e6E90",
+      "deployment_transaction": "0xd0a77084b1a0464b505511a7909f1d94b09ca986c6bd3dbf4294c028b7b53ffb",
+      "deployment_block": 12051217,
+      "deployment_block_hash": "0x4976b7ed7bd8ca1123f11adb4c1acd293140104b92c17bed9b79b32f919830e6",
+      "deployed_runtime_bytes": 1716,
+      "deployed_runtime_sha256": "32517edff058dfbc73102bab91edfe941fdb21c064edff2f928d21ad4eb3d6df",
+      "deployed_runtime_keccak256": "0xd5d33cb3dfa2f94e1fd40bea11be19a805d3b756518256c5f78440354e680b28",
+      "compiler_template_match_outside_immutables": true,
+      "immutable_reference_groups": 0,
+      "abi_sha256": "24700f6539abf133591258742cc662c5552b95056d798b59f0aebc709508144f",
+      "abi_path": "deployments/abi/ACONTestToken.721a6fef039a.24700f6539ab.abi.json"
+    },
+    "MarketPricing": {
+      "address": "0x9d2bC542cD5028E360F16Bc8cE9043dBfCF1ceEA",
+      "deployment_transaction": "0x39beb78854fdc30ac2d228476f0c20879d73090df82c3b4d56cd4e7627347b78",
+      "deployment_block": 12051219,
+      "deployment_block_hash": "0x538cef6b10f1d5658d62e3f4c0a392893858bf6f84f765c09242b91cfb15a790",
+      "deployed_runtime_bytes": 3185,
+      "deployed_runtime_sha256": "82a47af73fe272d171464d8a7490aad1a510b67d14b78e439329e4c0af4ac117",
+      "deployed_runtime_keccak256": "0xc8f62b89e5fef0673b736d32428ea433da2f2ed27abc6e009a14526ed72a69de",
+      "compiler_template_match_outside_immutables": true,
+      "immutable_reference_groups": 0,
+      "abi_sha256": "70aeb0507ae0984b2f4b4ddf9e985c73dfe45cc0b9f8d4937fbccb85a5a80bb1",
+      "abi_path": "deployments/abi/MarketPricing.721a6fef039a.70aeb0507ae0.abi.json"
+    },
+    "ResolverRegistry": {
+      "address": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "deployment_transaction": "0xd8076df6138369617dde001ad02672cbe1310228a598151bfbbcd7ec0188a35f",
+      "deployment_block": 12051221,
+      "deployment_block_hash": "0xa549bf79f75bfdf0355e52c3448caee0c41a36259cdb5ff986bdb5c66669926d",
+      "deployed_runtime_bytes": 2524,
+      "deployed_runtime_sha256": "2f70b6cfc28a9e213c9a9030d8c3996756d6cab98f5567c56dc5103bbc9af4a2",
+      "deployed_runtime_keccak256": "0x7f93f2a4247bb107dcc50e66970a8d06f234ab40ff2caf4d13fe9e0fb4907078",
+      "compiler_template_match_outside_immutables": true,
+      "immutable_reference_groups": 0,
+      "abi_sha256": "f835cc69f74b835b0f6237a94fc8d81001e672f86270d4ab31b43a63875cd04c",
+      "abi_path": "deployments/abi/ResolverRegistry.721a6fef039a.f835cc69f74b.abi.json"
+    },
+    "PredictionMarket": {
+      "address": "0x03ae48f03C7822540a91DA2168602bd49dC510E9",
+      "deployment_transaction": "0xf2eb2550106a313e808129d4c84a1c11ae559c9ef87252f585aecb34e19ac81b",
+      "deployment_block": 12051223,
+      "deployment_block_hash": "0x4ab269ec5febee04565d57e73d8c4c20b2d8a55be82e77d89d564afa7d250ff1",
+      "deployed_runtime_bytes": 23929,
+      "deployed_runtime_sha256": "b47985227d55c84c1d97766c4e953e04dfdd9590ba024d02cb2e35c733228f4d",
+      "deployed_runtime_keccak256": "0x17a3fcb1130f7fa36be6c6207fecc524580da6384b112d204d628be3020d8542",
+      "compiler_template_match_outside_immutables": true,
+      "immutable_reference_groups": 7,
+      "abi_sha256": "4af9297937eb1b1b277a8c8d83e78ceb05c5db66cb120f1d39b80fdfc1015a91",
+      "abi_path": "deployments/abi/PredictionMarket.721a6fef039a.4af9297937eb.abi.json"
+    }
+  },
+  "indexer_start_block": 12051217,
+  "market_deployment_block": 12051223,
+  "minimum_receipt_confirmations": 2,
+  "verification_snapshot_block": 12051243,
+  "safe": {
+    "address": "0xE33DDf0E7224245efe3D6BFcb39A78C22fbbAaac",
+    "threshold": 2,
+    "owners": [
+      {
+        "name": "Benny",
+        "address": "0xB5ce8428DD6cB9FEfD54282CB49Ef7d2629d9A6A"
+      },
+      {
+        "name": "Matthew",
+        "address": "0xeF4176f740D0672176da0a40b7E4aF21dB6B14d3"
+      },
+      {
+        "name": "Adriel",
+        "address": "0xBF0ecc6f0427529fdd607dFD7f5b47DcE2A4CDA1"
+      }
+    ],
+    "contract_administration_acceptance_complete": false,
+    "setup_batch_path": "deployments/sepolia-2026-11-02/safe-setup.json",
+    "setup_batch_checksum": "0xd68da08cc9a7fcecbdb9cdd9d6fcfb0ec9806c6a0f95bcb2b07f5c2685b3e8a2",
+    "setup_inner_call_count": 15
+  },
+  "administration": {
+    "PredictionMarket": {
+      "admin": "0xB5ce8428DD6cB9FEfD54282CB49Ef7d2629d9A6A",
+      "pending_admin": "0xE33DDf0E7224245efe3D6BFcb39A78C22fbbAaac"
+    },
+    "ResolverRegistry": {
+      "admin": "0xB5ce8428DD6cB9FEfD54282CB49Ef7d2629d9A6A",
+      "pending_admin": "0xE33DDf0E7224245efe3D6BFcb39A78C22fbbAaac"
+    }
+  },
+  "vrf": {
+    "id": "43360769431604264970977939572487330506316889248276568284147859733693920197182",
+    "owner": "0xE33DDf0E7224245efe3D6BFcb39A78C22fbbAaac",
+    "balance_link_wei": "10000000000000000000",
+    "consumers": [],
+    "coordinator": "0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B",
+    "key_hash": "0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae",
+    "callback_gas_limit": 2000000,
+    "request_confirmations": 3,
+    "native_payment": false,
+    "market_consumer_registered": false,
+    "real_fulfillment_observed": false
+  },
+  "roles": {
+    "REGISTRAR_ROLE": {
+      "address": "0xFfb7c2D7B39A3da503Ef30761CCD1B19B767eDaa",
+      "granted": false
+    },
+    "PROPOSER_ROLE": {
+      "address": "0x137F79Cc7eA5c59Fa66bc09351b5f9331225c0Df",
+      "granted": false
+    }
+  },
+  "resolvers": [
+    {
+      "label": "R01",
+      "address": "0x6a51348C2fe42f8Cf4312C74445e211469cffaCc",
+      "activated": false
+    },
+    {
+      "label": "R02",
+      "address": "0xCDDB0148F527a44113C038B0109Bf41b38615A8C",
+      "activated": false
+    },
+    {
+      "label": "R03",
+      "address": "0xBEDCEdb7809B21C8d308383B876061f8c18E99f8",
+      "activated": false
+    },
+    {
+      "label": "R04",
+      "address": "0x2897358D07B54A7B92af12936FA8f3a7e1F21B55",
+      "activated": false
+    },
+    {
+      "label": "R05",
+      "address": "0xFfA3101454f5d73D7d7A2A11e5df9Dd4309F4DCE",
+      "activated": false
+    },
+    {
+      "label": "R06",
+      "address": "0xB9ae38EEbb262536482B6B614381e6666d287d44",
+      "activated": false
+    },
+    {
+      "label": "R07",
+      "address": "0xda38E0578aFC3A180390b9a4adE1B5B0655930cD",
+      "activated": false
+    },
+    {
+      "label": "R08",
+      "address": "0x79391B2C3d123c59e0F2Ca6970C5c4CAd30AD755",
+      "activated": false
+    },
+    {
+      "label": "R09",
+      "address": "0x748b388699054c5e395857b356369ea4367F0a56",
+      "activated": false
+    },
+    {
+      "label": "R10",
+      "address": "0x9928272c65bf08b2d2Ce2E8Ba4e74c95BdEEeC9C",
+      "activated": false
+    }
+  ],
+  "transactions": [
+    {
+      "step": 1,
+      "action": "CREATE ACONTestToken",
+      "nonce": 28,
+      "transaction_hash": "0xd0a77084b1a0464b505511a7909f1d94b09ca986c6bd3dbf4294c028b7b53ffb",
+      "gas_limit": 3751213,
+      "block_number": 12051217,
+      "block_hash": "0x4976b7ed7bd8ca1123f11adb4c1acd293140104b92c17bed9b79b32f919830e6",
+      "confirmations_at_verification": 27,
+      "status": 1,
+      "gas_used": 2861669,
+      "effective_gas_price_wei": 1000000015,
+      "fee_paid_wei": "2861669042925035",
+      "transaction_input_matches_reviewed_plan": true,
+      "contract_name": "ACONTestToken",
+      "contract_address": "0xf85b2278a810410c6AE0b7490d34671E0C8e6E90",
+      "receipt_path": "deployments/sepolia-2026-11-02/receipts/01-0xd0a77084b1a0464b505511a7909f1d94b09ca986c6bd3dbf4294c028b7b53ffb.json"
+    },
+    {
+      "step": 2,
+      "action": "CREATE MarketPricing",
+      "nonce": 29,
+      "transaction_hash": "0x39beb78854fdc30ac2d228476f0c20879d73090df82c3b4d56cd4e7627347b78",
+      "gas_limit": 6727260,
+      "block_number": 12051219,
+      "block_hash": "0x538cef6b10f1d5658d62e3f4c0a392893858bf6f84f765c09242b91cfb15a790",
+      "confirmations_at_verification": 25,
+      "status": 1,
+      "gas_used": 5132910,
+      "effective_gas_price_wei": 1000000015,
+      "fee_paid_wei": "5132910076993650",
+      "transaction_input_matches_reviewed_plan": true,
+      "contract_name": "MarketPricing",
+      "contract_address": "0x9d2bC542cD5028E360F16Bc8cE9043dBfCF1ceEA",
+      "receipt_path": "deployments/sepolia-2026-11-02/receipts/02-0x39beb78854fdc30ac2d228476f0c20879d73090df82c3b4d56cd4e7627347b78.json"
+    },
+    {
+      "step": 3,
+      "action": "CREATE ResolverRegistry",
+      "nonce": 30,
+      "transaction_hash": "0xd8076df6138369617dde001ad02672cbe1310228a598151bfbbcd7ec0188a35f",
+      "gas_limit": 5538977,
+      "block_number": 12051221,
+      "block_hash": "0xa549bf79f75bfdf0355e52c3448caee0c41a36259cdb5ff986bdb5c66669926d",
+      "confirmations_at_verification": 23,
+      "status": 1,
+      "gas_used": 4226044,
+      "effective_gas_price_wei": 1000000015,
+      "fee_paid_wei": "4226044063390660",
+      "transaction_input_matches_reviewed_plan": true,
+      "contract_name": "ResolverRegistry",
+      "contract_address": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "receipt_path": "deployments/sepolia-2026-11-02/receipts/03-0xd8076df6138369617dde001ad02672cbe1310228a598151bfbbcd7ec0188a35f.json"
+    },
+    {
+      "step": 4,
+      "action": "CREATE PredictionMarket",
+      "nonce": 31,
+      "transaction_hash": "0xf2eb2550106a313e808129d4c84a1c11ae559c9ef87252f585aecb34e19ac81b",
+      "gas_limit": 49079782,
+      "block_number": 12051223,
+      "block_hash": "0x4ab269ec5febee04565d57e73d8c4c20b2d8a55be82e77d89d564afa7d250ff1",
+      "confirmations_at_verification": 21,
+      "status": 1,
+      "gas_used": 37455247,
+      "effective_gas_price_wei": 1000000015,
+      "fee_paid_wei": "37455247561828705",
+      "transaction_input_matches_reviewed_plan": true,
+      "contract_name": "PredictionMarket",
+      "contract_address": "0x03ae48f03C7822540a91DA2168602bd49dC510E9",
+      "receipt_path": "deployments/sepolia-2026-11-02/receipts/04-0xf2eb2550106a313e808129d4c84a1c11ae559c9ef87252f585aecb34e19ac81b.json"
+    },
+    {
+      "step": 5,
+      "action": "PredictionMarket.transferAdministration",
+      "nonce": 32,
+      "transaction_hash": "0x2d309da8856d91e4411f31f46fd81480580c8e6aeeb27a4a17470bae6448eeb4",
+      "gas_limit": 170627,
+      "block_number": 12051225,
+      "block_hash": "0x114e0f76c58448b81aa5873fed84bcc91d01c265fafecb048d2a95603926619d",
+      "confirmations_at_verification": 19,
+      "status": 1,
+      "gas_used": 130152,
+      "effective_gas_price_wei": 1000000015,
+      "fee_paid_wei": "130152001952280",
+      "transaction_input_matches_reviewed_plan": true,
+      "receipt_path": "deployments/sepolia-2026-11-02/receipts/05-0x2d309da8856d91e4411f31f46fd81480580c8e6aeeb27a4a17470bae6448eeb4.json"
+    },
+    {
+      "step": 6,
+      "action": "ResolverRegistry.transferAdministration",
+      "nonce": 33,
+      "transaction_hash": "0x5f2abaf1ae8093fbcd98a5b9877053e605ca236f2143e554e752756ce94c6436",
+      "gas_limit": 169946,
+      "block_number": 12051227,
+      "block_hash": "0xb1dd2ad888903b69f0141b0a6dedcb61409fe0314a41e203d73e57c760a5d40e",
+      "confirmations_at_verification": 17,
+      "status": 1,
+      "gas_used": 129630,
+      "effective_gas_price_wei": 1000000015,
+      "fee_paid_wei": "129630001944450",
+      "transaction_input_matches_reviewed_plan": true,
+      "receipt_path": "deployments/sepolia-2026-11-02/receipts/06-0x5f2abaf1ae8093fbcd98a5b9877053e605ca236f2143e554e752756ce94c6436.json"
+    }
+  ],
+  "failed_attempt": {
+    "transaction_hash": "0x020bfbd1c3f93815b51a817219e8814e46119014ec78c679ff2c76069ff3355f",
+    "nonce": 27,
+    "block_number": 12051182,
+    "status": 0,
+    "reason": "Creation exhausted the Foundry local-estimate gas limit; no contract was deployed.",
+    "fee_paid_wei": "551804000000000",
+    "receipt_path": "deployments/sepolia-2026-11-02/receipts/failed-0x020bfbd1c3f93815b51a817219e8814e46119014ec78c679ff2c76069ff3355f.json"
+  },
+  "costs": {
+    "successful_deployment_fee_wei": "49935652749034780",
+    "failed_attempt_fee_wei": "551804000000000",
+    "total_fee_paid_wei": "50487456749034780"
+  },
+  "gas_estimation": "Successful transactions used live eth_estimateGas plus 30% before each submission; local Cancun simulation underestimated current Sepolia state-creation costs.",
+  "pending_acceptance": [
+    "Safe administration acceptance",
+    "registrar/proposer role grants",
+    "VRF consumer registration",
+    "ten resolver activations",
+    "real VRF fulfillment and lifecycle transaction smoke",
+    "frontend/backend consumer integration and cross-layer acceptance"
+  ]
+}

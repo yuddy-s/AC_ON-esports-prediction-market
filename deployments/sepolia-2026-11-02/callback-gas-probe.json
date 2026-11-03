@@ -1,0 +1,48 @@
+{
+  "scope": "Read-only RPC state overrides on deployed bytecode; synthetic pending rounds, not live VRF fulfillment.",
+  "market": "0x03ae48f03C7822540a91DA2168602bd49dC510E9",
+  "chain_id": 11155111,
+  "block_number": 12051248,
+  "resolver_count": 10,
+  "callback_gas_limit": 2000000,
+  "measurements": [
+    {
+      "round": 1,
+      "word": "0",
+      "estimated_top_level_gas": 774160,
+      "call_with_configured_gas_succeeded": true
+    },
+    {
+      "round": 1,
+      "word": "1",
+      "estimated_top_level_gas": 774172,
+      "call_with_configured_gas_succeeded": true
+    },
+    {
+      "round": 1,
+      "word": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "estimated_top_level_gas": 774547,
+      "call_with_configured_gas_succeeded": true
+    },
+    {
+      "round": 2,
+      "word": "0",
+      "estimated_top_level_gas": 774160,
+      "call_with_configured_gas_succeeded": true
+    },
+    {
+      "round": 2,
+      "word": "1",
+      "estimated_top_level_gas": 774172,
+      "call_with_configured_gas_succeeded": true
+    },
+    {
+      "round": 2,
+      "word": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "estimated_top_level_gas": 774547,
+      "call_with_configured_gas_succeeded": true
+    }
+  ],
+  "maximum_estimated_gas": 774547,
+  "broadcast": false
+}

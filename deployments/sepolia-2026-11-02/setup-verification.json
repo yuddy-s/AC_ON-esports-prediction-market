@@ -1,0 +1,188 @@
+{
+  "chain_id": 11155111,
+  "source_commit": "721a6fef039a479f46a76fd77fdc4f0f1937af7f",
+  "status": "DEPLOYED_CONFIGURED_ACCEPTANCE_PENDING",
+  "deployment_setup_complete": true,
+  "release_ready": false,
+  "transaction_hash": "0x89d8949a8cfaa91bfbd44345d8830470a5ddfbc001e346907ad4ec8f964ff69e",
+  "receipt_block": 12051344,
+  "receipt_block_hash": "0x9d684267547f428c3dbf5c9d3904f7029cdadae9512de8e7ddad485053277048",
+  "confirmations_at_verification": 40,
+  "verified_at_block": 12051383,
+  "verified_at_block_hash": "0xef1813cec6292d21f642c587aa328a8d9a71aec6897be630256be73c028e81d9",
+  "verified_at_utc": "2026-11-02T23:19:36+00:00",
+  "executor": "0xB5ce8428DD6cB9FEfD54282CB49Ef7d2629d9A6A",
+  "executor_nonce": 34,
+  "gas_used": 4168731,
+  "effective_gas_price_wei": 16,
+  "fee_paid_wei": "66699696",
+  "safe_transaction_hash": "0xf39b02ce044fb8e3673099e5d980be52fac32b6c60f582a80828755f690be1e8",
+  "executed_safe_nonce": 1,
+  "safe_nonce_at_verification": 2,
+  "safe_address": "0xE33DDf0E7224245efe3D6BFcb39A78C22fbbAaac",
+  "safe_owners": [
+    "0xB5ce8428DD6cB9FEfD54282CB49Ef7d2629d9A6A",
+    "0xBF0ecc6f0427529fdd607dFD7f5b47DcE2A4CDA1",
+    "0xeF4176f740D0672176da0a40b7E4aF21dB6B14d3"
+  ],
+  "safe_threshold": 2,
+  "execution_success_event_confirmed": true,
+  "outer_operation": "DELEGATECALL",
+  "outer_target": "0xA83c336B20401Af773B6219BA5027174338D1836",
+  "prepared_batch_checksum": "0xd68da08cc9a7fcecbdb9cdd9d6fcfb0ec9806c6a0f95bcb2b07f5c2685b3e8a2",
+  "prepared_batch_calldata_matches_executed_transaction": true,
+  "inner_call_count": 15,
+  "inner_calls": [
+    {
+      "to": "0x03ae48f03C7822540a91DA2168602bd49dC510E9",
+      "value": "0",
+      "data": "0xf0025d96",
+      "operation": "CALL"
+    },
+    {
+      "to": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "value": "0",
+      "data": "0xf0025d96",
+      "operation": "CALL"
+    },
+    {
+      "to": "0x03ae48f03C7822540a91DA2168602bd49dC510E9",
+      "value": "0",
+      "data": "0x2f2ff15dedcc084d3dcd65a1f7f23c65c46722faca6953d28e43150a467cf43e5c309238000000000000000000000000ffb7c2d7b39a3da503ef30761ccd1b19b767edaa",
+      "operation": "CALL"
+    },
+    {
+      "to": "0x03ae48f03C7822540a91DA2168602bd49dC510E9",
+      "value": "0",
+      "data": "0x2f2ff15db09aa5aeb3702cfd50b6b62bc4532604938f21248a27a1d5ca736082b6819cc1000000000000000000000000137f79cc7ea5c59fa66bc09351b5f9331225c0df",
+      "operation": "CALL"
+    },
+    {
+      "to": "0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B",
+      "value": "0",
+      "data": "0xbec4c08c5fdd5366be11a37454a14c73bcbe31123de8d5af1ada5eb806e83e38c3783a3e00000000000000000000000003ae48f03c7822540a91da2168602bd49dc510e9",
+      "operation": "CALL"
+    },
+    {
+      "to": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "value": "0",
+      "data": "0xdc816a9f0000000000000000000000006a51348c2fe42f8cf4312c74445e211469cffacc0000000000000000000000000000000000000000000000000000000000000001",
+      "operation": "CALL"
+    },
+    {
+      "to": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "value": "0",
+      "data": "0xdc816a9f000000000000000000000000cddb0148f527a44113c038b0109bf41b38615a8c0000000000000000000000000000000000000000000000000000000000000001",
+      "operation": "CALL"
+    },
+    {
+      "to": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "value": "0",
+      "data": "0xdc816a9f000000000000000000000000bedcedb7809b21c8d308383b876061f8c18e99f80000000000000000000000000000000000000000000000000000000000000001",
+      "operation": "CALL"
+    },
+    {
+      "to": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "value": "0",
+      "data": "0xdc816a9f0000000000000000000000002897358d07b54a7b92af12936fa8f3a7e1f21b550000000000000000000000000000000000000000000000000000000000000001",
+      "operation": "CALL"
+    },
+    {
+      "to": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "value": "0",
+      "data": "0xdc816a9f000000000000000000000000ffa3101454f5d73d7d7a2a11e5df9dd4309f4dce0000000000000000000000000000000000000000000000000000000000000001",
+      "operation": "CALL"
+    },
+    {
+      "to": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "value": "0",
+      "data": "0xdc816a9f000000000000000000000000b9ae38eebb262536482b6b614381e6666d287d440000000000000000000000000000000000000000000000000000000000000001",
+      "operation": "CALL"
+    },
+    {
+      "to": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "value": "0",
+      "data": "0xdc816a9f000000000000000000000000da38e0578afc3a180390b9a4ade1b5b0655930cd0000000000000000000000000000000000000000000000000000000000000001",
+      "operation": "CALL"
+    },
+    {
+      "to": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "value": "0",
+      "data": "0xdc816a9f00000000000000000000000079391b2c3d123c59e0f2ca6970c5c4cad30ad7550000000000000000000000000000000000000000000000000000000000000001",
+      "operation": "CALL"
+    },
+    {
+      "to": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "value": "0",
+      "data": "0xdc816a9f000000000000000000000000748b388699054c5e395857b356369ea4367f0a560000000000000000000000000000000000000000000000000000000000000001",
+      "operation": "CALL"
+    },
+    {
+      "to": "0x72deD592bCDCFd92db58D1E99A83fDa36b54f831",
+      "value": "0",
+      "data": "0xdc816a9f0000000000000000000000009928272c65bf08b2d2ce2e8ba4e74c95bdeeec9c0000000000000000000000000000000000000000000000000000000000000001",
+      "operation": "CALL"
+    }
+  ],
+  "administration": {
+    "PredictionMarket": {
+      "admin": "0xE33DDf0E7224245efe3D6BFcb39A78C22fbbAaac",
+      "pending_admin": "0x0000000000000000000000000000000000000000",
+      "former_deployer_has_default_admin_role": false,
+      "safe_has_default_admin_role": true
+    },
+    "ResolverRegistry": {
+      "admin": "0xE33DDf0E7224245efe3D6BFcb39A78C22fbbAaac",
+      "pending_admin": "0x0000000000000000000000000000000000000000",
+      "former_deployer_has_default_admin_role": false,
+      "safe_has_default_admin_role": true
+    }
+  },
+  "roles": {
+    "REGISTRAR_ROLE": {
+      "address": "0xFfb7c2D7B39A3da503Ef30761CCD1B19B767eDaa",
+      "granted": true,
+      "has_other_operational_role": false
+    },
+    "PROPOSER_ROLE": {
+      "address": "0x137F79Cc7eA5c59Fa66bc09351b5f9331225c0Df",
+      "granted": true,
+      "has_other_operational_role": false
+    }
+  },
+  "active_resolvers": [
+    "0x6a51348C2fe42f8Cf4312C74445e211469cffaCc",
+    "0xCDDB0148F527a44113C038B0109Bf41b38615A8C",
+    "0xBEDCEdb7809B21C8d308383B876061f8c18E99f8",
+    "0x2897358D07B54A7B92af12936FA8f3a7e1F21B55",
+    "0xFfA3101454f5d73D7d7A2A11e5df9Dd4309F4DCE",
+    "0xB9ae38EEbb262536482B6B614381e6666d287d44",
+    "0xda38E0578aFC3A180390b9a4adE1B5B0655930cD",
+    "0x79391B2C3d123c59e0F2Ca6970C5c4CAd30AD755",
+    "0x748b388699054c5e395857b356369ea4367F0a56",
+    "0x9928272c65bf08b2d2Ce2E8Ba4e74c95BdEEeC9C"
+  ],
+  "operational_and_resolver_wallets_funded": true,
+  "subscription": {
+    "id": "43360769431604264970977939572487330506316889248276568284147859733693920197182",
+    "owner": "0xE33DDf0E7224245efe3D6BFcb39A78C22fbbAaac",
+    "balance_link_wei": "10000000000000000000",
+    "native_balance_wei": "0",
+    "request_count": 0,
+    "consumers": [
+      "0x03ae48f03C7822540a91DA2168602bd49dC510E9"
+    ]
+  },
+  "market_count": 0,
+  "runtime_sha256_matches_deployment": {
+    "ACONTestToken": "32517edff058dfbc73102bab91edfe941fdb21c064edff2f928d21ad4eb3d6df",
+    "MarketPricing": "82a47af73fe272d171464d8a7490aad1a510b67d14b78e439329e4c0af4ac117",
+    "ResolverRegistry": "2f70b6cfc28a9e213c9a9030d8c3996756d6cab98f5567c56dc5103bbc9af4a2",
+    "PredictionMarket": "b47985227d55c84c1d97766c4e953e04dfdd9590ba024d02cb2e35c733228f4d"
+  },
+  "solidity_verify_administration": true,
+  "acceptance_evidence_pending": [
+    "real VRF fulfillment and lifecycle transaction smoke",
+    "frontend/backend consumer integration and cross-layer acceptance"
+  ]
+}
