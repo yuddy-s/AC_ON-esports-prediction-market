@@ -217,8 +217,62 @@ smoke uses ten addresses, not an unbounded-pool gas guarantee.
 
 ## CI and remaining acceptance
 
-The existing contract build/test check now also validates the exact handoff and runs disposable
-Anvil journeys. A separate analysis job runs pinned Slither and coverage and uploads their reports.
+The `Build and test Foundry contracts` and `Contract static analysis and coverage` check names
+remain present on every workflow run. The workflow has no top-level path exclusions.
+
+### Documentation-only PR test fast path
+
+`.github/scripts/contract_ci.py` selects the fast path only for a nonempty pull-request diff
+containing known Markdown/documentation assets, source-versioned ABI snapshots, or the supported
+dated Sepolia handoff files. It inspects both sides of renames and deletions. Contract sources,
+tests, scripts, dependencies/submodules, compiler settings, current generated build/ABI/event
+artifacts, CI files, and every unrecognized path select the full path. Missing or unreadable base
+history also selects full checks. Pushes to `dev`/`main` always run the full path.
+
+Every contract build/test job still runs formatting, compilation, the existing exact
+ABI/event/source/runtime check, and independent pricing vectors. The production build cache makes
+these checks inexpensive when their compiler inputs are unchanged. The fast path skips only
+the expensive `forge test` campaigns and disposable Anvil journeys. Its companion analysis job
+reports the classification instead of rerunning Slither and instrumented coverage.
+
+Both required check names remain visible. Classification errors fail the job; an unavailable
+base diff falls back to full checks. The fast path changes test scheduling, not the deployment
+records or their publication process.
+
+### Production compiler cache and full checks
+
+The contract build/test job restores `contracts/out/current` and
+`contracts/cache/current/solidity-files-cache.json` with
+`actions/cache/restore`. Keys include runner OS/architecture, Foundry `v1.8.3`, compiler/profile
+configuration and dependency locks, plus Solidity source/test/script/library content. Compatible
+source-cache restores enable incremental compilation. `forge build` still runs on cache hits,
+and the exact compiled handoff is checked afterward. Successful compilation is saved with
+`actions/cache/save` **before** subsequent `forge inspect` calls change compiler output selection
+and cache state. Saving at job end would restore an inspection-oriented cache and unnecessarily
+recompile the next full build. Cached compilation never substitutes for running the selected
+tests. Deployment caches, broadcast records, environment files, and lock files are outside the
+cached paths.
+
+The full path retains ordinary fuzz runs **256** and invariant runs/depth **256 × 500**, exact
+compiled ABI/source/runtime checks, independent pricing vectors, and six disposable Anvil
+journeys. Slither and minimum-IR coverage retain their separate output/cache directories and
+existing coverage-only **32 × 100** budget. Full compilation artifacts are never shared with
+the instrumented coverage build.
+
+Run the change-routing regression tests locally from the repository root:
+
+```bash
+python3 -m unittest discover -s .github/scripts/tests -v
+```
+
+The tests exercise documentation/static-record classification, code/config/dependency changes,
+renames/deletions, malformed paths/diffs, missing base history, and always-full push events.
+To inspect routing for a committed PR diff, run
+`python3 .github/scripts/contract_ci.py --event pull_request --base <full-base-commit-sha>`.
+Local uncommitted edits are not part of that committed-diff inspection.
+
+### Remaining release acceptance
+
 The M4 implementation, rounding correction, failed-request fixture, economic proof, and generated ABI/build digests were merged in PRs #37/#38. The exact handoff validates locally; later source or ABI changes must regenerate and recheck those artifacts. This record does not claim an M4 live deployment.
 
 Before M4 release: verify the team Safe, ten real resolver-only wallets and funded Safe-owned subscription; deploy fresh
