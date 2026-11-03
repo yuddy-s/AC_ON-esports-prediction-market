@@ -1,27 +1,27 @@
 /** @type {import('tailwindcss').Config} */
-// Palette taken from the AC_ON milestone slide deck: dark roast background,
-// bronze rules, broadcast gold (YES / Team A) and signal red (NO / Team B).
+// Modern dark trading palette. Blue is the product/action accent; green and
+// rose are reserved for YES/profit and NO/loss semantics where possible.
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       colors: {
         ink: {
-          950: "#140E09",
-          900: "#1B140D",
-          800: "#231A12",
-          700: "#2C2117",
-          600: "#3A2D1E",
-          500: "#4B3A26",
+          950: "#05070C",
+          900: "#080B12",
+          800: "#0B1220",
+          700: "#111827",
+          600: "#182235",
+          500: "#243248",
         },
-        bronze: { DEFAULT: "#6A5530", light: "#8A6A1E" },
-        gold: { DEFAULT: "#F5C842", dim: "#D4B03A", deep: "#5C4A16" },
-        signal: { DEFAULT: "#E0242F", soft: "#D8303A", deep: "#4A1717" },
-        cream: "#EDE3D0",
-        paper: "#FBF1DE",
-        sand: "#B7A98D",
-        dust: "#7F7462",
-        win: { DEFAULT: "#8FCB6B", deep: "#1F2E16" },
+        bronze: { DEFAULT: "#334155", light: "#475569" },
+        gold: { DEFAULT: "#3B82F6", dim: "#60A5FA", deep: "#172554" },
+        signal: { DEFAULT: "#F43F5E", soft: "#FB7185", deep: "#4C0519" },
+        cream: "#E2E8F0",
+        paper: "#F8FAFC",
+        sand: "#94A3B8",
+        dust: "#64748B",
+        win: { DEFAULT: "#22C55E", deep: "#052E16" },
       },
       fontFamily: {
         display: ['"Chakra Petch"', "system-ui", "sans-serif"],

@@ -115,7 +115,7 @@ function Committee({
       )}
       {members.length > 0 && (
         <p className="mt-2 num font-mono text-xs text-sand">
-          Votes: <span className="text-gold">YES {round.voteCounts[0]}</span> · <span className="text-signal-soft">NO {round.voteCounts[1]}</span> · VOID{" "}
+          Votes: <span className="text-win">YES {round.voteCounts[0]}</span> · <span className="text-signal-soft">NO {round.voteCounts[1]}</span> · VOID{" "}
           {round.voteCounts[2]} <span className="text-dust">(3 matching settle it)</span>
         </p>
       )}
@@ -230,7 +230,7 @@ function Actions({
                     disabled={disabled}
                     onClick={() => go({ functionName: "voteOnOutcome", args: [id, c] })}
                     className={`border py-2 font-display text-sm font-bold tracking-wider ${
-                      c === CHOICE.YES ? "border-gold text-gold hover:bg-gold/10" : c === CHOICE.NO ? "border-signal-soft text-signal-soft hover:bg-signal/10" : "border-bronze text-sand hover:bg-ink-600"
+                      c === CHOICE.YES ? "border-win text-win hover:bg-win/10" : c === CHOICE.NO ? "border-signal-soft text-signal-soft hover:bg-signal/10" : "border-bronze text-sand hover:bg-ink-600"
                     }`}
                   >
                     {CHOICE_LABELS[c]}

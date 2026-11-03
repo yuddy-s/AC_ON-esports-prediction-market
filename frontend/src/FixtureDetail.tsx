@@ -88,7 +88,7 @@ function FixtureBody({
           <Panel>
             <PanelTitle tag="Rules" title="Source and resolution" />
             <p className="mt-3 text-cream">
-              The market resolves <span className="font-semibold text-gold">YES</span> if {teams.yes} wins and{" "}
+              The market resolves <span className="font-semibold text-win">YES</span> if {teams.yes} wins and{" "}
               <span className="font-semibold text-signal-soft">NO</span> if {teams.no} wins. A canceled, tied, no-contest or
               unsupported result is proposed as VOID. A proposed result can be challenged.
             </p>
@@ -161,7 +161,7 @@ function Matchup({ fixture }: { fixture: Fixture }) {
         <Badge tone={matchStatusTone(fixture.match_status)}>{MATCH_STATUS_LABELS[fixture.match_status]}</Badge>
       </div>
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-5 py-6">
-        <TeamSide name={fixture.team_a_name} outcome="YES" align="left" color="text-gold" />
+        <TeamSide name={fixture.team_a_name} outcome="YES" align="left" color="text-win" />
         <div className="flex flex-col items-center px-2">
           <span className="font-display text-xl font-bold text-dust">VS</span>
           <span className="num mt-1 text-center font-mono text-xs text-sand">
@@ -171,7 +171,7 @@ function Matchup({ fixture }: { fixture: Fixture }) {
         <TeamSide name={fixture.team_b_name} outcome="NO" align="right" color="text-signal-soft" />
       </div>
       <div className="flex h-1.5">
-        <div className="flex-1 bg-gold" />
+        <div className="flex-1 bg-win" />
         <div className="w-0.5 bg-ink-900" />
         <div className="flex-1 bg-signal-soft" />
       </div>

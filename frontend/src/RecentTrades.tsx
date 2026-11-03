@@ -84,7 +84,7 @@ export function RecentTrades({ marketId }: { marketId: bigint }) {
                   {row.isYou && <span className="ml-1 font-sans text-xs text-gold">(you)</span>}
                 </td>
                 <td className="py-1.5">{row.kind}</td>
-                <td className={`py-1.5 ${row.side === "YES" ? "text-gold" : "text-signal-soft"}`}>{row.side}</td>
+                <td className={`py-1.5 ${row.side === "YES" ? "text-win" : "text-signal-soft"}`}>{row.side}</td>
                 <td className="py-1.5 text-right">{row.shares}</td>
                 <td className="py-1.5 text-right">{row.amount}</td>
               </tr>

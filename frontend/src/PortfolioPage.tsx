@@ -165,7 +165,7 @@ function MarketName({ market: m, teams }: { market: Market; teams?: MarketTeams 
     <a href={marketHref(m.id)} className="group block">
       {teams && (
         <span className="block font-display text-xs font-semibold uppercase tracking-wide">
-          <span className="text-gold">{teams.teamA}</span> <span className="text-dust">vs</span>{" "}
+          <span className="text-win">{teams.teamA}</span> <span className="text-dust">vs</span>{" "}
           <span className="text-signal-soft">{teams.teamB}</span>
         </span>
       )}
@@ -197,7 +197,7 @@ function PositionRow({ row, teams }: { row: PortfolioRow; teams?: MarketTeams })
             {statusLabel(row)}
           </span>
         </td>
-        <td className="num py-2.5 text-right font-mono text-gold">{formatTokenAmount(row.holding.yes)}</td>
+        <td className="num py-2.5 text-right font-mono text-win">{formatTokenAmount(row.holding.yes)}</td>
         <td className="num py-2.5 text-right font-mono text-signal-soft">{formatTokenAmount(row.holding.no)}</td>
         <td className="num py-2.5 text-right font-mono text-paper">
           {row.valueKind === "claimed" ? "—" : formatTokenAmount(row.value, 18, 4)}

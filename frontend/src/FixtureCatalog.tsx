@@ -112,7 +112,7 @@ function FixtureRow({ fixture, registeredOnChain }: { fixture: Fixture; register
         <div className="min-w-0">
           <p className="label">{gameLabel(fixture.game_id)}</p>
           <p className="truncate font-display text-lg font-semibold text-paper group-hover:text-gold">
-            <span className="text-gold">{fixture.team_a_name}</span>
+            <span className="text-win">{fixture.team_a_name}</span>
             <span className="mx-2 text-sm text-dust">VS</span>
             <span className="text-signal-soft">{fixture.team_b_name}</span>
           </p>
