@@ -85,6 +85,7 @@ export function useTradeFlow() {
           kind: "mined",
           hash,
           blockNumber: receipt.blockNumber,
+          marketId: request.marketId,
           indexer: API_URL ? { state: "waiting", lastSafeBlock: null } : { state: "not-configured" },
         });
       } catch (error) {
@@ -103,8 +104,9 @@ export function useTradeFlow() {
   // projection. An empty result means "not yet", not "failed".
   const minedHash = status.kind === "mined" && status.indexer.state !== "not-configured" ? status.hash : undefined;
   const minedBlock = status.kind === "mined" ? status.blockNumber : undefined;
+  const minedMarketId = status.kind === "mined" ? status.marketId : undefined;
   useEffect(() => {
-    if (!minedHash || minedBlock === undefined) return;
+    if (!minedHash || minedBlock === undefined || minedMarketId === undefined) return;
     const controller = new AbortController();
     const startedAt = Date.now();
     let timer: ReturnType<typeof setTimeout>;
@@ -115,7 +117,7 @@ export function useTradeFlow() {
     const poll = async () => {
       try {
         const [trades, indexerStatus] = await Promise.all([
-          fetchTradesByTransaction(minedHash, controller.signal),
+          fetchTradesByTransaction(minedMarketId, minedHash, controller.signal),
           fetchIndexerStatus(controller.signal),
         ]);
         const deploymentProblem = indexerDeploymentProblem(indexerStatus, CHAIN.id, PREDICTION_MARKET_ADDRESS);
@@ -152,7 +154,7 @@ export function useTradeFlow() {
       controller.abort();
       clearTimeout(timer);
     };
-  }, [minedHash, minedBlock, queryClient]);
+  }, [minedHash, minedBlock, minedMarketId, queryClient]);
 
   return { status, trade, reset };
 }

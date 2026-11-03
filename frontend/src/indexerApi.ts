@@ -37,16 +37,25 @@ async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   return (await response.json()) as T;
 }
 
-// An empty list means "not indexed yet", not "failed".
-export async function fetchTradesByTransaction(hash: string, signal?: AbortSignal): Promise<IndexedTrade[]> {
-  const body = await getJson<{ items: Array<Omit<IndexedTrade, "event" | "kind" | "amount" | "proceeds">> }>(`/api/trades/by-transaction/${hash}`, signal);
-  return body.items.map((trade) => ({
-    ...trade,
-    event: "TradeExecuted",
-    kind: "BUY",
-    amount: trade.cost ?? "0",
-    proceeds: null,
-  }));
+// An empty list means "not indexed yet", not "failed". M4 buys and sells live
+// in the market event ledger, so confirmation must use the M4 history route
+// rather than the legacy buy-only transaction lookup.
+export async function fetchTradesByTransaction(
+  marketId: bigint,
+  hash: string,
+  signal?: AbortSignal,
+): Promise<IndexedTrade[]> {
+  const path = `/api/v2/markets/${marketId}/history`;
+  const normalizedHash = hash.toLowerCase();
+  const first = await getJson<TradePage>(`${path}?limit=${PAGE}&offset=0`, signal);
+  const matches = first.items.filter((trade) => trade.transaction_hash.toLowerCase() === normalizedHash);
+  if (matches.length > 0 || first.total <= PAGE) return matches;
+
+  // The transaction being polled is normally the newest trade. Read the tail
+  // page as well without downloading an established market's entire history.
+  const offset = Math.max(0, first.total - PAGE);
+  const last = await getJson<TradePage>(`${path}?limit=${PAGE}&offset=${offset}`, signal);
+  return last.items.filter((trade) => trade.transaction_hash.toLowerCase() === normalizedHash);
 }
 
 export function fetchIndexerStatus(signal?: AbortSignal): Promise<IndexerStatus> {

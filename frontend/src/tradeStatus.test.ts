@@ -25,7 +25,7 @@ const statuses: Record<TradeStatus["kind"], TradeStatus> = {
   "approve-pending": { kind: "approve-pending", hash },
   "trade-wallet": { kind: "trade-wallet", side: "buy" },
   submitted: { kind: "submitted", hash },
-  mined: { kind: "mined", hash, blockNumber: 527n, indexer: { state: "waiting", lastSafeBlock: 520 } },
+  mined: { kind: "mined", hash, blockNumber: 527n, marketId: 0n, indexer: { state: "waiting", lastSafeBlock: 520 } },
   indexed: { kind: "indexed", hash, blockNumber: 527n, trade },
   reverted: { kind: "reverted", hash },
   rejected: { kind: "rejected" },
@@ -37,6 +37,7 @@ it("skips the indexed step when the indexer tracks another deployment", () => {
     kind: "mined",
     hash,
     blockNumber: 12n,
+    marketId: 0n,
     indexer: { state: "not-tracking", detail: "The indexer has no active market deployment" },
   });
   expect(message).toContain("indexed step is skipped");
@@ -76,6 +77,7 @@ describe("indexer problems keep the trade marked as mined", () => {
     kind: "mined",
     hash,
     blockNumber: 527n,
+    marketId: 0n,
     indexer,
   });
 
