@@ -1,14 +1,21 @@
 # AC_ON Application Roadmap
 
-> PandaScore adapter status: implemented in merged PR #39, but optional under the approved M4 design. The manual JSON and deterministic mock paths remain required; live PandaScore use stays disabled unless the team enables it and supplies a private token.
+> PandaScore adapter status: implemented and privately enabled for approved educational use. Manual
+> JSON and deterministic mock paths remain the recovery and repeatable-test paths; PandaScore is
+> never authoritative for settlement.
 
 This is the canonical implementation checklist for coding agents and team members. It records what exists, what remains, who owns each area, and whether work can proceed without another team decision. Detailed milestone scope remains in `milestones/` and current assignments remain in `TASKS.md`.
 
-Last reviewed: 2026-11-02. PRs #30-#39, #42, and #44 are merged. PR #40 contains frontend contract actions and PR #43 adds stacked portfolio work; both remain under review. The M4 contract and economics are merged and locally verified; deployment/roles, backend chain gateways/projections/APIs, frontend integration, and end-to-end acceptance remain outstanding.
+Last reviewed: 2026-11-04. PR #49 promoted the feature-complete M4 application to `main`, including
+PR #47 backend/live integration and PR #48 visual refresh. No implementation PRs are currently open.
+M5 now owns public hosting, expanded integration/recovery testing, remaining Sepolia lifecycle
+evidence, defect reporting, and draft user/developer guides.
 
 PRs #10, #12-#20, #22-#26, and #28 are merged into `dev`; PR #27 promoted the M3 snapshot to `main`. This includes the database/indexer/API foundation, approved M3 trading interface, bounded LMSR library, RPC/ABI worker, ACON token, guarded-buy market integration, transaction lookup, versioned deployment handoff, M3 frontend, and the approved Milestone 4 target-design decision record. ACON and PredictionMarket were deployed from `6e30d516669e51d7f3e4bff0d8670168da9b1f83`; market `0` and a ten-share YES buy are confirmed on Sepolia. The complete guarded-buy path was verified locally from a fresh browser through Anvil, the indexer, FastAPI, and back to the UI. Separately, a local Sepolia worker populated Supabase and passed the local API smoke check. Hosted worker/API/frontend acceptance remains pending.
 
-The canonical M3 integration input is [`deployments/sepolia-m3.json`](../../deployments/sepolia-m3.json). The [deployment and trade record](../../contracts/deployments/sepolia-m3-2026-10-21/README.md) includes the exact-build ABIs, receipts, balance checks, and gas-estimation recovery. Market `0` stopped accepting buys on **2026-10-28 at 17:01:12 UTC**; use a new funded market for any later M3 trade demo. The M4 target needs its own deployment and manifest.
+The canonical M3 integration input remains a historical record. Current work uses the M4
+[post-setup manifest](../../deployments/sepolia-2026-11-02/manifest.post-setup.json), its frozen ABI,
+and the matching public addresses; never pair M3 addresses with M4 consumers.
 
 ## Status Key
 
@@ -19,15 +26,17 @@ The canonical M3 integration input is [`deployments/sepolia-m3.json`](../../depl
 - **Blocked**: implementation would guess an authoritative interface, secret, deployment, or protocol decision.
 - **Deferred**: intentionally outside the milestone named in the task, unless the team changes scope.
 
-## Active Milestone 4 Target Design
+## Active Milestone 5 Testing And Integration
 
-The PR #28-approved decision set makes full public Vercel/Render/Supabase integration an **M4 stretch target**, not an M4 acceptance gate. M4 still requires complete local feature journeys, tests, final ABI/docs alignment, and a fresh Sepolia contract deployment with focused transaction smoke. PR #37/#38 are merged: the contract, exact ABI, event fixtures, deployment tooling, and economics proof are locally verified. Deployment and role/VRF setup remain pending.
+M4 implementation and deployment are frozen. M5 connects the public Vercel frontend, Render API
+and isolated workers, Supabase, approved PandaScore adapter, and existing Sepolia contracts; it also
+records defects/fixes and drafts the final guides. The active owner matrix, one-week order, PR
+boundaries, evidence rules, and exit criteria are in [Milestone 5](milestones/MILESTONE_5.md).
 
-The [owner handoff matrix](milestones/MILESTONE_4.md#owner-handoffs-and-roadblocks) separates implemented integration work from credentialed evidence. The current integration branch adds real registrar/proposer gateways, M4 event projections/APIs, and frontend M4 history wiring; live transactions still require the fresh deployment and narrow role grants.
-
-Dependency order: use the merged M4 ABI and locally verified contract; finish deployment and role/VRF setup; connect backend signer gateways and event projections/APIs; finish frontend integration; then run complete local Anvil journeys and focused Sepolia smoke. The required deterministic mock/manual JSON provider remains available; live PandaScore is optional. The backend imports fixtures but does not create user markets. The restricted registrar registers selected fixtures, one market per fixture, and users create markets. The contract cannot query the backend or verify source truth.
-
-Full public integration may finish in M4 as a stretch result; otherwise M5 completes it. The merged M4 contract implements sells, proposals/challenges, resolver voting, settlement, VOID, and claims locally; deployment and frontend/backend cross-layer integration remain incomplete. Every implementation PR updates its affected README, interface/API/deployment handoff, tests, and recovery docs. Preserve the approved M3 trading record.
+M5 must not turn integration into redesign. Preserve contract/API/schema compatibility unless a
+release-blocking defect is reproduced and jointly approved. Run long timeout/replacement/VOID paths
+on Anvil, and distinguish them from real Sepolia VRF/vote/claim evidence. Every implementation PR
+updates its tests, affected guide, deployment/recovery notes, evidence rows, and defect ledger.
 
 ## What An ABI Is
 
@@ -44,14 +53,14 @@ The Solidity source is written for people and the compiler. The ABI is the machi
 
 | Area | Current state | Integration status |
 |---|---|---|
-| Frontend | M3 wallet/trading path plus merged fixture catalog, registration requests, navigation, layout, and price history; M4 contract actions are in PR #40 and portfolio work is in stacked PR #43. | PR #40/#43 remain under review; full component and cross-layer acceptance remains pending. |
-| Contracts | M4 lifecycle, sell, proposal/challenge, resolver, settlement, VOID, and claim implementation with exact ABI and Anvil evidence. | PRs #37/#38 merged and locally verified; fresh Sepolia deployment, Safe/VRF setup, role handoff, and focused smoke remain pending. |
-| Backend API | Health, M3 indexed market/trade/status and transaction lookup, plus M4 fixture/results/registration-request reads and signed request endpoints. | M4 off-chain work merged in #30-#34 and #39; M4 market/resolution/committee/claims/portfolio reads remain pending. |
-| Database | M3 indexed projections plus M4 fixture, result-review, registration, and proposal-intent source/audit tables. | Migrations through `20261101_0007` are in the repo; hosted database migration state is not asserted here. |
-| Indexer | Confirmed-log M3 compatibility, atomic checkpoints, idempotency, restart/reorg recovery, generic tuple-aware decoding, and current-branch M4 lifecycle/portfolio projections plus `/api/v2`. | Validate the M4 worker against the fresh Sepolia deployment and record cross-layer equality evidence. |
-| Oracle | Off-chain assessments, review evidence, immutable intents, and mock retry/audit state machine. | Production registrar/proposer gateways and chain reconciliation remain pending. |
-| Resolver | M4 committee selection and voting are implemented in Solidity with VRF callbacks, conflicts, replacement round, timeout, finalization, and VOID. | Merged and locally verified in PR #37; Safe/VRF deployment, eligible resolver pool, and integrated backend/frontend reads remain. |
-| CI | Frontend tests/build, backend migrations/tests, and Foundry format/build/tests. | Implemented and passing on the current baseline; the README supplies the reproducible local cross-layer equivalent, but no automated end-to-end job exists. |
+| Frontend | M4 fixture, multi-market, trade, portfolio, resolution, claim, and indexed-history UI is merged. | Deploy to Vercel; add public read-only Playwright and manual wallet evidence. |
+| Contracts | Frozen M4 lifecycle/economics ABI is deployed with Safe/VRF/roles/resolver pool. | Reverify deployment and record remaining sell/dispute/VRF/vote/claim receipts. |
+| Backend API | Fixture/review/registration plus M4 lifecycle/history/claims/portfolio APIs and signer gateways are merged. | Deploy API and isolated workers to Render; run public smoke/recovery evidence. |
+| Database | Migrations through `20261102_0008` and replay-preserved source/audit state are merged and applied to the configured Supabase environment. | Add PostgreSQL CI and record pre/post public-deployment preservation checks. |
+| Indexer | Confirmed M4 projections, exact events, restart/reorg recovery, and `/api/v2` are merged. | Run exactly one hosted worker and reconcile public receipts to API/UI. |
+| Oracle | Independent review, durable intents, correction quarantine, and production proposer gateway are merged. | Operate the isolated hosted proposer and record real reviewed-result evidence. |
+| Resolver | Five-resolver committees, 3-of-5 voting, replacement, timeout, finalization, and VOID are deployed. | Record real VRF callback and selected-resolver transactions on Sepolia. |
+| CI | Frontend/backend/Foundry/security suites pass on the M4 release baseline. | Add PostgreSQL and Playwright/public-smoke coverage; retain existing checks. |
 
 ## Pull Request Integration Review
 

@@ -2,9 +2,15 @@
 
 AC_ON is a testnet-only decentralized esports prediction market for binary esports match outcomes. Users connect an Ethereum wallet and trade YES/NO shares on match results.
 
-The M4 contract lifecycle and economics implementation are merged in PRs #37/#38 and locally verified. `contracts/src/PredictionMarket.sol` includes registered fixtures, guarded buys/sells, proposals/challenges, VRF resolver rounds, settlement/VOID, claims and creator surplus. The [exact ABI and handoff](deployments/README.md) are the merged implementation baseline; a fresh M4 Sepolia deployment and deployment-specific manifest are still pending.
+Milestone 4 is feature-complete and was promoted to `main` in PR #49. The application includes
+normalized fixtures, guarded buys/sells, proposals/challenges, VRF resolver rounds,
+settlement/VOID, claims, creator surplus, M4 indexed APIs, signer gateways, portfolio/resolution UI,
+and approved PandaScore ingestion. The [exact ABI and handoff](deployments/README.md) pair the
+current implementation with the fresh M4 Sepolia deployment.
 
-The existing frontend/backend configuration still targets the previously deployed buy-only ABI. Its quote → wallet buy → mined event → indexer → API → frontend flow was verified locally, and the [historical Sepolia handoff](deployments/sepolia-m3.json) records a confirmed buy. Migrating those consumers to the current contracts and completing the full feature-complete integration remain team work.
+Milestone 5 now owns public Vercel/Render/Supabase integration, expanded integration and recovery
+testing, remaining Sepolia lifecycle evidence, defect reporting, and draft user/developer guides.
+The historical M3 handoff remains available only as an earlier release record.
 
 ## What Works Now
 
@@ -29,12 +35,15 @@ The existing frontend/backend configuration still targets the previously deploye
 
 - Sample match data is fake Milestone 2 display data only.
 - PostgreSQL/Supabase is not authoritative for real market state.
-- Contracts are authoritative for market state, positions, resolution and payouts. M4 lifecycle code and economics are locally verified and merged; M4 deployment and full application integration remain pending.
+- Contracts are authoritative for market state, positions, resolution and payouts. The M4
+  implementation and Sepolia deployment are merged; public hosted integration is active M5 work.
 - Ethereum Sepolia (chain ID `11155111`) is the selected Milestone 3 testnet; the team is not planning a network migration during MVP integration.
 - The full M3 quote-to-buy-to-indexer-to-frontend flow works on a local Anvil chain; the contracts are live on Sepolia but the hosted indexer/API is not yet. The old M2 address is not an M3 deployment.
-- ACON is the test-only payment/collateral token; Sepolia ETH pays gas. Current source implements sells and payouts, but previously deployed contracts and consumer configurations still expose the buy-only interface.
+- ACON is the test-only payment/collateral token; Sepolia ETH pays gas. The current M4 deployment
+  and consumers support buys, sells, resolution, and payouts; the M3 deployment is historical.
 - The [current contract ABI](docs/agent/interfaces/CONTRACT_ABI.md) describes the implementation; the [M3 interface](docs/agent/interfaces/M3_TRADING_INTERFACE.md) describes the historical deployment. Pair addresses and ABIs from the same release.
-- The [Milestone 4 feature-complete plan](docs/agent/milestones/MILESTONE_4.md) and [PR #28-approved target design](docs/agent/interfaces/M4_FEATURE_COMPLETE_INTERFACE.md) define acceptance. PRs #37/#38 merged the locally verified M4 implementation, exact ABI/event artifacts, and economic proof. Safe/VRF setup, deployment, backend/frontend integration, and cross-layer acceptance remain pending.
+- The [Milestone 5 plan](docs/agent/milestones/MILESTONE_5.md) defines current testing,
+  public-deployment, evidence, defect, and draft-guide work. The M4 design remains frozen.
 
 ## Quick Start (macOS / Linux)
 
