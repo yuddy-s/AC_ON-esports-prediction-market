@@ -6,10 +6,10 @@ manifest, and operations runbook are merged. The fresh Sepolia deployment, Safe/
 resolver pool, and narrow service-role handoff are recorded. Full public Vercel/Render integration
 and the remaining Sepolia sell/dispute/VRF/vote/claim evidence are Milestone 5 work.
 
-The PandaScore adapter supports Valorant, CS2, and Rainbow Six Siege and is enabled only in a
-private approved-use environment. Manual JSON/mock ingestion remains the deterministic recovery
-path. PandaScore observations are non-authoritative; an operator must attach independently reviewed
-evidence to the exact observation before it can feed a proposal intent.
+The PandaScore adapter supports Valorant, CS2, and Rainbow Six Siege and is operator-gated. Live
+use requires verified written permission and private token configuration. Manual JSON/mock ingestion
+remains the deterministic recovery path. PandaScore observations are non-authoritative; an operator
+must attach independent evidence to the exact observation before it can feed a proposal intent.
 
 The merged backend stack stores immutable signed fixture snapshots and provides production
 registrar/proposer gateways with audit transitions, bounded retries, uncertain-submission

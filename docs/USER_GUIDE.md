@@ -46,8 +46,10 @@ wallet containing Mainnet assets for course testing.
 
 ## Claims And Portfolio
 
-- The portfolio shows indexed positions, while the contract read determines current claimability.
-- After FINALIZED, winning shares pay one ACON each. After VOID, each YES and NO share pays half.
+- The portfolio reads positions and claimability directly from the contract; the indexed backend
+  provides trade history and derived metadata.
+- After FINALIZED, winning shares pay one ACON each. After VOID, one combined claim pays
+  `floor((YES shares + NO shares) / 2)` ACON base units.
 - Confirm the claim once. Duplicate claims are rejected by the contract.
 - Market creators may withdraw only surplus above conservative remaining liabilities.
 

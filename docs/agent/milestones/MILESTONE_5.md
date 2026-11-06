@@ -12,7 +12,7 @@ Repository artifacts are the consolidated [integration results](../testing/M5_IN
 and draft [user](../../USER_GUIDE.md) and [developer](../../DEVELOPER_GUIDE.md) guides.
 
 M5 acceptance requires a public Vercel frontend, Render API and three isolated workers,
-Supabase PostgreSQL, the permitted PandaScore adapter, and the existing Ethereum Sepolia
+Supabase PostgreSQL, the operator-gated PandaScore adapter, and the existing Ethereum Sepolia
 deployment to operate together. Long timeout, replacement-round, and VOID paths remain
 time-controlled Anvil evidence and must be labeled as such.
 
@@ -82,7 +82,8 @@ and defect entry. Do not mark a row passed from an implementation claim alone.
 
 ## Exit Criteria
 
-- Public Vercel, Render, Supabase, PandaScore, and Sepolia components communicate successfully.
+- Public Vercel, Render, Supabase, Sepolia, and—only after written permission is verified—PandaScore
+  components communicate successfully.
 - Required CI, PostgreSQL, public smoke, and read-only browser tests pass.
 - Public evidence reaches real VRF selection, three-vote settlement, and payout.
 - Long timeout/replacement/VOID paths pass on Anvil and are labeled local.

@@ -1,8 +1,8 @@
 # AC_ON Application Roadmap
 
-> PandaScore adapter status: implemented and privately enabled for approved educational use. Manual
-> JSON and deterministic mock paths remain the recovery and repeatable-test paths; PandaScore is
-> never authoritative for settlement.
+> PandaScore adapter status: implemented and operator-gated. Enable live use only after the team
+> verifies written permission for this educational test-token use. Manual JSON and deterministic
+> mock paths remain the recovery and repeatable-test paths; PandaScore is never authoritative.
 
 This is the canonical implementation checklist for coding agents and team members. It records what exists, what remains, who owns each area, and whether work can proceed without another team decision. Detailed milestone scope remains in `milestones/` and current assignments remain in `TASKS.md`.
 
@@ -29,7 +29,7 @@ and the matching public addresses; never pair M3 addresses with M4 consumers.
 ## Active Milestone 5 Testing And Integration
 
 M4 implementation and deployment are frozen. M5 connects the public Vercel frontend, Render API
-and isolated workers, Supabase, approved PandaScore adapter, and existing Sepolia contracts; it also
+and isolated workers, Supabase, operator-gated PandaScore adapter, and existing Sepolia contracts; it also
 records defects/fixes and drafts the final guides. The active owner matrix, one-week order, PR
 boundaries, evidence rules, and exit criteria are in [Milestone 5](milestones/MILESTONE_5.md).
 

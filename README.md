@@ -5,7 +5,7 @@ AC_ON is a testnet-only decentralized esports prediction market for binary espor
 Milestone 4 is feature-complete and was promoted to `main` in PR #49. The application includes
 normalized fixtures, guarded buys/sells, proposals/challenges, VRF resolver rounds,
 settlement/VOID, claims, creator surplus, M4 indexed APIs, signer gateways, portfolio/resolution UI,
-and approved PandaScore ingestion. The [exact ABI and handoff](deployments/README.md) pair the
+and operator-gated PandaScore ingestion. The [exact ABI and handoff](deployments/README.md) pair the
 current implementation with the fresh M4 Sepolia deployment.
 
 Milestone 5 now owns public Vercel/Render/Supabase integration, expanded integration and recovery
