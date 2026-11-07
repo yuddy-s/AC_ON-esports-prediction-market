@@ -10,9 +10,18 @@ Keep this folder small. It should help agents pick the right slice of work witho
 
 - `ARCHITECTURE.md`: current repo state, target architecture, known gaps, and setup notes.
 - `TASKS.md`: current team assignments and coding-agent work queue.
-- [`milestones/MILESTONE_4.md`](milestones/MILESTONE_4.md): approved feature-complete M4 ownership, dependencies, one-week sequence, and full test plan.
-- [`interfaces/M4_FEATURE_COMPLETE_INTERFACE.md`](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md): PR #28-approved M4 target design, implemented locally with the exact ABI/event handoff in merged PR #37 and economic proof in #38. M4 deployment and application integration remain unfinished.
-- [`interfaces/M4_BACKEND_API.md`](interfaces/M4_BACKEND_API.md): current off-chain fixture and EOA registration-request API, plus planned M4 indexed read routes.
+- [`milestones/MILESTONE_5.md`](milestones/MILESTONE_5.md): active public-deployment,
+  testing, evidence, documentation, and owner plan.
+- [`testing/M5_INTEGRATION_RESULTS.md`](testing/M5_INTEGRATION_RESULTS.md) and
+  [`testing/M5_DEFECT_LOG.md`](testing/M5_DEFECT_LOG.md): M5 evidence and defect sources.
+- [`M5_DEPLOYMENT_PLAN.md`](M5_DEPLOYMENT_PLAN.md): public topology, configuration ownership,
+  deployment order, monitoring, and rollback.
+- [`milestones/MILESTONE_4.md`](milestones/MILESTONE_4.md): completed feature baseline and historical test plan.
+- [`interfaces/M4_FEATURE_COMPLETE_INTERFACE.md`](interfaces/M4_FEATURE_COMPLETE_INTERFACE.md): frozen M4 cross-layer design.
+- [`interfaces/M4_BACKEND_API.md`](interfaces/M4_BACKEND_API.md): implemented fixture, registration,
+  and M4 indexed API contract.
+- [`../USER_GUIDE.md`](../USER_GUIDE.md) and [`../DEVELOPER_GUIDE.md`](../DEVELOPER_GUIDE.md):
+  draft final guides owned by Adriel and Yudhveer respectively.
 - `APPLICATION_ROADMAP.md`: canonical product checklist, blockers, ABI handoff, and remaining work by owner.
 - `DEPLOYMENT_RUNBOOK.md`: Supabase migrations plus Render API/indexer-worker deployment and recovery steps.
 - [`../../deployments/README.md`](../../deployments/README.md): public Sepolia handoff and versioned ABI convention.

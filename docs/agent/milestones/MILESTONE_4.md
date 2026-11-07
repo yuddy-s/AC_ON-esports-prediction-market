@@ -1,10 +1,21 @@
 # Milestone 4: Feature-Complete
 
-Status: M4 target design was approved in PR #28. PRs #37/#38 are merged with the locally verified M4 contract, exact ABI/event artifacts, deployment tooling, and economic proof/invariants. PRs #30-#34 and #39 provide the merged off-chain fixture and reviewed PandaScore foundations. The current integration branch implements production registrar/proposer gateways, M4 projections and `/api/v2`, plus frontend buy/sell history wiring. Fresh Sepolia deployment, Safe/VRF and service-role handoff, credentialed PandaScore/Sepolia smoke, and full cross-layer acceptance remain unfinished.
+Status: complete and promoted to `main` in PR #49. The feature-complete contract, economics,
+frontend, backend, indexer, signer gateways, migrations, PandaScore adapter, frozen ABI, deployment
+manifest, and operations runbook are merged. The fresh Sepolia deployment, Safe/VRF ownership,
+resolver pool, and narrow service-role handoff are recorded. Full public Vercel/Render integration
+and the remaining Sepolia sell/dispute/VRF/vote/claim evidence are Milestone 5 work.
 
-The PandaScore adapter supports Valorant, CS2, and Rainbow Six Siege, but live ingestion remains disabled until written permission and team approval confirm this educational test-token use. Manual JSON/mock ingestion remains the accepted no-cost path. PandaScore observations are non-authoritative; an operator must attach independently reviewed evidence to the exact observation before it can feed a proposal intent.
+The PandaScore adapter supports Valorant, CS2, and Rainbow Six Siege and is operator-gated. Live
+use requires verified written permission and private token configuration. Manual JSON/mock ingestion
+remains the deterministic recovery path. PandaScore observations are non-authoritative; an operator
+must attach independent evidence to the exact observation before it can feed a proposal intent.
 
-The merged backend stack stores immutable signed fixture snapshots and provides mock-gateway registrar/proposer state machines with audit transitions, bounded retries, uncertain-submission quarantine, correction review, and append-only operator approvals. It also exposes registration-request status and the active worker ABI version. These are off-chain workflow boundaries: no production signer or confirmed M4 registration is configured, and importing or approving a fixture does not create a market. The [backend API handoff](../interfaces/M4_BACKEND_API.md) specifies EOA-only request signing and frontend polling.
+The merged backend stack stores immutable signed fixture snapshots and provides production
+registrar/proposer gateways with audit transitions, bounded retries, uncertain-submission
+quarantine, correction review, and append-only approvals. Importing or approving a fixture still
+does not create a market. The [backend API handoff](../interfaces/M4_BACKEND_API.md) specifies
+EOA-only request signing and frontend polling.
 
 Backend tests cover fixture imports, EOA replay/expiry, immutable snapshots, duplicate/rate limits, real-gateway ABI encoding and confirmation handling, uncertain submissions, correction review, migration upgrades, exact M4 event fixtures, lifecycle/portfolio projections, provider parsing, independent-evidence enforcement, and preservation of source/signer records during rebuilds. Live gateway transactions and Sepolia cross-layer acceptance still depend on the finalized deployment and private configuration handoff.
 
@@ -24,25 +35,27 @@ The result adapter and signer are separate components. A least-privilege propose
 
 | Owner | Implementation and validation assignment | Required handoff |
 |---|---|---|
-| Benny - contracts/deployment | M4 lifecycle, resolver, payout, and security implementation is merged in PR #37 with local Foundry/Anvil evidence and exact ABI/event artifacts; Matthew's economics proof is merged in #38. Complete a fresh Sepolia deployment, Safe/VRF ownership, service-role grants, deployer-admin renunciation, manifest, and focused transaction smoke. | Merged code/ABI; requires team-controlled Safe, funded VRF subscription, eligible resolver pool, and deployment credentials. |
+| Benny - contracts/deployment | M4 lifecycle, resolver, payout, security implementation, deployment, Safe/VRF ownership, roles, resolver pool, manifest, and focused smoke were completed. | Remaining full-lifecycle Sepolia evidence moved to M5. |
 | Matthew - economics/accounting | Buy/sell/payout collateral proof, rounding regression vector, and stateful invariants are merged in PR #38 and included in the locally verified contract stack. Reconcile the accounting against integrated Anvil journeys and claims. | Full local lifecycle integration. |
-| Adriel - frontend/wallet | Complete and test M4 fixture, market, trading, resolution, and portfolio UI against the merged ABI and backend APIs. PR #40 contains contract actions and stacked PR #43 contains portfolio work; both remain under review. | Backend APIs, M4 deployment, registered fixtures, and component/end-to-end evidence. |
-| Yudhveer - backend/oracle/operations | Fixture/result sources, signed EOA requests, independent review, registrar/proposer processes, M4 projections/migration, `/api/v2`, and operations documentation are implemented on the current integration branch. Complete credentialed PandaScore, Anvil cross-layer, and Sepolia transaction evidence. | Live transactions require the fresh M4 deployment, private configuration, and narrow role grants. |
-| Whole team - interfaces/integration | ABI and economic decisions are frozen in merged #37/#38. Complete deployment/role handoff, review subsystem PRs, run full Anvil and focused Sepolia journeys, reconcile projections/API/UI, update evidence, and rehearse. | Fresh deployment, Safe/VRF, eligible resolver pool, and integrated subsystems. |
+| Adriel - frontend/wallet | M4 fixture, market, trading, resolution, claim, and portfolio UI merged in PRs #40/#43 and the M4 release. | Public Vercel/browser verification moved to M5. |
+| Yudhveer - backend/oracle/operations | Fixture/results, independent review, registrar/proposer, M4 projections/migration, `/api/v2`, PandaScore, and operations documentation merged in PR #47. | Public Render/Supabase operation and recovery evidence moved to M5. |
+| Whole team - interfaces/integration | Frozen ABI/economics and integrated application were promoted to `main` in PR #49. | Public cross-layer lifecycle evidence moved to M5. |
 
 ## Owner Handoffs And Roadblocks
 
-An owner can start the work in the second column now. A dependency in the third column blocks only the named integration or release step, not the entire owner's assignment. The owner in the fourth column publishes the handoff in a PR or versioned deployment record so the next person can work without guessing. The merged M4 contract/ABI is locally verified; deployment, roles, and cross-layer handoffs remain separate acceptance items.
+This matrix is retained as the historical M4 handoff. Its implementation and deployment gates were
+completed; unfinished public hosting and full Sepolia lifecycle evidence are tracked in M5.
 
 | Owner | Can start now | Wait for before dependent work or release | Handoff that clears the wait |
 |---|---|---|---|
-| Benny | Publish M4 deployment manifest and transaction smoke from the merged contract/ABI; configure Safe, VRF, and narrow roles. | Team Safe, funded VRF subscription, eligible resolver pool, deployment credentials. | Sepolia deployment block/addresses, role receipts, and focused smoke evidence. |
+| Benny | Published M4 deployment manifest and configured Safe, VRF, resolver pool, and narrow roles. | Complete. | Sepolia deployment block/addresses, role receipts, and focused smoke evidence. |
 | Matthew | Review integrated payout/claim journeys against the merged economic proof and invariants. | Full Anvil lifecycle evidence. | Record accounting reconciliation and any deviations in the proof. |
-| Adriel | Continue UI work against merged ABI and documented API mocks; PR #40/#43 are in review. | Backend lifecycle APIs and fresh M4 deployment for live writes; integrated services for end-to-end tests. | Component/browser test evidence and API/ABI consumer sign-off. |
-| Yudhveer | Use merged M4 ABI/event fixtures; implement event projections, read APIs, and signer gateways against Anvil. | Fresh M4 deployment and narrow role grants for Sepolia transactions. | Migration/rebuild, signer reconciliation/rotation docs, replay tests, and Anvil/Sepolia evidence. |
-| Whole team | Complete Safe/VRF and service-role setup; review integrated subsystem PRs; prepare the Anvil harness and acceptance evidence checklist. | Integrated contract, backend, and frontend PRs; fresh M4 Sepolia deployment for required smoke. Hosted credentials/services are needed only for the stretch goal. | Record local lifecycle comparisons, focused Sepolia transaction/indexing evidence, and any remaining release gaps. |
+| Adriel | Merged M4 UI consumers and component tests. | Complete. | Public browser evidence continues in M5. |
+| Yudhveer | Merged event projections, read APIs, signer gateways, migration/rebuild, and runbook. | Complete. | Public worker/recovery evidence continues in M5. |
+| Whole team | Integrated and released the feature-complete M4 stack. | Complete. | Public hosting and remaining lifecycle evidence continue in M5. |
 
-The exact M4 ABI and economic/accounting model are available in merged PRs #37/#38. The next shared gate is the fresh M4 deployment and role/VRF handoff. Use the merged exact ABI and Anvil fixtures for integration; do not claim live registration or proposals until signer gateways and role grants are verified.
+The exact M4 ABI, economic model, deployment, and post-setup manifest are frozen release inputs.
+M5 consumers must use those artifacts and must not infer or redesign the interface.
 
 ## Dependencies And One-Week Integration Order
 

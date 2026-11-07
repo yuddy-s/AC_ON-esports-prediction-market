@@ -69,21 +69,21 @@ The approved cross-layer freeze is documented in [`interfaces/M3_TRADING_INTERFA
 
 Use the validated [`../../deployments/sepolia-m3.json`](../../deployments/sepolia-m3.json) for M3 addresses, blocks, versioned ABIs, and creation/trade transactions. The [deployment and live-buy evidence](../../contracts/deployments/sepolia-m3-2026-10-21/README.md) is published in PR #19. Market `0` stopped accepting trades on **2026-10-28 at 17:01:12 UTC**; use a newly funded market for any later trade demo. PR #20 updated the frontend to the M3 ABI and environment-driven addresses, including the six-output `getMarket` representation. Use MetaMask for Sepolia writes because Coinbase Smart Wallet does not support sending transactions on Ethereum Sepolia.
 
-## Active Milestone 4 Feature-Complete Queue
+## Active Milestone 5 Testing And Integration Queue
 
-Status: **M4 target approved; contract and economics implementation merged and locally verified.** Fresh deployment, Safe/VRF and role handoff, backend chain integration, frontend integration, and cross-layer acceptance remain.
-
-For each owner, see [M4 Owner Handoffs And Roadblocks](milestones/MILESTONE_4.md#owner-handoffs-and-roadblocks) for what can start now, the specific artifact or access that blocks later work, and who must publish the handoff. A dependency below does not block the owner's independent preparation.
+Status: **M4 is merged to `main`; M5 public deployment and integration evidence are active.**
+The detailed schedule, boundaries, evidence rules, and exit criteria are in
+[Milestone 5](milestones/MILESTONE_5.md).
 
 | Priority | Owner | Deliverable and acceptance evidence | Dependency | Status |
 |---|---|---|---|---|
-| P0 | Team | Complete the M4 deployment, Safe/VRF, and restricted service-role handoff using the merged ABI. | Fresh Sepolia deployment and funded VRF subscription; eligible resolver pool | ABI/economic proof merged in #37/#38; deployment and role handoff pending |
-| P0 | Matthew | Buy/sell/payout rounding proof, collateral invariants, and accounting review. | Integrated Anvil lifecycle and claim journeys | Economic proof and stateful invariants merged in #38 and included with #37; cross-layer reconciliation remains |
-| P0 | Benny | Deploy the merged lifecycle contract, transfer administration/VRF ownership to the Safe, grant narrow service roles, and publish deployment/transaction evidence. | Safe, funded VRF subscription, resolver pool, deployment credentials | Contract, exact ABI, local Foundry/Anvil and security evidence merged in #37; economics proof merged in #38; Sepolia handoff remains |
-| P0 | Yudhveer | Validate the implemented registrar/proposer gateways and M4 projections/APIs against the fresh deployment; capture Anvil/Sepolia evidence. | Live writes need deployment, manifest, private configuration, and role grants | Current integration branch implements gateways, migration `20261102_0008`, `/api/v2`, replay-safe lifecycle/portfolio projections, and M4 frontend history wiring; live credentialed evidence remains pending. |
-| P1 | Yudhveer | Add fixture registration-request status to catalog reads and active ABI version to indexer status; keep M3 routes compatible. | Contract deployment handoff | merged in PR #33; fixture-to-market and lifecycle/portfolio APIs still require M4 events |
-| P1 | Yudhveer | Preserve signed fixture snapshots across recoverable registration retries; preserve result team mapping and confirmed-registration start time in source imports. | Production registrar integration | merged in PR #34; unknown submissions still require reconciliation before retry |
-| P0 | Adriel | Complete and test M4 contract writes, resolution, resolver, claim, and portfolio UI. | Backend APIs and M4 deployment; registered fixtures | PR #40 contract actions and stacked PR #43 portfolio are open for review; full integration remains pending |
-| P0 | Team | Run full local Anvil journeys, fresh Sepolia smoke, contract/indexer/API/UI reconciliation, and presentation rehearsal. | Integrated subsystems, Safe/roles, and eligible resolvers | Not yet verified end to end |
+| P0 | Yudhveer | Deploy Render API plus isolated indexer, registrar, and proposer; validate Supabase migration/recovery; add public smoke and PostgreSQL CI; draft developer guide. | Render capacity and private DB/RPC/signer configuration | planned; deployment/configuration PR next |
+| P0 | Adriel | Deploy Vercel, add public read-only Playwright journeys, run wallet/browser matrix, capture screenshots, and draft user guide. | Render public URL and public Sepolia configuration | planned; frontend deployment/testing PR next |
+| P0 | Benny | Reverify manifest/bytecode/Safe/roles/VRF/resolvers; rerun security checks; coordinate public VRF, votes, settlement, and claims. | Safe/VRF/resolver access and funded test wallets | planned; evidence PR follows live execution |
+| P0 | Matthew | Reconcile buy/sell/bond/liability/payout/surplus against public receipts; publish economic test results and parameter rationale. | Public transaction and claim evidence | planned; can rerun properties immediately |
+| P0 | Team | Complete public cross-layer matrix, Anvil timeout/replacement/VOID paths, defect triage, regression rerun, and presentation rehearsal. | Owner handoffs above | pending |
+| P0 | Wallet owner | Abandon the exposed disposable challenger wallet and fund a replacement without publishing its key. | Sepolia funding | required before further challenger use |
 
-**Documentation on every code PR:** each owner updates the affected README, interface/API/deployment handoff, tests, and runbook. Update current-state architecture and top-level README only when the corresponding path is implemented and verified. The planning PR should reconcile target-design docs and M5 timing after team decisions, without changing M3 implementation claims.
+**PR rule:** M5 is feature-frozen. Every code/config PR updates its affected tests, guide,
+deployment/recovery instructions, integration-results row, and defect entry. Do not modify frozen
+contracts or public APIs unless a separately evidenced release-blocking defect is approved.
