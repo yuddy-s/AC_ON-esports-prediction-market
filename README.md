@@ -114,14 +114,14 @@ Copy `frontend/.env.example` to `frontend/.env.local` (gitignored) and fill it i
 | Variable | Meaning |
 |---|---|
 | `VITE_CHAIN` | `sepolia` (default) for the real demo, `anvil` for a local chain on `127.0.0.1:8545` |
-| `VITE_PREDICTION_MARKET_ADDRESS` | `PredictionMarket` address from the deployment handoff. The frontend now uses the **M4** ABI (`deployments/abi`); the M3 Sepolia deployment is not compatible, so use a local M4 Anvil deployment until the M4 Sepolia handoff is published |
+| `VITE_PREDICTION_MARKET_ADDRESS` | `PredictionMarket` address from the deployment handoff. The frontend uses the **M4** ABI (`deployments/abi`), so pair it with the [M4 Sepolia deployment](deployments/sepolia-2026-11-02/README.md) or a local M4 Anvil deployment; the M3 Sepolia deployment is not compatible |
 | `VITE_ACON_TOKEN_ADDRESS` | ACON token address from the deployment handoff |
 | `VITE_DEMO_MARKET_ID` | Featured market, listed first on the markets page (default `0`) |
 | `VITE_API_URL` | FastAPI backend, e.g. `http://localhost:8000`; used for the "indexed" step |
 | `VITE_ANVIL_ACCOUNT` | Optional: which default Anvil account the local test wallet uses (default account #0) |
 | `VITE_FIXTURE_SOURCE` | Optional: `api` reads the fixture catalog from the backend's `/api/fixtures` (default when `VITE_API_URL` is set); `mock` shows fictional fixtures bundled with the frontend |
 
-Restart `npm run dev` after changing env values. `.env.example` already has the Sepolia M3 addresses and lists the local Anvil ones. To keep a local Anvil `.env.local` and still try Sepolia, put the Sepolia values in `frontend/.env.sepolia.local` and run `npm run dev:sepolia`.
+Restart `npm run dev` after changing env values. `.env.example` already has the M4 Sepolia addresses (market `0x03ae48f03C7822540a91DA2168602bd49dC510E9`, ACON `0xf85b2278a810410c6AE0b7490d34671E0C8e6E90`) and explains the local Anvil ones. The API at `VITE_API_URL` must index the same chain and market address; otherwise the price chart, trade history and "indexed" step stay hidden while contract reads still work. To keep a local Anvil `.env.local` and still try Sepolia, put the Sepolia values in `frontend/.env.sepolia.local` and run `npm run dev:sepolia`.
 
 ## Run The Backend
 
@@ -312,7 +312,18 @@ The frontend no longer advertises a lint command without an ESLint configuration
 
 ## Dependency Security Follow-Up
 
-On 2026-10-22, `npm audit --omit=dev` reported **25 production dependency findings**: 23 moderate, 2 high (`follow-redirects` and `ws`), and 0 critical. These are transitive dependencies in the current frontend lockfile. Review compatible upstream updates and rerun the wallet, trade, build, and audit checks before a public or production release; do not apply a major wallet-library upgrade without integration testing.
+On 2026-10-22, `npm audit --omit=dev` reported **25 production dependency findings**: 23 moderate, 2 high (`follow-redirects` and `ws`), and 0 critical.
+
+On 2026-11-07 the frontend owner (Adriel) applied every non-breaking fix (`npm audit fix`, lockfile only) and reran tests (159 passing), typecheck and build. `npm audit --omit=dev` went from 29 findings (12 moderate, 17 high) to **27 (11 moderate, 16 high, 0 critical)**. Every remaining finding comes from four transitive packages pulled in by the wallet stack (`wagmi` 2 → WalletConnect/Reown, Coinbase SDK):
+
+| Package | Severity | Issue | Exposure in this app |
+|---|---|---|---|
+| `ws` | high | Memory-exhaustion DoS; uninitialized memory disclosure | Wallet-connector WebSocket client in the browser; no server in this app accepts `ws` connections |
+| `zod` | high | Memory exhaustion validating oversized collections | Used inside wallet libraries on wallet/RPC responses, not on user input we accept |
+| `decode-uri-component` | high | DoS from malformed percent-encoding | WalletConnect URL parsing in the user's own browser tab |
+| `uuid` | moderate | Missing buffer bounds check when `buf` is passed | Wallet libraries call it without a caller buffer |
+
+The only automatic fix is `npm audit fix --force`, which upgrades `wagmi` 2 → 3 (a breaking major). **Mitigation:** the app is testnet-only and these packages run client-side in the user's own browser, not on a server we host. **Owner:** Adriel. **Plan (M5):** upgrade `wagmi`/`viem` together on a separate branch before public Vercel hosting, then rerun the wallet, trade, claim, build and audit checks. Do not apply the major upgrade without that integration testing.
 
 ## Not Here Yet
 
