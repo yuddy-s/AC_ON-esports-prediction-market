@@ -289,6 +289,14 @@ npm run typecheck
 npm run build
 ```
 
+Read-only browser journeys (Playwright, no wallet). Without `PLAYWRIGHT_BASE_URL` this builds and previews the app against the public M4 Sepolia contracts with no backend; `PLAYWRIGHT_CHANNEL=chrome` uses an installed Chrome, otherwise run `npx playwright install chromium` once. Results: [M5 frontend results](docs/agent/testing/M5_FRONTEND_RESULTS.md).
+
+```bash
+cd frontend
+npm run test:e2e
+PLAYWRIGHT_BASE_URL=https://<deployment>.vercel.app npm run test:e2e
+```
+
 Backend (with the virtual environment activated):
 
 ```bash
@@ -309,6 +317,20 @@ python3 script/smoke.py --start-anvil
 ```
 
 The frontend no longer advertises a lint command without an ESLint configuration. TypeScript checking runs locally and in CI. A configured lint rule set can be added later as a separate check.
+
+## Deploy The Frontend (Vercel)
+
+The frontend is a static Vite build with hash routes, so it needs no server rewrites. `frontend/vercel.json` pins the install/build commands, the `dist` output and basic security headers. In Vercel, set **Root Directory** to `frontend` and add these public environment variables (never secrets):
+
+| Variable | Value |
+|---|---|
+| `VITE_CHAIN` | `sepolia` |
+| `VITE_PREDICTION_MARKET_ADDRESS` | `0x03ae48f03C7822540a91DA2168602bd49dC510E9` |
+| `VITE_ACON_TOKEN_ADDRESS` | `0xf85b2278a810410c6AE0b7490d34671E0C8e6E90` |
+| `VITE_DEMO_MARKET_ID` | `0` |
+| `VITE_API_URL` | the public Render API URL (leave unset until Render is live; the app then shows contract reads only and the mock fixture catalog) |
+
+Vite inlines these at build time, so redeploy after changing any of them. Give the exact Vercel origin to the backend owner for CORS, then rerun the browser journeys against the public URL with `PLAYWRIGHT_EXPECT_API=1`.
 
 ## Dependency Security Follow-Up
 
