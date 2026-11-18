@@ -62,7 +62,7 @@ result = {
     ],
     'transactions': [{'operation': label, 'hash': e['transaction_hash'], 'url': e['transaction_url'], 'block': e['block_number']} for label, e in [('VOID settlement and bond refund', settlement), ('VOID payout', payout), ('Creator surplus withdrawal', surplus)]],
     'read_only_rejections': {'duplicate_claim': duplicate, 'repeat_surplus': repeat},
-    'source_files': [str((SOURCE / name).relative_to(ROOT)) for name in FILES],
+    'source_files': [(SOURCE / name).relative_to(ROOT).as_posix() for name in FILES],
     'public_cross_layer_status': 'Separate November 18 verification passed shared Supabase and local API/UI; hosted API/UI acceptance pending. This offline script does not verify those environments.',
     'cross_layer_evidence': 'supabase-local-api-verification.json',
     'issue_56_status': 'incomplete; real callback, committee, votes and disputed settlement remain unverified',

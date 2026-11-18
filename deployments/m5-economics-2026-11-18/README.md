@@ -35,5 +35,6 @@ python3 -m json.tool /tmp/acon-m5-contract-tests.json > /dev/null
 
 The offline script checks the saved receipt observations only; it makes no network requests
 and does not establish the separately recorded database/API/UI result. Reproducing the local
-contract run requires the source hashes and both fixes identified in `run-metadata.json`;
-the evidence branch itself contains no #58 production or deployment-tool changes.
+contract run requires the source hashes and both fixes identified in `run-metadata.json`.
+Both fixes (#57 and #58) are now merged into the `dev` integration base; this evidence
+follow-up adds no changes to production contracts or deployment tooling.

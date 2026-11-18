@@ -49,7 +49,7 @@ The three invariant campaigns generated 384,000 handler calls in total, with zer
 
 Reproduce from `contracts/`:
 
-The recorded run included both fixes before they were split into PRs #57 and #58. Reproduce the complete 120-test result with both fixes present; the evidence-only branch does not itself include #58's deployment-preflight changes. The recorded source hashes identify that historical working tree.
+The recorded run included both fixes before they were split into PRs #57 and #58. Both fixes are now merged into the `dev` integration base. Reproduce the complete 120-test result with both fixes present; the recorded source hashes identify the historical working tree used for the saved result.
 
 ```bash
 FOUNDRY_FUZZ_RUNS=256 FOUNDRY_INVARIANT_RUNS=256 FOUNDRY_INVARIANT_DEPTH=500 FOUNDRY_INVARIANT_FAIL_ON_REVERT=true forge test --offline --json --fuzz-seed 0x0000000000000000000000000000000000000000000000000000000000000005
