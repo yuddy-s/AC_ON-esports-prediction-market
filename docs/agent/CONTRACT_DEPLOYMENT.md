@@ -35,6 +35,17 @@ callback gas budget tested against the intended pool. The template's 2,000,000 c
 starting value, not a measured live requirement. VRF uses test LINK (`nativePayment=false`), one word,
 and three request confirmations.
 
+Set `VRF_MINIMUM_LINK_BALANCE_WEI` to a reviewed minimum in LINK base units (18 decimals).
+Use the current official VRF billing estimate for the configured callback gas and gas lane,
+allow for concurrent requests, and include a buffer. The template defaults to zero, which
+blocks deployment. A positive balance alone is insufficient: the November 17 diagnostic
+with a 2,000,000-gas callback and 500-gwei lane showed a dashboard maximum cost of about
+248.47 LINK against a 10 LINK balance. Recheck that estimate before funding; the reserve
+is a gas-volatility buffer, rather than the eventual fulfillment charge. The script checks
+the supplied threshold and does not calculate or certify the current billing estimate.
+The [M5 preflight record](testing/M5_VRF_FUNDING_PREFLIGHT.md) includes the regression coverage,
+dated diagnostic observations and operator selection steps.
+
 ## 2. Reproduce and simulate
 
 From `contracts/`, load the reviewed private environment locally (for example, an ignored `.env.deploy`):
@@ -116,13 +127,14 @@ Set `FORMER_DEPLOYER_ADDRESS` to the public deployer address and simulate the ve
 
 ```bash
 forge script script/Deploy.s.sol:VerifyAdministration \
-  --sig 'verify(address,address,address,address,address)' \
+  --sig 'verify(address,address,address,address,address,uint256)' \
   "$PREDICTION_MARKET_ADDRESS" "$SAFE_ADDRESS" "$FORMER_DEPLOYER_ADDRESS" \
-  "$REGISTRAR_ADDRESS" "$PROPOSER_ADDRESS" --rpc-url "$SEPOLIA_RPC_URL"
+  "$REGISTRAR_ADDRESS" "$PROPOSER_ADDRESS" "$VRF_MINIMUM_LINK_BALANCE_WEI" \
+  --rpc-url "$SEPOLIA_RPC_URL"
 ```
 
 Expect `true`. It checks both Safe admins, former-deployer default-role removal, distinct operational
-roles, subscription owner/LINK/consumer, and a pool of at least ten addresses without operational/admin
+roles, subscription owner/reviewed LINK reserve/consumer, and a pool of at least ten addresses without operational/admin
 overlap. Also recheck the exact Safe owner addresses against the reviewed team list and check both
 pending admins are zero. The helper's threshold/owner-count check alone does not identify the owners.
 
