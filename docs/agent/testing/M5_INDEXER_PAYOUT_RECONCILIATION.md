@@ -74,7 +74,27 @@ already behind the indexer checkpoint. The deployment owner must replay the affe
    quantities above. Confirm the claimed flag, exact payout and surplus amounts, zero remaining
    YES/NO quantities, zero wallet positions and zero outstanding liability.
 
-Shared verification was blocked when the supplied Supabase connection failed with
-`tenant/user not found`. ECON-05 and the full PUB-09/PUB-10 cross-layer acceptance rows remain
-blocked until that environment passes. This fix does not complete the real VRF, committee,
-voting or settlement demonstration required by issue #56.
+## November 18 Shared Supabase Verification
+
+After the owner resumed Supabase, the existing connection worked. Migration revision was
+`20261102_0008`; the checkpoint had stopped at safe block 12054434, before the claim. A private
+deployment-scoped backup was retained. The corrected local indexer at commit
+`81850e9146e0512cc2d62cbbac05d90a6de2a5ee` applied nine missing confirmed events through safe
+block 12163724. Because the claim was still ahead of the checkpoint, ordinary catch-up was
+sufficient: no deletion or full rebuild was needed. A rebuild remains necessary when a claim
+has already been processed by the old handler.
+
+Shared database rows and seven local API endpoints now agree with the receipts: market VOID,
+both outstanding quantities and wallet positions zero, claimed flag true, payout
+`125005500000000000000` base units, and position update block 12158940. Bond refund and surplus
+events contain the exact recorded amounts. Subsequent live synchronization and an immediate
+repeat processed no duplicate events. The local market and portfolio UI showed the expected
+VOID/claimed state, zero holdings and surplus, and the indexed trade history.
+
+See [catch-up evidence](../../../deployments/m5-economics-2026-11-18/supabase-catchup-verification.json),
+[API verification](../../../deployments/m5-economics-2026-11-18/supabase-local-api-verification.json),
+and [local market screenshot](../../../deployments/m5-economics-2026-11-18/supabase-market-0-ui.png).
+The linked records are included in the M5 documentation/evidence follow-up. Hosted Render/Vercel URLs have not been identified;
+their deployment and the corrected handler's hosted rollout remain unverified. ECON-05 is
+therefore partial against its original hosted-stack acceptance criteria. This fix does not
+complete the real VRF, committee, voting or settlement demonstration required by issue #56.

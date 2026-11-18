@@ -1,0 +1,77 @@
+{
+  "schema": "acon.vrf-live-recheck.v1",
+  "checked_at_utc": "2026-11-18T21:11:43.419358+00:00",
+  "head_block": 12164003,
+  "confirmed_block": 12164001,
+  "chain_id": 11155111,
+  "wallet": "0xf350a4ebe6f0485bdcf8294e9e66b71473a2093b",
+  "wallet_eth": "0.004829496606082667",
+  "wallet_link": "15.2",
+  "subscriptions": {
+    "market": {
+      "consumer": "0x03ae48f03c7822540a91da2168602bd49dc510e9",
+      "subscription_id": "43360769431604264970977939572487330506316889248276568284147859733693920197182",
+      "request_id": "10491842564642149870364972612785219534350961763414805328340490145695401379815",
+      "link_balance": "10",
+      "native_balance_eth": "0",
+      "completed_request_count": 0,
+      "owner": "0xe33ddf0e7224245efe3d6bfcb39a78c22fbbaaac",
+      "consumers": [
+        "0x03ae48f03c7822540a91da2168602bd49dc510e9"
+      ],
+      "consumer_authorized": true,
+      "pending_request_exists": true,
+      "coordinator_commitment": "0xff1c58decb28757d0aacc03fedca9f5fc9a26334dc40a1688087c3b389350049",
+      "consumer_request_state": [
+        true,
+        false,
+        0,
+        1
+      ]
+    },
+    "link_diagnostic": {
+      "consumer": "0x9c75b3717a555db09a7fad77e8ccc944e10eabe6",
+      "subscription_id": "94569606414226702999907572022463759191522426163632924499542539159235294564436",
+      "request_id": "17685178741739408101643198517554478675119999544173978436031150526479759304055",
+      "link_balance": "10",
+      "native_balance_eth": "0",
+      "completed_request_count": 0,
+      "owner": "0x9c75b3717a555db09a7fad77e8ccc944e10eabe6",
+      "consumers": [
+        "0x9c75b3717a555db09a7fad77e8ccc944e10eabe6"
+      ],
+      "consumer_authorized": true,
+      "pending_request_exists": true,
+      "coordinator_commitment": "0xb907e3e708d0d96510b44f0112ea55b0ca76874fb80c1de476be2f0a68e57495",
+      "fulfilled": false,
+      "cancellation_simulation": "{\"code\": 3, \"message\": \"execution reverted\", \"data\": \"0xb42f66e8\"}",
+      "fulfillment_event_count": 0
+    },
+    "native_diagnostic": {
+      "consumer": "0x14ee8d7fa7526f6ff433b64349e7764a13473c5f",
+      "subscription_id": "38178924134903421420393574097767048606615800164229084006982676070132452331303",
+      "request_id": "114062639296167468753200828824412408151547594971836365746153874951675579945730",
+      "link_balance": "0",
+      "native_balance_eth": "0.0015",
+      "completed_request_count": 0,
+      "owner": "0x14ee8d7fa7526f6ff433b64349e7764a13473c5f",
+      "consumers": [
+        "0x14ee8d7fa7526f6ff433b64349e7764a13473c5f"
+      ],
+      "consumer_authorized": true,
+      "pending_request_exists": true,
+      "coordinator_commitment": "0x5bde68c97c13450ab754aed34d403dc258ef17f2b1d15681f6e03a677c81f1e9",
+      "cancellation_simulation": "{\"code\": 3, \"message\": \"execution reverted\", \"data\": \"0xb42f66e8\"}",
+      "fulfillment_event_count": 0
+    }
+  },
+  "market_configuration": {
+    "vrfCoordinator": "0x9ddfaca8183c41ad55329bdeed9f6a8d53168b1b",
+    "vrfKeyHash": "0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae",
+    "vrfSubscriptionId": 43360769431604264970977939572487330506316889248276568284147859733693920197182,
+    "vrfCallbackGasLimit": 2000000,
+    "VRF_CONFIRMATIONS": 3,
+    "marketCount": 1
+  },
+  "diagnostic_fulfillment_events": []
+}

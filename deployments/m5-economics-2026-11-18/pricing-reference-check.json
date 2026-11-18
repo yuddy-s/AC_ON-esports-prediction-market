@@ -1,0 +1,9 @@
+{
+  "command": [
+    "python3",
+    "script/pricing_reference.py",
+    "--check"
+  ],
+  "exit_code": 0,
+  "output": "PASS: 72 mathematical trade vectors and 85 correction bounds agree at 160/220 digits\n"
+}
