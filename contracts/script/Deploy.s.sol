@@ -29,10 +29,20 @@ interface IVRFSubscription {
     function addConsumer(uint256 subId, address consumer) external;
 }
 
+/// @dev The reviewed reserve comes from the current VRF billing estimate, including
+/// callback gas, gas lane, concurrent requests and a buffer. A positive balance alone
+/// does not establish that a subscription can serve its next request.
+abstract contract VRFReserveCheck {
+    function _requireLinkReserve(uint96 balance, uint256 minimumLinkBalance) internal pure {
+        require(minimumLinkBalance > 0, "VRF minimum LINK reserve must be configured");
+        require(balance >= minimumLinkBalance, "VRF LINK reserve below required minimum");
+    }
+}
+
 /// @notice Creates fresh contracts and proposes their Safe administration handoff.
 /// @dev No fictitious live fixture or resolver identity is inserted. The Safe must execute
 /// the setup calls below before the deployment is reported as release-ready.
-contract DeployPredictionMarket {
+contract DeployPredictionMarket is VRFReserveCheck {
     VmDeploy private constant vm = VmDeploy(address(uint160(uint256(keccak256("hevm cheat code")))));
 
     function run()
@@ -47,7 +57,8 @@ contract DeployPredictionMarket {
         require(callbackGas > 0 && callbackGas <= type(uint32).max, "invalid callback gas limit");
         _verifySafe(safe);
         (uint96 linkBalance,,, address owner,) = IVRFSubscription(coordinator).getSubscription(subscription);
-        require(owner == safe && linkBalance > 0, "Safe must own a funded test-LINK subscription");
+        require(owner == safe, "Safe must own the test-LINK subscription");
+        _requireLinkReserve(linkBalance, vm.envUint("VRF_MINIMUM_LINK_BALANCE_WEI"));
         uint256 key = vm.envUint("SEPOLIA_PRIVATE_KEY");
         address deployer = vm.addr(key);
         bytes32 keyHash = vm.envBytes32("VRF_KEY_HASH");
@@ -142,12 +153,15 @@ contract SafeSetupPlan {
     }
 }
 
-contract VerifyAdministration {
-    function verify(PredictionMarket market, address safe, address formerDeployer, address registrar, address proposer)
-        external
-        view
-        returns (bool)
-    {
+contract VerifyAdministration is VRFReserveCheck {
+    function verify(
+        PredictionMarket market,
+        address safe,
+        address formerDeployer,
+        address registrar,
+        address proposer,
+        uint256 minimumLinkBalance
+    ) external view returns (bool) {
         require(safe != formerDeployer && safe.code.length > 0, "invalid Safe/deployer");
         require(ISafe(safe).getThreshold() == 2 && ISafe(safe).getOwners().length == 3, "expected 2-of-3 Safe");
         require(market.admin() == safe && market.resolverRegistry().admin() == safe, "Safe does not own both contracts");
@@ -164,7 +178,8 @@ contract VerifyAdministration {
         );
         (uint96 balance,,, address owner, address[] memory consumers) =
             IVRFSubscription(address(market.vrfCoordinator())).getSubscription(market.vrfSubscriptionId());
-        require(owner == safe && balance > 0, "VRF ownership/funding incomplete");
+        require(owner == safe, "VRF ownership incomplete");
+        _requireLinkReserve(balance, minimumLinkBalance);
         bool found;
         for (uint256 i; i < consumers.length; ++i) {
             if (consumers[i] == address(market)) found = true;
