@@ -1,0 +1,171 @@
+{
+  "schema": "acon.market-creator-surplus-evidence.v1",
+  "checked_at_utc": "2026-11-18T03:57:51.422522+00:00",
+  "environment": "public Ethereum Sepolia",
+  "chain_id": 11155111,
+  "market_id": 0,
+  "contract_address": "0x03ae48f03C7822540a91DA2168602bd49dC510E9",
+  "payment_token_address": "0xf85b2278a810410c6AE0b7490d34671E0C8e6E90",
+  "creator": "0xf350a4ebe6f0485bdcf8294e9e66b71473a2093b",
+  "transaction_hash": "0xe4f7b7e1c8e241007fa0bf435ccd5e48e303af4c67dba2abd5f084312b1eae13",
+  "transaction_url": "https://sepolia.etherscan.io/tx/0xe4f7b7e1c8e241007fa0bf435ccd5e48e303af4c67dba2abd5f084312b1eae13",
+  "transaction_input": "0xfc4f086d0000000000000000000000000000000000000000000000000000000000000000",
+  "block_number": 12158955,
+  "block_hash": "0x87b23541524ee2ca2ca34e375693ab8ad8afa51427a52b15a9e7bb408a27980f",
+  "block_time_utc": "2026-11-18T03:56:12+00:00",
+  "block_time_et": "2026-11-17T22:56:12-05:00",
+  "confirmations_at_check": 9,
+  "gas_used": 81719,
+  "effective_gas_price_wei": 1500000015,
+  "transaction_fee_eth": "0.000122578501225785",
+  "expected_withdrawal_base_units": "40665164062370061911",
+  "received_withdrawal_base_units": "40665164062370061911",
+  "amounts_acon": {
+    "received_surplus": "40.665164062370061911",
+    "creator_balance_before": "959.334835937629938089",
+    "creator_balance_after": "1000",
+    "remaining_liability": "0",
+    "remaining_market_collateral": "0",
+    "remaining_creator_surplus": "0",
+    "original_market_collateral": "165.670664062370061911",
+    "prior_payout": "125.0055",
+    "payout_plus_surplus": "165.670664062370061911"
+  },
+  "before": {
+    "market": {
+      "id": 0,
+      "fixtureKey": "0x97b8c76e6398a901469cf3f5d41402fe6177a2aa60c711d93565111375f003ed",
+      "question": "Will MOUZ beat BetBoom Team?",
+      "tradingDeadline": 1793679300,
+      "state": 7,
+      "creator": "0xf350a4ebe6f0485bdcf8294e9e66b71473a2093b",
+      "yesQuantity": 0,
+      "noQuantity": 0,
+      "collateralBalance": 40665164062370061911
+    },
+    "resolution": {
+      "proposed": true,
+      "proposal": 0,
+      "proposer": "0x137f79cc7ea5c59fa66bc09351b5f9331225c0df",
+      "proposalEvidenceHash": "0x3a000f3978595455924049ce180664c9c8dff0b6f5fffef90db9d647ef26d090",
+      "proposalEvidenceURI": "https://www.hltv.org/stats/matches/132719/mouz-vs-betboom",
+      "challengeDeadline": 1793799624,
+      "challenger": "0x178bbc1a619c2db9dc4ee325a87c9d09a394cd67",
+      "challengeEvidenceHash": "0x3b9c0b2510b3dc0e247d7d6be65f16eaaa93fe0b23609e7dfee966c896302e0a",
+      "bondEscrow": 0,
+      "round": 1,
+      "terminal": true,
+      "finalOutcome": 2
+    },
+    "creator_acon_balance": 959334835937629938089,
+    "contract_acon_balance": 40665164062370061911,
+    "creator_yes_position": 0,
+    "creator_no_position": 0,
+    "creator_claimable": 0,
+    "creator_has_claimed": true,
+    "remaining_liability": 0,
+    "withdrawable_surplus": 40665164062370061911,
+    "total_collateral": 40665164062370061911,
+    "total_challenge_bonds": 0
+  },
+  "after": {
+    "market": {
+      "id": 0,
+      "fixtureKey": "0x97b8c76e6398a901469cf3f5d41402fe6177a2aa60c711d93565111375f003ed",
+      "question": "Will MOUZ beat BetBoom Team?",
+      "tradingDeadline": 1793679300,
+      "state": 7,
+      "creator": "0xf350a4ebe6f0485bdcf8294e9e66b71473a2093b",
+      "yesQuantity": 0,
+      "noQuantity": 0,
+      "collateralBalance": 0
+    },
+    "resolution": {
+      "proposed": true,
+      "proposal": 0,
+      "proposer": "0x137f79cc7ea5c59fa66bc09351b5f9331225c0df",
+      "proposalEvidenceHash": "0x3a000f3978595455924049ce180664c9c8dff0b6f5fffef90db9d647ef26d090",
+      "proposalEvidenceURI": "https://www.hltv.org/stats/matches/132719/mouz-vs-betboom",
+      "challengeDeadline": 1793799624,
+      "challenger": "0x178bbc1a619c2db9dc4ee325a87c9d09a394cd67",
+      "challengeEvidenceHash": "0x3b9c0b2510b3dc0e247d7d6be65f16eaaa93fe0b23609e7dfee966c896302e0a",
+      "bondEscrow": 0,
+      "round": 1,
+      "terminal": true,
+      "finalOutcome": 2
+    },
+    "creator_acon_balance": 1000000000000000000000,
+    "contract_acon_balance": 0,
+    "creator_yes_position": 0,
+    "creator_no_position": 0,
+    "creator_claimable": 0,
+    "creator_has_claimed": true,
+    "remaining_liability": 0,
+    "withdrawable_surplus": 0,
+    "total_collateral": 0,
+    "total_challenge_bonds": 0
+  },
+  "market_events": [
+    {
+      "event": "CreatorSurplusWithdrawn",
+      "args": {
+        "marketId": 0,
+        "creator": "0xf350a4ebe6f0485bdcf8294e9e66b71473a2093b",
+        "amount": 40665164062370061911
+      },
+      "log_index": 24
+    }
+  ],
+  "token_transfers": [
+    {
+      "from": "0x03ae48f03c7822540a91da2168602bd49dc510e9",
+      "to": "0xf350a4ebe6f0485bdcf8294e9e66b71473a2093b",
+      "amount_base_units": 40665164062370061911
+    }
+  ],
+  "repeat_withdrawal_simulation": {
+    "method": "eth_call",
+    "block": 12158955,
+    "transaction_submitted": false,
+    "reverted": true,
+    "revert_data": "0xc0ef17d3",
+    "message": "execution reverted",
+    "expected_selector": "0xc0ef17d3",
+    "error_name": "NoSurplus"
+  },
+  "checks": {
+    "correct_chain_contract_withdrawal_function_market_and_zero_eth_value": true,
+    "successful_receipt_on_canonical_block": true,
+    "sender_is_market_creator": true,
+    "terminal_void_before_and_after": true,
+    "withdrawable_amount_equals_collateral_above_liability": true,
+    "received_exact_expected_surplus": true,
+    "exact_token_transfer_in_receipt": true,
+    "market_collateral_decreased_by_withdrawal": true,
+    "global_collateral_decreased_by_withdrawal": true,
+    "contract_token_balance_decreased_by_withdrawal": true,
+    "remaining_liabilities_stay_zero": true,
+    "market_collateral_and_surplus_zero": true,
+    "positions_quantities_and_claimable_remain_zero": true,
+    "claimed_flag_preserved": true,
+    "challenge_bond_balances_remain_zero": true,
+    "global_token_accounting_reconciles": true,
+    "current_deployment_collateral_bonds_and_token_balance_zero": true,
+    "creator_wallet_balance_exactly_1000_acon": true,
+    "payout_plus_surplus_equals_original_market_collateral": true,
+    "surplus_event_present": true,
+    "repeat_withdrawal_rejected_in_read_only_simulation": true,
+    "runtime_matches_manifest": true
+  },
+  "related_evidence": {
+    "void_settlement": "market-0-void-settlement-evidence.json",
+    "void_payout": "market-0-void-payout-evidence.json"
+  },
+  "evidence_scope": {
+    "surplus_receipt_and_contract_accounting": "verified",
+    "frontend_balance_and_zero_collateral": "observed after mining",
+    "backend_indexer_and_api": "not verified; local API unavailable",
+    "repeat_withdrawal": "eth_call against public Sepolia post-withdrawal state",
+    "vrf_committee_and_voting": "not exercised; this market followed the expired-selection VOID path"
+  }
+}

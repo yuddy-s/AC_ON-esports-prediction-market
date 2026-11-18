@@ -1,0 +1,63 @@
+{
+  "schema": "acon.market-backend-indexer-verification.v1",
+  "checked_at_utc": "2026-11-18T04:08:28.127613+00:00",
+  "market_id": 0,
+  "chain_id": 11155111,
+  "contract_address": "0x03ae48f03C7822540a91DA2168602bd49dC510E9",
+  "status": "blocked_pending_database_access",
+  "database": {
+    "target": "Supabase PostgreSQL",
+    "connection_result": "pooler rejects supplied connection with tenant/user not found",
+    "migration_revision": "unverified",
+    "checkpoint": "unverified",
+    "dashboard_access": {
+      "signed_in_github_account": "Matt-Leong822",
+      "visible_organizations": 0,
+      "direct_project_navigation": "redirects to empty organizations page",
+      "project_state": "unverified; owner must check active status and current connection settings"
+    }
+  },
+  "rpc": {
+    "supplied_historical_rpc": "verified chain 11155111 and fixture-registration log at block 12052271",
+    "publicnode_historical_backfill": "historical range rejected as pruned"
+  },
+  "local_defect": {
+    "symptom": "PayoutClaimed clears wallet positions but leaves indexed market YES/NO quantities and position updated_block_number stale",
+    "reproduced": "Extended existing lifecycle test failed with indexed YES quantity 800000000000000000 after all shares claimed",
+    "fix": "Subtract yes_shares and no_shares from market quantities and update position.updated_block_number in the PayoutClaimed projection",
+    "source": "backend/app/indexer/service.py",
+    "regression_tests": "backend/tests/test_m4_indexer.py",
+    "focused_result": "3 passed",
+    "full_backend_suite_result": "130 passed",
+    "deployment_state": "local source changes pending review and shared-database verification"
+  },
+  "expected_final_state": {
+    "state": "VOID",
+    "final_outcome": 2,
+    "yes_quantity": "0",
+    "no_quantity": "0",
+    "claimed": true,
+    "payout_base_units": "125005500000000000000",
+    "creator_surplus_withdrawn_base_units": "40665164062370061911"
+  },
+  "live_verification": {
+    "database_rows": "pending",
+    "indexer_checkpoint_and_freshness": "pending",
+    "api_resolution_and_claims": "pending",
+    "api_portfolio": "pending",
+    "frontend_indexed_history": "pending"
+  },
+  "related_evidence": [
+    "market-0-void-settlement-evidence.json",
+    "market-0-void-payout-evidence.json",
+    "market-0-creator-surplus-evidence.json"
+  ],
+  "next_verification_steps": [
+    "Connect with current working database settings",
+    "Record revision, current checkpoint and deployment-scoped projection snapshot",
+    "Replay affected projections if payout events were indexed before the local fix",
+    "Synchronize confirmed Sepolia logs through surplus-withdrawal block 12158955",
+    "Compare database and API event hashes, exact amounts, zero outstanding quantities, claimed flag, payout and updated block",
+    "Verify frontend indexed history and capture sanitized evidence"
+  ]
+}
