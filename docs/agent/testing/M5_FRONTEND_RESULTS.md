@@ -1,7 +1,7 @@
 # M5 Frontend And Browser Results
 
-Owner: Adriel. Status: local production-build results recorded November 18, 2026. Public Vercel results
-are pending until the deployment URL exists. Never include wallet secrets, tokens or private
+Owner: Adriel. Status: local and public Vercel results recorded November 18, 2026. Public URL:
+https://acon-esports-market.vercel.app (contract reads only until the Render API is configured). Never include wallet secrets, tokens or private
 dashboards in screenshots or traces.
 
 ## Read-Only Browser Journeys (Playwright)
@@ -24,7 +24,7 @@ catalog must come from the backend instead of mock data. Use that mode once the 
 | Run | Environment | Result | Notes |
 |---|---|---|---|
 | FE-01 | Local production build (`vite build` + `vite preview`), M4 Sepolia contracts over the public Sepolia RPC, no backend; desktop Chrome and Pixel 7 profiles | pass, 10/10 (5 journeys x 2 profiles) | Mock fixture catalog, because no API is configured. The first run failed every journey on a missing favicon (FE-B1). |
-| FE-02 | Public Vercel deployment, contract reads only | pending | Run with `PLAYWRIGHT_BASE_URL=<vercel url>`. |
+| FE-02 | Public Vercel deployment https://acon-esports-market.vercel.app, contract reads only (no `VITE_API_URL`); desktop Chrome and Pixel 7 profiles | pass, 10/10 | Deployed with the Vercel CLI from this branch. Response headers confirmed: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`. Not yet Git-connected: needs the Vercel GitHub app on the repo. |
 | FE-03 | Public Vercel + Render API | pending | Run with `PLAYWRIGHT_EXPECT_API=1`; needed before ECON-05/ECON-06 move to pass. |
 
 Command: `cd frontend && PLAYWRIGHT_CHANNEL=chrome npm run test:e2e` (installed Chrome) or

@@ -12,7 +12,7 @@ Never include credentials, private keys, raw signatures, tokens, database URLs, 
 | PostgreSQL | migrations, 78-digit values, replay/rebuild | CI PostgreSQL service | pending implementation | pending | SQLite remains the fast unit path. |
 | Contracts | Foundry unit/fuzz/invariant and six journeys | GitHub Actions / Anvil | pending M5 rerun | pending CI/artifact | Record exact test summary. |
 | Security | Slither, coverage, ABI/runtime and GitGuardian | GitHub Actions | pending M5 rerun | pending CI/artifact | Do not copy secret scanner payloads. |
-| Browser | Playwright read-only journeys | local production build vs public Sepolia contracts; public Vercel/Render pending | local pass 10/10; public pending | [frontend results](M5_FRONTEND_RESULTS.md) | MetaMask writes remain manual. |
+| Browser | Playwright read-only journeys | local build and public Vercel (contract reads only); Render pending | local pass 10/10; public Vercel pass 10/10; with API pending | [frontend results](M5_FRONTEND_RESULTS.md) | MetaMask writes remain manual. |
 
 ## Public Cross-Layer Acceptance
 
