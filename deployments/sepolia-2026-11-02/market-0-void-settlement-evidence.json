@@ -1,0 +1,147 @@
+{
+  "schema": "acon.market-void-settlement-evidence.v1",
+  "checked_at_utc": "2026-11-18T03:51:25.680598+00:00",
+  "environment": "public Ethereum Sepolia",
+  "chain_id": 11155111,
+  "market_id": 0,
+  "contract_address": "0x03ae48f03C7822540a91DA2168602bd49dC510E9",
+  "payment_token_address": "0xf85b2278a810410c6AE0b7490d34671E0C8e6E90",
+  "transaction_hash": "0x569d65ff15925d37ff0dabd00a8033e708a923fa68de8dd1e0cceef6cbcb4dcb",
+  "transaction_url": "https://sepolia.etherscan.io/tx/0x569d65ff15925d37ff0dabd00a8033e708a923fa68de8dd1e0cceef6cbcb4dcb",
+  "transaction_sender": "0xf350a4ebe6f0485bdcf8294e9e66b71473a2093b",
+  "transaction_input": "0x22fc5a7a0000000000000000000000000000000000000000000000000000000000000000",
+  "block_number": 12158923,
+  "block_hash": "0x32758676b1d6c63d0309645275cd284d5f3e8e544fbbda91e30bbddd621be100",
+  "block_time_utc": "2026-11-18T03:49:48+00:00",
+  "block_time_et": "2026-11-17T22:49:48-05:00",
+  "confirmations_at_check": 8,
+  "gas_used": 106866,
+  "effective_gas_price_wei": 1500000016,
+  "transaction_fee_eth": "0.000160299001709856",
+  "before": {
+    "market": {
+      "id": 0,
+      "fixtureKey": "0x97b8c76e6398a901469cf3f5d41402fe6177a2aa60c711d93565111375f003ed",
+      "question": "Will MOUZ beat BetBoom Team?",
+      "tradingDeadline": 1793679300,
+      "state": 4,
+      "creator": "0xf350a4ebe6f0485bdcf8294e9e66b71473a2093b",
+      "yesQuantity": 150010000000000000000,
+      "noQuantity": 100001000000000000000,
+      "collateralBalance": 165670664062370061911
+    },
+    "resolution": {
+      "proposed": true,
+      "proposal": 0,
+      "proposer": "0x137f79cc7ea5c59fa66bc09351b5f9331225c0df",
+      "proposalEvidenceHash": "0x3a000f3978595455924049ce180664c9c8dff0b6f5fffef90db9d647ef26d090",
+      "proposalEvidenceURI": "https://www.hltv.org/stats/matches/132719/mouz-vs-betboom",
+      "challengeDeadline": 1793799624,
+      "challenger": "0x178bbc1a619c2db9dc4ee325a87c9d09a394cd67",
+      "challengeEvidenceHash": "0x3b9c0b2510b3dc0e247d7d6be65f16eaaa93fe0b23609e7dfee966c896302e0a",
+      "bondEscrow": 10000000000000000000,
+      "round": 1,
+      "terminal": false,
+      "finalOutcome": 0
+    },
+    "challenger_token_balance": "990000000000000000000",
+    "contract_token_balance": "175670664062370061911"
+  },
+  "after": {
+    "market": {
+      "id": 0,
+      "fixtureKey": "0x97b8c76e6398a901469cf3f5d41402fe6177a2aa60c711d93565111375f003ed",
+      "question": "Will MOUZ beat BetBoom Team?",
+      "tradingDeadline": 1793679300,
+      "state": 7,
+      "creator": "0xf350a4ebe6f0485bdcf8294e9e66b71473a2093b",
+      "yesQuantity": 150010000000000000000,
+      "noQuantity": 100001000000000000000,
+      "collateralBalance": 165670664062370061911
+    },
+    "resolution": {
+      "proposed": true,
+      "proposal": 0,
+      "proposer": "0x137f79cc7ea5c59fa66bc09351b5f9331225c0df",
+      "proposalEvidenceHash": "0x3a000f3978595455924049ce180664c9c8dff0b6f5fffef90db9d647ef26d090",
+      "proposalEvidenceURI": "https://www.hltv.org/stats/matches/132719/mouz-vs-betboom",
+      "challengeDeadline": 1793799624,
+      "challenger": "0x178bbc1a619c2db9dc4ee325a87c9d09a394cd67",
+      "challengeEvidenceHash": "0x3b9c0b2510b3dc0e247d7d6be65f16eaaa93fe0b23609e7dfee966c896302e0a",
+      "bondEscrow": 0,
+      "round": 1,
+      "terminal": true,
+      "finalOutcome": 2
+    },
+    "challenger_token_balance": "1000000000000000000000",
+    "contract_token_balance": "165670664062370061911",
+    "total_collateral": "165670664062370061911",
+    "total_challenge_bonds": "0",
+    "remaining_liability": "125005500000000000000",
+    "creator_claimable": "125005500000000000000",
+    "creator_has_claimed": false,
+    "creator_withdrawable_surplus": "40665164062370061911"
+  },
+  "amounts_acon": {
+    "bond_refunded": "10",
+    "remaining_liability": "125.0055",
+    "creator_claimable": "125.0055",
+    "creator_surplus": "40.665164062370061911",
+    "market_collateral": "165.670664062370061911"
+  },
+  "market_events": [
+    {
+      "event": "ChallengeBondResolved",
+      "args": {
+        "marketId": 0,
+        "challenger": "0x178bbc1a619c2db9dc4ee325a87c9d09a394cd67",
+        "amount": 10000000000000000000,
+        "refunded": true
+      },
+      "log_index": 13
+    },
+    {
+      "event": "MarketVoided",
+      "args": {
+        "marketId": 0,
+        "remainingLiability": 125005500000000000000
+      },
+      "log_index": 14
+    }
+  ],
+  "token_transfers": [
+    {
+      "from": "0x03ae48f03c7822540a91da2168602bd49dc510e9",
+      "to": "0x178bbc1a619c2db9dc4ee325a87c9d09a394cd67",
+      "amount_base_units": 10000000000000000000
+    }
+  ],
+  "checks": {
+    "correct_chain_contract_function_market_and_zero_eth_value": true,
+    "transaction_successful": true,
+    "state_resolver_selection_to_void": true,
+    "terminal_void_outcome": true,
+    "ten_acon_bond_refunded_to_challenger": true,
+    "bond_transfer_in_receipt": true,
+    "bond_escrow_cleared": true,
+    "global_bond_total_decreased_by_bond": true,
+    "market_collateral_unchanged": true,
+    "global_collateral_unchanged": true,
+    "contract_token_balance_decreased_by_refund": true,
+    "global_token_accounting_reconciles": true,
+    "void_liability_matches_ceiling_half_total_shares": true,
+    "collateral_covers_remaining_liability": true,
+    "surplus_equals_collateral_less_liability": true,
+    "positions_and_quantities_unchanged_by_settlement": true,
+    "payout_still_available": true,
+    "market_voided_event_present": true,
+    "bond_resolved_refund_event_present": true,
+    "runtime_matches_manifest": true
+  },
+  "evidence_scope": {
+    "contract_receipt_and_accounting": "verified",
+    "frontend_void_state_and_amounts": "observed after mining",
+    "backend_indexer_and_api": "not verified; local API unavailable",
+    "claim_and_surplus_transactions": "pending separate execution"
+  }
+}
