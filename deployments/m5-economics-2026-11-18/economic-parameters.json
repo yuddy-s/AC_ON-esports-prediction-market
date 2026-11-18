@@ -1,0 +1,10 @@
+{
+  "liquidity_parameter_acon": "50",
+  "token_decimals": 18,
+  "subsidy_base_units": "34657359027997265471",
+  "subsidy_acon": "34.657359027997265471",
+  "check": "PASS: required subsidy equals the independent 160-digit Decimal ceiling of 50e18 * ln(2)",
+  "quantity_cap_per_outcome": "2000 shares",
+  "trade_cap": "100 shares",
+  "challenge_bond_acon": "10"
+}

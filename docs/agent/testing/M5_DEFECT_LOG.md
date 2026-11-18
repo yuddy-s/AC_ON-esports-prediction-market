@@ -1,14 +1,15 @@
 # M5 Defect And Fix Ledger
 
-Status: draft. This is the source for the presentation's bugs-found-and-fixed section.
+Status: updated November 18, 2026 with Matthew's economics defects. This is the source for the presentation's bugs-found-and-fixed section. See the [economic results report](M5_ECONOMIC_RESULTS.md) for exact amounts and environment limitations.
 
 ## Required Fields
 
 | ID | Severity | Environment | Symptom and reproduction | Root cause | Owner | Fix PR/commit | Regression test | Verification | Residual risk | Status |
 |---|---|---|---|---|---|---|---|---|---|---|
-| M5-001 | pending | pending | pending | pending | pending | pending | pending | pending | pending | open |
+| M5-001 (ECON-B1) | P2 | Indexer projection; reproduced locally, corrected handler exercised against shared Supabase | Claim cleared wallet positions but left market YES/NO quantities and the position update block stale. Extended lifecycle regression failed before the fix. | Payout projection omitted market quantity subtraction and position block update. | Matthew | [#57](https://github.com/yuddy-s/AC_ON-esports-prediction-market/pull/57), `81850e9` | Three focused indexer tests cover winning/VOID claims, multiple wallets, repeated sync and rebuild; earlier full backend run: 130 passed. | Corrected local handler applied nine missing confirmed events to shared Supabase; zero quantities, claimed flag, exact payout and claim block matched through local API/UI. [Evidence](../../../deployments/m5-economics-2026-11-18/supabase-local-api-verification.json). | Hosted worker rollout and Render/Vercel acceptance remain pending. This is verification of the shared database using a local stack. | verified |
+| M5-002 (ECON-B2) | P1 | Local deployment preflight and administration verification | Any positive LINK balance passed funding validation even when below the reviewed VRF reserve. | Checks treated nonzero balance as sufficient funding. | Matthew | [#58](https://github.com/yuddy-s/AC_ON-esports-prediction-market/pull/58), `32ee331` | Six deployment tests include zero configuration, positive-but-insufficient balance, one-unit shortfall and exact-threshold acceptance. | Recorded 120-test local contract run includes six passing deployment tests; source hashes retained in [run metadata](../../../deployments/m5-economics-2026-11-18/run-metadata.json). | Threshold is operator supplied; no automatic reserve estimate or live VRF success is established. Fix is not merged/deployed at this observation; subscriptions remain underfunded. | fixed |
 
-Remove the placeholder after the first M5 defect is recorded. Severity is `P0` release-blocking,
+Severity is `P0` release-blocking,
 `P1` major journey failure, `P2` degraded/recoverable behavior, or `P3` cosmetic/documentation.
 Use `open`, `fixed`, `verified`, `accepted`, or `rejected` as status.
 

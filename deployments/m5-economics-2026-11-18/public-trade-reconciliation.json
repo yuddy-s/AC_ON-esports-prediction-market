@@ -1,0 +1,216 @@
+{
+  "schema": "acon.m5-public-trade-reconciliation.v1",
+  "checked_at_utc": "2026-11-18T20:29:25.252284+00:00",
+  "scope": "M5 retrospective reconciliation of existing public Sepolia trades; block timestamps are recorded per receipt and no new trades were submitted",
+  "chain_id": 11155111,
+  "contract_address": "0x03ae48f03C7822540a91DA2168602bd49dC510E9",
+  "buy_count": 5,
+  "sell_count": 1,
+  "trades": [
+    {
+      "action": "BUY",
+      "outcome": "YES",
+      "shares": "0.02",
+      "quote_acon": "0.010000999999993334",
+      "received_or_paid_acon": "0.010000999999993334",
+      "guard_base_units": "10101009999993268",
+      "transaction_hash": "0x2d512622352ddd5e52dff710d2f2d3a00bf5ab84583ed7889fa7b1f9ec0f6400",
+      "transaction_url": "https://sepolia.etherscan.io/tx/0x2d512622352ddd5e52dff710d2f2d3a00bf5ab84583ed7889fa7b1f9ec0f6400",
+      "block": 12052315,
+      "collateral_before_acon": "34.657359027997265471",
+      "collateral_after_acon": "34.667360027997258805",
+      "positions_before_base_units": [
+        "0",
+        "0"
+      ],
+      "positions_after_base_units": [
+        "20000000000000000",
+        "0"
+      ],
+      "checks": {
+        "historical_quote_equals_execution": true,
+        "slippage_guard_honored": true,
+        "exact_erc20_transfer": true,
+        "wallet_and_contract_token_deltas": true,
+        "collateral_delta": true,
+        "position_and_quantity_deltas": true,
+        "supabase_backed_api_matches_receipt": true,
+        "receipt_successful_and_canonical": true
+      },
+      "block_time_utc": "2026-11-03T02:27:48+00:00",
+      "block_time_et": "2026-11-02T21:27:48-05:00"
+    },
+    {
+      "action": "BUY",
+      "outcome": "NO",
+      "shares": "0.001",
+      "quote_acon": "0.000499902500001237",
+      "received_or_paid_acon": "0.000499902500001237",
+      "guard_base_units": "504901525001250",
+      "transaction_hash": "0x68717be6a33690b8d81b6b56e51e8ce5a296c872ee40353d80c308cce7ae9ff5",
+      "transaction_url": "https://sepolia.etherscan.io/tx/0x68717be6a33690b8d81b6b56e51e8ce5a296c872ee40353d80c308cce7ae9ff5",
+      "block": 12052387,
+      "collateral_before_acon": "34.667360027997258805",
+      "collateral_after_acon": "34.667859930497260042",
+      "positions_before_base_units": [
+        "20000000000000000",
+        "0"
+      ],
+      "positions_after_base_units": [
+        "20000000000000000",
+        "1000000000000000"
+      ],
+      "checks": {
+        "historical_quote_equals_execution": true,
+        "slippage_guard_honored": true,
+        "exact_erc20_transfer": true,
+        "wallet_and_contract_token_deltas": true,
+        "collateral_delta": true,
+        "position_and_quantity_deltas": true,
+        "supabase_backed_api_matches_receipt": true,
+        "receipt_successful_and_canonical": true
+      },
+      "block_time_utc": "2026-11-03T02:42:12+00:00",
+      "block_time_et": "2026-11-02T21:42:12-05:00"
+    },
+    {
+      "action": "BUY",
+      "outcome": "NO",
+      "shares": "100",
+      "quote_acon": "71.681805856233194196",
+      "received_or_paid_acon": "71.681805856233194196",
+      "guard_base_units": "72398623914795526138",
+      "transaction_hash": "0xee62a9261634b031ce84f94f7964f2b53fab46c55cefbb3442ce0312334bc701",
+      "transaction_url": "https://sepolia.etherscan.io/tx/0xee62a9261634b031ce84f94f7964f2b53fab46c55cefbb3442ce0312334bc701",
+      "block": 12052394,
+      "collateral_before_acon": "34.667859930497260042",
+      "collateral_after_acon": "106.349665786730454238",
+      "positions_before_base_units": [
+        "20000000000000000",
+        "1000000000000000"
+      ],
+      "positions_after_base_units": [
+        "20000000000000000",
+        "100001000000000000000"
+      ],
+      "checks": {
+        "historical_quote_equals_execution": true,
+        "slippage_guard_honored": true,
+        "exact_erc20_transfer": true,
+        "wallet_and_contract_token_deltas": true,
+        "collateral_delta": true,
+        "position_and_quantity_deltas": true,
+        "supabase_backed_api_matches_receipt": true,
+        "receipt_successful_and_canonical": true
+      },
+      "block_time_utc": "2026-11-03T02:43:36+00:00",
+      "block_time_et": "2026-11-02T21:43:36-05:00"
+    },
+    {
+      "action": "SELL",
+      "outcome": "YES",
+      "shares": "0.01",
+      "quote_acon": "0.001192323234939916",
+      "received_or_paid_acon": "0.001192323234939916",
+      "guard_base_units": "1180400002590516",
+      "transaction_hash": "0x6906d816e7e0ab2f6fbac6a84018817d790b98a6c925ccaadb1b4ce18696e0f0",
+      "transaction_url": "https://sepolia.etherscan.io/tx/0x6906d816e7e0ab2f6fbac6a84018817d790b98a6c925ccaadb1b4ce18696e0f0",
+      "block": 12052699,
+      "collateral_before_acon": "106.349665786730454238",
+      "collateral_after_acon": "106.348473463495514322",
+      "positions_before_base_units": [
+        "20000000000000000",
+        "100001000000000000000"
+      ],
+      "positions_after_base_units": [
+        "10000000000000000",
+        "100001000000000000000"
+      ],
+      "checks": {
+        "historical_quote_equals_execution": true,
+        "slippage_guard_honored": true,
+        "exact_erc20_transfer": true,
+        "wallet_and_contract_token_deltas": true,
+        "collateral_delta": true,
+        "position_and_quantity_deltas": true,
+        "supabase_backed_api_matches_receipt": true,
+        "receipt_successful_and_canonical": true
+      },
+      "block_time_utc": "2026-11-03T03:44:48+00:00",
+      "block_time_et": "2026-11-02T22:44:48-05:00"
+    },
+    {
+      "action": "BUY",
+      "outcome": "YES",
+      "shares": "100",
+      "quote_acon": "28.314385767001750878",
+      "received_or_paid_acon": "28.314385767001750878",
+      "guard_base_units": "28597529624671768387",
+      "transaction_hash": "0x8ec71340ba555e32d0b99ef0ede79cbf27293dfff83da5aacec1be7a1a105a1f",
+      "transaction_url": "https://sepolia.etherscan.io/tx/0x8ec71340ba555e32d0b99ef0ede79cbf27293dfff83da5aacec1be7a1a105a1f",
+      "block": 12052758,
+      "collateral_before_acon": "106.348473463495514322",
+      "collateral_after_acon": "134.6628592304972652",
+      "positions_before_base_units": [
+        "10000000000000000",
+        "100001000000000000000"
+      ],
+      "positions_after_base_units": [
+        "100010000000000000000",
+        "100001000000000000000"
+      ],
+      "checks": {
+        "historical_quote_equals_execution": true,
+        "slippage_guard_honored": true,
+        "exact_erc20_transfer": true,
+        "wallet_and_contract_token_deltas": true,
+        "collateral_delta": true,
+        "position_and_quantity_deltas": true,
+        "supabase_backed_api_matches_receipt": true,
+        "receipt_successful_and_canonical": true
+      },
+      "block_time_utc": "2026-11-03T03:56:36+00:00",
+      "block_time_et": "2026-11-02T22:56:36-05:00"
+    },
+    {
+      "action": "BUY",
+      "outcome": "YES",
+      "shares": "50",
+      "quote_acon": "31.007804831872796711",
+      "received_or_paid_acon": "31.007804831872796711",
+      "guard_base_units": "31317882880191524679",
+      "transaction_hash": "0xdfb0ea6b839d2bda2ea66a998b4e99579e864d48b59d9174073c97593f5b997e",
+      "transaction_url": "https://sepolia.etherscan.io/tx/0xdfb0ea6b839d2bda2ea66a998b4e99579e864d48b59d9174073c97593f5b997e",
+      "block": 12052761,
+      "collateral_before_acon": "134.6628592304972652",
+      "collateral_after_acon": "165.670664062370061911",
+      "positions_before_base_units": [
+        "100010000000000000000",
+        "100001000000000000000"
+      ],
+      "positions_after_base_units": [
+        "150010000000000000000",
+        "100001000000000000000"
+      ],
+      "checks": {
+        "historical_quote_equals_execution": true,
+        "slippage_guard_honored": true,
+        "exact_erc20_transfer": true,
+        "wallet_and_contract_token_deltas": true,
+        "collateral_delta": true,
+        "position_and_quantity_deltas": true,
+        "supabase_backed_api_matches_receipt": true,
+        "receipt_successful_and_canonical": true
+      },
+      "block_time_utc": "2026-11-03T03:57:24+00:00",
+      "block_time_et": "2026-11-02T22:57:24-05:00"
+    }
+  ],
+  "aggregate": {
+    "creator_subsidy_acon": "34.657359027997265471",
+    "net_trade_payments_acon": "131.01330503437279644",
+    "collateral_after_all_trades_acon": "165.670664062370061911"
+  },
+  "ui_scope": "Local recent-trade table displays all six receipt links and actions. Small amounts are rounded at display precision; exact comparisons use raw API and receipt base units. Hosted frontend not verified.",
+  "hosted_acceptance": "pending public Render/Vercel URLs and verification"
+}
