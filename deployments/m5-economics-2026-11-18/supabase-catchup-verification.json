@@ -1,0 +1,50 @@
+{
+  "schema": "acon.m5-supabase-confirmed-catchup.v1",
+  "started_at_utc": "2026-11-18T20:23:22.643440+00:00",
+  "environment": "shared Supabase PostgreSQL; local fixed indexer",
+  "source_branch": "codex/m5-indexer-payout-accounting",
+  "source_commit": "81850e9146e0512cc2d62cbbac05d90a6de2a5ee",
+  "from_block": 12054435,
+  "to_block": 12163724,
+  "deletes_performed": false,
+  "event_names": [
+    "MarketClosed",
+    "OutcomeProposed",
+    "OutcomeChallenged",
+    "ResolverSelectionRequested",
+    "ResolverSelectionRequested",
+    "ChallengeBondResolved",
+    "MarketVoided",
+    "PayoutClaimed",
+    "CreatorSurplusWithdrawn"
+  ],
+  "backup": "deployment-scoped private snapshot retained locally",
+  "sync_result": {
+    "latest_observed_block": 12163726,
+    "last_safe_block": 12163724,
+    "processed_logs": 9,
+    "batches": 1,
+    "rebuilt_after_reorg": false
+  },
+  "verified_market": {
+    "state": "VOID",
+    "final_outcome": 2,
+    "yes_quantity": "0",
+    "no_quantity": "0",
+    "source_block_number": 12158955
+  },
+  "verified_position": {
+    "claimed": true,
+    "yes_shares": "0",
+    "no_shares": "0",
+    "payout_base_units": "125005500000000000000",
+    "updated_block_number": 12158940
+  },
+  "verified_event_amounts": {
+    "bond_refund_base_units": "10000000000000000000",
+    "payout_base_units": "125005500000000000000",
+    "surplus_base_units": "40665164062370061911"
+  },
+  "status": "committed_and_verified",
+  "finished_at_utc": "2026-11-18T20:23:27.727030+00:00"
+}

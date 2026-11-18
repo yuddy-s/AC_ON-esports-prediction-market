@@ -1,0 +1,5 @@
+{
+  "command": "forge fmt --check",
+  "working_directory": "contracts",
+  "exit_code": 0
+}

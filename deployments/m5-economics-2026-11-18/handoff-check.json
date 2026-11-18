@@ -1,0 +1,5 @@
+{
+  "command": "python3 script/export_handoff.py --check",
+  "exit_code": 0,
+  "output": "PASS: ABIs, runtime templates, source hashes, reference and event examples match the merged build; runtime sizes fit EIP-170\n"
+}

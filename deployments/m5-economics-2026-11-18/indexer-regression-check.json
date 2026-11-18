@@ -1,0 +1,11 @@
+{
+  "checked_at_utc": "2026-11-18T05:13:02.160790+00:00",
+  "environment": "local SQLite; shared Supabase not exercised",
+  "command": "DATABASE_URL=sqlite+pysqlite:////private/tmp/acon-m5-economic-indexer-test.sqlite .venv/bin/python -m pytest -q tests/test_m4_indexer.py",
+  "working_directory": "backend",
+  "exit_code": 0,
+  "passed": 3,
+  "failed": 0,
+  "output": "3 passed in 0.61s",
+  "initial_harness_attempt": "Direct pytest entry point failed to import app; invoking the same environment with python -m pytest resolved the import path. No source change was made for this harness correction."
+}

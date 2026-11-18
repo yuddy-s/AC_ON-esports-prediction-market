@@ -1,0 +1,73 @@
+{
+  "schema": "acon.vrf-funding-reserve-recheck.v1",
+  "checked_at_utc": "2026-11-18T21:13:38.096980+00:00",
+  "confirmed_block": 12164011,
+  "coordinator_config": [
+    3,
+    2500000,
+    false,
+    172800,
+    26000,
+    0,
+    0,
+    24,
+    20
+  ],
+  "proving_key_registered": true,
+  "gas_lane_max_wei": "500000000000",
+  "callback_gas_limit": 2000000,
+  "feed": "0x42585ed362b3f1bca95c640fdff35ef899212734",
+  "feed_round": [
+    36893488147419128455,
+    5152500000000000,
+    1795034082,
+    1795034100,
+    36893488147419128455
+  ],
+  "documentation_formula_estimate": {
+    "verification_gas_assumption": 200000,
+    "link_premium_percent": 20,
+    "native_premium_percent": 24,
+    "link_reserve": "256.1863173216885007278020378",
+    "native_reserve_eth": "1.364",
+    "link_additional_over_existing_10": "246.1863173216885007278020378",
+    "limitation": "Documentation formula estimate, not a freshly observed dashboard Max Cost or fulfillment fee; excludes concurrency buffer. Dashboard unavailable due browser connection reset."
+  },
+  "wallet_balances": {
+    "Benny": {
+      "address": "0xB5ce8428DD6cB9FEfD54282CB49Ef7d2629d9A6A",
+      "link": "15",
+      "sepolia_eth": "4.071228448807880733"
+    },
+    "Matthew": {
+      "address": "0xeF4176f740D0672176da0a40b7E4aF21dB6B14d3",
+      "link": "0",
+      "sepolia_eth": "0"
+    },
+    "Adriel": {
+      "address": "0xBF0ecc6f0427529fdd607dFD7f5b47DcE2A4CDA1",
+      "link": "0",
+      "sepolia_eth": "0"
+    },
+    "trading_wallet": {
+      "address": "0xf350a4ebe6f0485bdcf8294e9e66b71473a2093b",
+      "link": "15.2",
+      "sepolia_eth": "0.004829496606082667"
+    }
+  },
+  "request_ages": {
+    "link_diagnostic": {
+      "requested_at_utc": "2026-11-18T04:40:36+00:00",
+      "age_hours": "16.55055213305685255262586806"
+    },
+    "native_diagnostic": {
+      "requested_at_utc": "2026-11-18T04:49:12+00:00",
+      "age_hours": "16.40724915418359968397352431"
+    }
+  },
+  "sources": [
+    "https://docs.chain.link/vrf/v2-5/billing",
+    "https://docs.chain.link/vrf/v2-5/overview/subscription",
+    "https://docs.chain.link/vrf/v2-5/supported-networks"
+  ]
+}
