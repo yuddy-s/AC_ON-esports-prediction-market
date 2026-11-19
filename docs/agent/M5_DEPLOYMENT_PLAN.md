@@ -81,6 +81,48 @@ Render web service; no signer key or provider token is hosted there.
 - **Contract fault:** pause public writes and escalate to the Safe. Existing contracts are not
   upgraded; a new deployment requires a new manifest, ABI/address configuration, and full acceptance.
 
+### Contract rollback criteria
+
+Contracts are immutable, so a contract rollback never reverts bytecode in place. It means leaving
+the current deployment at its recorded state and moving public activity to a fresh deployment with
+a new versioned manifest. Any one of the following triggers a rollback review:
+
+- A demonstrated or reported defect that can lose or misdirect funds (pricing, payout, surplus, or
+  bond accounting).
+- Compromise of a Safe owner key, or exposure of a role key whose damage cannot be contained by
+  revoking that role through the Safe.
+- VRF fulfillment permanently impossible on the deployed immutable configuration (deprecated gas
+  lane or key hash, discontinued LINK billing, or a coordinator limit incompatible with the frozen
+  2,000,000 callback gas), evidenced by the diagnostic records and, where possible, Chainlink
+  communication.
+- Deployed bytecode no longer matching the frozen ABI/source records in
+  `deployments/sepolia-2026-11-02`, or an unexplained coordinator/subscription ownership change.
+
+Repair these without redeploying instead:
+
+- Frontend, API, indexer, or database defects (service redeploy or derived-projection rebuild).
+- An underfunded VRF subscription (fund to the reviewed minimum; the merged preflight rejects
+  balances below it).
+- Stale, duplicate, or superseded VRF requests (the contract ignores them; retry and advance
+  paths exist).
+- Non-admin key exposure with revocable roles (rotate through the Safe, then resume).
+
+Decision procedure: pause public writes (stop the registrar/proposer workers; the indexer may keep
+reading), classify the defect as blocker (funds loss or compromise), degraded (functionality
+unavailable), or cosmetic, and record the Safe decision (2/3) with evidence links. Then choose
+accept-and-mitigate, redeploy the same source with changed configuration, or redeploy changed
+source. Rollback owner for contracts: Benny.
+
+If a rollback proceeds: snapshot the state evidence (manifest, receipts, final block), deploy from
+reviewed source per `docs/agent/CONTRACT_DEPLOYMENT.md`, rerun the Safe setup and the six-argument
+`VerifyAdministration.verify`, publish a new versioned manifest and ABI, update Vercel, Render, and
+local-worker configuration, and rerun full acceptance before public writes resume. Positions do not
+migrate: claims and creator surplus on the old address remain claimable there under contract rules,
+and the old manifest stays the record for that deployment.
+
+Last known-good contract record: `deployments/sepolia-2026-11-02` (deployed source `721a6fe`,
+PredictionMarket `0x03ae48f0…10E9`).
+
 ## Go/No-Go Checklist
 
 - [ ] Supabase backup, revision, and preservation checks recorded.
