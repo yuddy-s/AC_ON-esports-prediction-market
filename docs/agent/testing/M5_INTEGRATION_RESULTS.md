@@ -16,9 +16,9 @@ results do not replace the pending CI rows below.
 
 | Layer | Command/check | Environment | Result | Evidence | Notes |
 |---|---|---|---|---|---|
-| Frontend | Vitest, typecheck, production build | GitHub Actions | pending M5 rerun | pending CI link | M4 local baseline was 159 Vitest tests. |
-| Backend | Alembic upgrade and Pytest | GitHub Actions / SQLite | pending M5 rerun | pending CI link | M4 documented baseline was 129 tests. |
-| PostgreSQL | migrations, 78-digit values, replay/rebuild | CI PostgreSQL service | pending implementation | pending | SQLite remains the fast unit path. |
+| Frontend | Vitest, typecheck, production build | local | 159 passed; typecheck/build passed | M5 backend branch local run, 2026-11-18 | GitHub Actions rerun remains required. |
+| Backend | Alembic-compatible SQLite Pytest suite | local SQLite | 133 passed, 1 PostgreSQL-only test skipped | M5 backend branch local run, 2026-11-18 | The focused recovery/review slice was 76 passed. |
+| PostgreSQL | migrations, 78-digit values, replay/rebuild/reorg/preservation | disposable CI PostgreSQL 16 | implemented; CI pending | backend PostgreSQL job and `test_postgres_integration.py` | Never connects to Supabase. |
 | Contracts | Foundry unit/fuzz/invariant and six journeys | GitHub Actions / Anvil | pending M5 rerun | pending CI/artifact | Record exact test summary. |
 | Security | Slither, coverage, ABI/runtime and GitGuardian | GitHub Actions | pending M5 rerun | pending CI/artifact | Do not copy secret scanner payloads. |
 | Browser | Playwright read-only journeys | public Vercel/Render | pending implementation | pending trace/screenshots | MetaMask writes remain manual. |
@@ -42,10 +42,10 @@ results do not replace the pending CI rows below.
 
 | ID | Scenario | Environment | Expected result | Evidence | Status | Defect |
 |---|---|---|---|---|---|---|
-| LOC-01 | Provider 429/outage/malformed response | deterministic transport | retain last observation and stop proposal work | pending | pending | — |
+| LOC-01 | Provider 429/outage/malformed response | deterministic transport | retain last observation and stop proposal work | `test_pandascore.py` included in 76-test focused pass | pass | — |
 | LOC-02 | API/indexer/worker restart | local + Supabase staging | resume without duplicate transactions/logs | pending | pending | — |
-| LOC-03 | Duplicate/reordered/missed logs and reorg | Pytest provider | deterministic canonical rebuild | pending | pending | — |
-| LOC-04 | Uncertain signer submission | mock RPC/gateway | quarantine and reconcile before retry | pending | pending | — |
+| LOC-03 | Duplicate/reordered/missed logs and reorg | Pytest provider | deterministic canonical rebuild | `test_indexer.py` included in 76-test focused pass | pass | — |
+| LOC-04 | Uncertain signer submission | mock RPC/gateway | quarantine and reconcile before retry | registration/oracle tests included in 76-test focused pass | pass | — |
 | LOC-05 | Seven-day no-proposal timeout | Anvil time control | permissionless resolver selection | pending | pending | — |
 | LOC-06 | First-round failure and replacement | Anvil time control | exactly one replacement round | pending | pending | — |
 | LOC-07 | Round-two failure and VOID | Anvil time control | VOID and half-value claims | pending | pending | — |

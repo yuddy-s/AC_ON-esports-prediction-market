@@ -77,7 +77,7 @@ The detailed schedule, boundaries, evidence rules, and exit criteria are in
 
 | Priority | Owner | Deliverable and acceptance evidence | Dependency | Status |
 |---|---|---|---|---|
-| P0 | Yudhveer | Deploy Render API plus isolated indexer, registrar, and proposer; validate Supabase migration/recovery; add public smoke and PostgreSQL CI; draft developer guide. | Render capacity and private DB/RPC/signer configuration | planned; deployment/configuration PR next |
+| P0 | Yudhveer | Deploy Render API plus isolated indexer, registrar, and proposer; validate Supabase migration/recovery; add public smoke and PostgreSQL CI; draft developer guide. | Render dashboard sync, private DB/RPC/signer configuration, and public URLs | implementation/configuration branch active; hosted evidence pending |
 | P0 | Adriel | Deploy Vercel, add public read-only Playwright journeys, run wallet/browser matrix, capture screenshots, and draft user guide. | Render public URL and public Sepolia configuration | planned; frontend deployment/testing PR next |
 | P0 | Benny | Reverify manifest/bytecode/Safe/roles/VRF/resolvers; rerun security checks; coordinate public VRF, votes, settlement, and claims. | Safe/VRF/resolver access and funded test wallets | planned; evidence PR follows live execution |
 | P0 | Matthew | Reconcile buy/sell/bond/liability/payout/surplus against public receipts; publish economic test results and parameter rationale. | Public transaction and claim evidence | planned; can rerun properties immediately |

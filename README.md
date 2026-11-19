@@ -10,6 +10,8 @@ current implementation with the fresh M4 Sepolia deployment.
 
 Milestone 5 now owns public Vercel/Render/Supabase integration, expanded integration and recovery
 testing, remaining Sepolia lifecycle evidence, defect reporting, and draft user/developer guides.
+The root `render.yaml` defines the M5 API plus isolated indexer, registrar, and proposer workers;
+automatic deploys are disabled and paid workers are suspended outside controlled evidence windows.
 The historical M3 handoff remains available only as an earlier release record.
 
 ## What Works Now
