@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-11-19T03:36:50.203509Z",
+  "environment": "public Vercel/Render/Supabase/Sepolia with local operator indexer",
+  "frontend_url": "https://acon-esports-market.vercel.app",
+  "api_base_url": "https://ac-on-esports-prediction-market.onrender.com",
+  "database": {
+    "alembic_revision": "20261102_0008",
+    "health": "available",
+    "pre_catchup_counts": {
+      "fixtures": 199,
+      "fixture_result_observations": 142,
+      "fixture_review_events": 2,
+      "result_review_events": 0,
+      "fixture_registration_jobs": 1,
+      "registration_job_events": 4,
+      "oracle_proposal_intents": 0,
+      "oracle_proposal_events": 0,
+      "processed_logs": 20,
+      "markets": 2,
+      "trades": 7,
+      "indexed_market_events": 16,
+      "indexed_positions": 1
+    },
+    "post_catchup_counts_equal": true
+  },
+  "indexer_catchup": {
+    "starting_safe_block": 12163950,
+    "observed_head": 12165868,
+    "ending_safe_block": 12165866,
+    "bounded_batches": 192,
+    "new_logs": 0,
+    "rebuild_after_reorg": false
+  },
+  "public_smoke": {
+    "status": "pass",
+    "health": "pass",
+    "cors": "pass",
+    "chain_id": 11155111,
+    "contract_address": "0x03ae48f03c7822540a91da2168602bd49dc510e9",
+    "deployment_block": 12051223,
+    "abi_version": "PredictionMarket.721a6fef039a.4af9297937eb.abi.json",
+    "latest_observed_block": 12165868,
+    "safe_block": 12165866,
+    "lag_blocks": 2,
+    "max_lag_blocks": 20,
+    "updated_at": "2026-11-19T03:36:31.091764Z",
+    "age_seconds": 19,
+    "max_age_seconds": 120
+  },
+  "indexer_restart": {
+    "status": "pass",
+    "observed_head": 12165874,
+    "safe_block": 12165872,
+    "bounded_batches": 1,
+    "new_logs": 0,
+    "processed_logs_before": 20,
+    "processed_logs_after": 20,
+    "projection_counts_preserved": true
+  },
+  "signer_process_restarts": {
+    "registrar": {
+      "status": "pass",
+      "one_shot_processes": 2,
+      "existing_job_status": "confirmed",
+      "registration_events_before": 4,
+      "registration_events_after": 4,
+      "duplicate_transactions": 0
+    },
+    "proposer": {
+      "status": "pass_after_fix",
+      "initial_second_start_error": "DuplicatePreparedStatement",
+      "root_cause": "psycopg automatic prepared statements through the Supabase transaction pooler",
+      "fix": "disable psycopg automatic preparation with prepare_threshold=None",
+      "post_fix_one_shot_processes": 2,
+      "proposal_intents_before": 0,
+      "proposal_intents_after": 0,
+      "proposal_events_before": 0,
+      "proposal_events_after": 0,
+      "duplicate_transactions": 0
+    }
+  },
+  "limitations": [
+    "The indexer was a local operator-run process, not a hosted Render worker.",
+    "The Render API restart portion of LOC-02 was not exercised by this check.",
+    "Signer restart checks used safe empty/confirmed queues and did not test a new submission.",
+    "This check made no registrar, proposer, trader, resolver, or claim transaction."
+  ]
+}
