@@ -23,6 +23,15 @@ interface VmMarket {
     function recordLogs() external;
     function getRecordedLogs() external returns (Log[] memory);
     function toString(uint256) external pure returns (string memory);
+    // Shared cross-layer vector support (issue #53): read
+    // docs/agent/testing/vectors/market_deadline_vectors.json without importing forge-std.
+    function readFile(string calldata) external returns (string memory);
+    // parseJson returns the ABI encoding of the selected JSON value; for an array the first
+    // word is its length.
+    function parseJson(string calldata, string calldata) external returns (bytes memory);
+    function parseJsonString(string calldata, string calldata) external returns (string memory);
+    function parseJsonUint(string calldata, string calldata) external returns (uint256);
+    function parseJsonBool(string calldata, string calldata) external returns (bool);
 }
 
 contract PaymentTokenMock is IERC20Minimal {
