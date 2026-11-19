@@ -6,8 +6,10 @@ VRF-to-settlement demonstration — was completed on November 19: a reviewed fix
 user-funded market, trades, proposal, bonded challenge, a fulfilled Chainlink VRF committee
 draw, three matching votes, settlement, claims and surplus are evidenced on-chain in
 [deployments/m5-sepolia-lifecycle-2026-11-19](../../../deployments/m5-sepolia-lifecycle-2026-11-19/README.md).
-The indexed DB/API/UI reflection of the settled market — the issue's cross-layer criterion —
-completes once the operator indexer resumes and catches up.
+The settled market's database/API and hosted read-only UI agreement was verified on November
+19 in the [final cross-layer check](../../../deployments/m5-sepolia-lifecycle-2026-11-19/cross-layer/README.md),
+completing issue #56's public lifecycle evidence. Separate wallet smokes and remaining
+milestone rows retain their own status.
 Product features, contract redesign, API expansion, and network migration are out of scope unless integration testing proves a release-blocking defect.
 
 ## Course Deliverables

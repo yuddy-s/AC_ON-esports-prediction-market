@@ -2,7 +2,13 @@
 
 Owner: Matthew Leong. Local rerun completed November 18 2026 at 00:14 EST. Public receipt observations were recorded on November 17 2026 ET. Shared Supabase, local UI and retrospective public-trade checks completed that afternoon; final database/API recheck passed at 16:01 EST.
 
-The local contract regression suite passed **120 tests with zero failures and zero skips**. Public Sepolia observations reconcile the market 0 VOID payout, challenge-bond refund and creator-surplus withdrawal exactly. After Supabase resumed, the corrected local indexer caught up the shared database; database rows, local API responses and local UI now agree with those receipts. The five existing public buys and one sell also reconcile exactly. **Hosted Render API/Vercel frontend acceptance remains pending because their URLs have not been identified.** Issue #56 remains incomplete because a successful real-market VRF callback, committee and resolver voting have not been demonstrated.
+The local contract regression suite passed **120 tests with zero failures and zero skips**. Public Sepolia observations reconcile the market 0 VOID payout, challenge-bond refund and creator-surplus withdrawal exactly. After Supabase resumed, the corrected local indexer caught up the shared database; database rows, local API responses and local UI now agree with those receipts. The five existing public buys and one sell also reconcile exactly. At the November 18 checkpoint, hosted Render/Vercel acceptance and the successful live VRF journey were still pending.
+
+November 19 follow-up: the new market 2 VRF-to-settlement journey now has matching receipt,
+contract, shared Supabase, public Render API, and hosted read-only Vercel UI evidence. See the
+[final cross-layer record](../../../deployments/m5-sepolia-lifecycle-2026-11-19/cross-layer/README.md),
+which completes issue #56. The ECON rows below retain the dated market 0 VOID/local-stack
+results; the follow-up does not claim a new connected-wallet portfolio smoke for market 0.
 
 ## Section 1 Integration Test Results
 
@@ -143,6 +149,6 @@ Local fuzzing and invariants sample reachable states and do not prove every poss
 
 Public evidence covers the single-wallet VOID path on market 0 and retrospective reconciliation of its five buys and one sell. YES/NO settlement, multiple-wallet claim ordering, bond forfeiture and market isolation are covered locally; their public-stack acceptance is not claimed. No new public trades were submitted for this verification.
 
-PUB-04/PUB-05 accounting reconciliation and PUB-09/PUB-10 shared database plus local API/UI checks now pass. Hosted Render/Vercel acceptance and issue #56 real VRF/committee/voting remain open. The [16:11–16:13 EST VRF recheck](../../../deployments/sepolia-2026-11-17-vrf-diagnostic/RECHECK-2026-11-18.md) records zero fulfillments, unchanged balances and an estimated funding gap; it does not establish successful fulfillment. User-guide and developer-guide completion are separate team deliverables.
+PUB-04/PUB-05 accounting reconciliation and PUB-09/PUB-10 shared database plus local API/UI checks now pass. At that dated checkpoint, hosted acceptance and the real VRF/committee/voting journey were open; market 2 subsequently completed the issue #56 public cross-layer verification on November 19 (linked above). The [16:11–16:13 EST VRF recheck](../../../deployments/sepolia-2026-11-17-vrf-diagnostic/RECHECK-2026-11-18.md) records zero fulfillments, unchanged balances and an estimated funding gap; it does not establish successful fulfillment. User-guide and developer-guide completion are separate team deliverables.
 
 The two fixes were committed and pushed as [PR #57](https://github.com/yuddy-s/AC_ON-esports-prediction-market/pull/57) and [PR #58](https://github.com/yuddy-s/AC_ON-esports-prediction-market/pull/58). This report and its linked verification records form the documentation/evidence follow-up. The confirmed-event catch-up wrote the shared database's derived projections; no wallet action or new Sepolia transaction was made for this verification.
