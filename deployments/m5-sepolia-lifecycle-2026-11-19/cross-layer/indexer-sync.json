@@ -1,0 +1,51 @@
+{
+  "initial_catchup": {
+    "checked_at": "2026-11-19T16:06:18.110547+00:00",
+    "source_head": "52ca00146db958198e138327437b645ff6b882e8",
+    "chain_id": 11155111,
+    "contract_address": "0x03ae48f03c7822540a91da2168602bd49dc510e9",
+    "confirmation_depth": 2,
+    "block_batch_size": 10,
+    "results": [
+      {
+        "latest_observed_block": 12169455,
+        "last_safe_block": 12169453,
+        "processed_logs": 17,
+        "batches": 229,
+        "rebuilt_after_reorg": false
+      },
+      {
+        "latest_observed_block": 12169462,
+        "last_safe_block": 12169460,
+        "processed_logs": 0,
+        "batches": 1,
+        "rebuilt_after_reorg": false
+      }
+    ]
+  },
+  "freshness_refresh": {
+    "checked_at": "2026-11-19T16:10:11.354156+00:00",
+    "source_head": "52ca00146db958198e138327437b645ff6b882e8",
+    "chain_id": 11155111,
+    "contract_address": "0x03ae48f03c7822540a91da2168602bd49dc510e9",
+    "confirmation_depth": 2,
+    "block_batch_size": 10,
+    "results": [
+      {
+        "latest_observed_block": 12169479,
+        "last_safe_block": 12169477,
+        "processed_logs": 0,
+        "batches": 2,
+        "rebuilt_after_reorg": false
+      },
+      {
+        "latest_observed_block": 12169479,
+        "last_safe_block": 12169477,
+        "processed_logs": 0,
+        "batches": 0,
+        "rebuilt_after_reorg": false
+      }
+    ]
+  },
+  "operation": "confirmed-event projection sync only; no rebuild, signer worker, or transaction submission"
+}

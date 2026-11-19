@@ -7,6 +7,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const DEADLINE = 1_000_000n;
 const ONE = 10n ** 18n;
 const chain = vi.hoisted(() => ({ now: 0, state: 0 }));
+// A static render cannot click the Sell tab, so start the panel in the mode under test. Only the
+// mode state is initialised with "buy"; React's real useState still runs.
+const ui = vi.hoisted(() => ({ mode: "buy" as "buy" | "sell" }));
+
+vi.mock("react", async (orig) => {
+  const actual = await orig<typeof import("react")>();
+  return { ...actual, useState: (init: unknown) => actual.useState(init === "buy" ? ui.mode : init) };
+});
 
 vi.mock("./config", async (orig) => ({
   ...(await orig<typeof import("./config")>()),
@@ -40,6 +48,7 @@ const tradeButton = (html: string) => html.match(/<button[^>]*class="btn-gold w-
 describe("TradePanel at the trading deadline (#53)", () => {
   beforeEach(() => {
     chain.state = 0; // stored state OPEN
+    ui.mode = "buy";
   });
 
   it("before the deadline: quotes and enables the buy button", () => {
@@ -63,4 +72,33 @@ describe("TradePanel at the trading deadline (#53)", () => {
       expect(tradeButton(html)).toMatch(/disabled/);
     });
   }
+
+  describe("sell mode", () => {
+    beforeEach(() => {
+      ui.mode = "sell";
+    });
+
+    it("before the deadline: quotes proceeds and enables the sell button", () => {
+      chain.now = Number(DEADLINE) - 1;
+      const html = render();
+      expect(html).not.toContain("Trading is closed for this market.");
+      expect(html).toContain("You receive at least");
+      expect(tradeButton(html)).toMatch(/Sell/);
+      expect(tradeButton(html)).not.toMatch(/disabled/);
+    });
+
+    for (const [label, now] of [
+      ["exactly at the deadline", Number(DEADLINE)],
+      ["after the deadline", Number(DEADLINE) + 3_600],
+    ] as const) {
+      it(`${label} with stored state still OPEN: shows trading closed and disables the sell button`, () => {
+        chain.now = now;
+        const html = render();
+        expect(html).toContain("Trading is closed for this market.");
+        expect(html).not.toContain("You receive at least");
+        expect(tradeButton(html)).toMatch(/Sell/);
+        expect(tradeButton(html)).toMatch(/disabled/);
+      });
+    }
+  });
 });

@@ -1,5 +1,10 @@
 # M5 VRF Funding Preflight
 
+November 19 follow-up: the [market 2 public lifecycle and cross-layer verification](../../../deployments/m5-sepolia-lifecycle-2026-11-19/cross-layer/README.md)
+now records a successful real VRF callback, settlement/claims, and matching shared DB/API/hosted
+read-only UI state for issue #56. The dated checks below describe this document's original
+preflight or market 0 scope; they do not substitute for that new evidence.
+
 Deployment and authority verification previously accepted any positive LINK balance as funded.
 That could label a subscription ready even when its balance was below the reviewed reserve
 for the intended callback gas and gas lane. Both checks now require a positive, explicit

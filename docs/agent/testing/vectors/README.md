@@ -26,9 +26,9 @@ result:
 
 | Layer | Test | Status |
 |---|---|---|
-| Frontend | `frontend/src/deadlineVectors.test.ts` (tradability and effective phase per vector) and `frontend/src/TradePanel.test.tsx` (an expired `OPEN` market renders "Trading is closed for this market." with the buy button disabled; a positive control before the deadline is enabled) | in place |
-| Contracts | Foundry test that warps to each `blockTimestamp` and asserts `tradeAccepted`, `proposalAccepted` and `noProposalSelectionAccepted` (Foundry can read this file with `vm.readFile` once `fs_permissions` allows it) | owner: Benny |
-| Backend/API | Pytest that indexes the matching lifecycle events and asserts the API returns the raw `storedState` and `tradingDeadline` | owner: Benny / Yudhveer |
+| Frontend | `frontend/src/deadlineVectors.test.ts` (tradability and effective phase per vector) and `frontend/src/TradePanel.test.tsx` (an expired `OPEN` market renders "Trading is closed for this market." with the buy and the sell button disabled; positive controls before the deadline are enabled) | in place |
+| Contracts | `contracts/test/MarketLifecycle.t.sol` `testSharedDeadlineVectors` warps a real market in each vector's stored state to the vector's timestamp offset and asserts `tradeAccepted`, `proposalAccepted` and `noProposalSelectionAccepted`; standalone boundary tests cover the trading deadline three points, the no-proposal timeout and the challenge window one second before close | in place |
+| Backend/API | `backend/tests/test_m4_deadline_vectors.py` projects each vector's lifecycle events and asserts the API returns the raw `storedState` and the stored `tradingDeadline`, including the shortened post-close deadline after a registrar early close | in place (Benny / Yudhveer) |
 
 Change a vector only together with the contract rule it describes, and update every consumer in
 the same PR.
