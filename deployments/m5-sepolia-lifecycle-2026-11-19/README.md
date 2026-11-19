@@ -1,7 +1,8 @@
 # M5 Sepolia Lifecycle Run — November 19, 2026
 
 Live Sepolia evidence for issue #56: a reviewed fixture registered, a user-funded market
-created, guarded trades executed, and (pending sections) the real VRF-to-settlement journey.
+created, guarded trades executed, and the real VRF-to-settlement journey completed on-chain.
+Post-trading DB/API/UI verification remains pending the operator indexer catch-up.
 Every hash below links to Sepolia Etherscan. This record is the handoff source for the
 `PUB-02`–`PUB-10` rows in `docs/agent/testing/M5_INTEGRATION_RESULTS.md`; local Anvil
 evidence (LOC-05/06/07) stays separately labeled and does not substitute for this record.
@@ -171,8 +172,8 @@ R08's vote at R07's address and was corrected before broadcasting — R07 receiv
   and settled the true result.
 - **Bond resolved per the changed-outcome rule**: `bondEscrow = 0`,
   `totalChallengeBonds = 0`, and R01's ACON balance returned to its exact pre-challenge value
-  (992.77445307282) — the 10 ACON bond refunded to the challenger. Market collateral was
-  unchanged by settlement (54.876405572741440 ACON).
+  (992.774453072819982559) — the 10 ACON bond refunded to the challenger. Market collateral was
+  unchanged by settlement (54.876405572741439440 ACON).
 
 ## PUB-09 — Payouts and duplicate-claim rejection (confirmed)
 
@@ -180,11 +181,11 @@ Claims executed from the winning holders and the losing holder; every claim used
 `claimPayout(uint256)` path (the team's initial `claim(uint256)` calls reverted on selector
 mismatch — corrected before broadcasting).
 
-| Claim | Holder | Position | Payout | Tx | Block |
-|---|---|---|---|---|---|
-| Winning | `0xB5ce…9A6A` | 17 YES | **17 ACON** | [`0xda3f38f4…004a`](https://sepolia.etherscan.io/tx/0xda3f38f438f5053bdccf2da5b9e659f9efc485cfdbbf1a02061b5611525004a4) | 12169251 |
-| Winning | R01 `0x6a51…ffaCc` | 11 YES | **11 ACON** | [`0x256772e1…e92`](https://sepolia.etherscan.io/tx/0x256772e1aa887d1e4f2060574161b4b54480ccf415980c64395609ebf0108e92) | 12169252 |
-| Losing close-out | R02 `0xcddb…15A8C` | 11 NO | **0 ACON** (closes the position) | [`0x85f33a8c…cf24`](https://sepolia.etherscan.io/tx/0x85f33a8c5ebc00cbbf8a1ee45c30a704831b8d34a5f5bbaf51cddd680961cf24) | 12169254 |
+| Claim | Holder | Position | Payout | Tx | Block | UTC time (2026-11-19) |
+|---|---|---|---|---|---|---|
+| Winning | `0xB5ce…9A6A` | 17 YES | **17 ACON** | [`0xda3f38f4…004a`](https://sepolia.etherscan.io/tx/0xda3f38f438f5053bdccf2da5b9e659f9efc485cfdbbf1a02061b5611525004a4) | 12169251 | 15:22:48Z |
+| Winning | R01 `0x6a51…ffaCc` | 11 YES | **11 ACON** | [`0x256772e1…e92`](https://sepolia.etherscan.io/tx/0x256772e1aa887d1e4f2060574161b4b54480ccf415980c64395609ebf0108e92) | 12169252 | 15:23:00Z |
+| Losing close-out | R02 `0xcddb…15A8C` | 11 NO | **0 ACON** (closes the position) | [`0x85f33a8c…cf24`](https://sepolia.etherscan.io/tx/0x85f33a8c5ebc00cbbf8a1ee45c30a704831b8d34a5f5bbaf51cddd680961cf24) | 12169254 | 15:23:24Z |
 
 - Wallet reconciliation exact (wei): Benny post-claim `960.407877055525024275` (+17 over
   pre-claim `943.407877055525024275`); R01 post-claim `1003.774453072819982559` (+11 over
@@ -199,9 +200,9 @@ mismatch — corrected before broadcasting).
   exact pre-challenge value; `bondEscrow = 0`, `totalChallengeBonds = 0`, market collateral
   unchanged through settlement.
 - **Creator surplus**: `withdrawableSurplus(2)` = `26.876405572741439440` = collateral
-  54.876405572741440 − 28 ACON winning liability; withdrawn by the creator
+  54.876405572741439440 − 28 ACON winning liability; withdrawn by the creator
   [`0x94460bde…a3a`](https://sepolia.etherscan.io/tx/0x94460bdec7b3d6416a21397ee6b6c92845e2621b70c4aafe1f680ff762da0a3a)
-  block 12169256 (`CreatorSurplusWithdrawn`). Benny's final ACON `987.284282628266463715` =
+  block 12169256, **2026-11-19T15:23:48Z** (`CreatorSurplusWithdrawn`). Benny's final ACON `987.284282628266463715` =
   post-claim `960.407877055525024275` + surplus `26.876405572741439440` — exact.
 - **Terminal accounting**: market 2 collateral **0**; total liabilities 28 ACON paid to YES
   holders; losing close-out paid 0 (R02 final ACON `996.22554692718001744`). The contract's
