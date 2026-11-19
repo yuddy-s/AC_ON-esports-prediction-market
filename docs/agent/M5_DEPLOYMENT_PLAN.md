@@ -87,7 +87,7 @@ Render web service; no signer key or provider token is hosted there.
 - [x] Optional Render Blueprint defines the reviewed paid topology without secret values.
 - [x] Public free Render API and Vercel frontend are reachable and share Supabase data.
 - [x] Public smoke tooling validates health, CORS, chain/address/block/ABI and freshness.
-- [ ] Exactly one local indexer is current during the public evidence window.
+- [x] Exactly one local indexer was current during the recorded public evidence window.
 - [ ] Separate local registrar/proposer processes complete intended jobs without duplicates.
 - [x] Vercel origin and Render CORS agree.
 - [ ] Chain ID, contract, ABI digest, deployment block, roles, VRF, and resolver pool verified.
