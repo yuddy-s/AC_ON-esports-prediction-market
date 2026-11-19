@@ -361,6 +361,9 @@ class EventIndexer:
             self._change_position(session, contract, chain_log, add=False)
         elif name == "MarketClosed":
             market.state = "CLOSED"
+            # closeTrading before the deadline shortens the stored deadline; the event
+            # carries the post-close value (unchanged for proposal/timeout closes).
+            market.trading_deadline = datetime.fromtimestamp(int(payload["trading_deadline"]), UTC)
         elif name == "OutcomeProposed":
             market.state = "PROPOSED"
         elif name == "OutcomeChallenged":

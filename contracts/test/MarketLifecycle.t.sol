@@ -231,6 +231,184 @@ contract MarketLifecycleTest is MarketTestBase {
         market.challengeOutcome(id, keccak256("c"));
     }
 
+    // Issue #53: the trading-deadline boundary at three points around it.
+    function testTradingDeadlineThreePointBoundary() public {
+        uint256 id = _create(0);
+        uint256 deadline = market.getMarket(id).tradingDeadline;
+        vm.warp(deadline - 1);
+        _buy(TRADER, id, PredictionMarket.Outcome.YES, WAD);
+        vm.warp(deadline);
+        vm.expectRevert(PredictionMarket.TradingClosed.selector);
+        market.quoteBuy(id, PredictionMarket.Outcome.YES, WAD);
+        vm.expectRevert(PredictionMarket.TradingClosed.selector);
+        market.quoteSell(id, PredictionMarket.Outcome.YES, WAD);
+        vm.warp(deadline + 1);
+        vm.expectRevert(PredictionMarket.TradingClosed.selector);
+        market.quoteBuy(id, PredictionMarket.Outcome.YES, WAD);
+        // Time alone never advances storage: the market stays OPEN and must be closed by a transaction.
+        _state(id, PredictionMarket.MarketState.OPEN);
+    }
+
+    // Issue #53: permissionless selection opens exactly seven days after the deadline, not before.
+    function testNoProposalTimeoutBoundary() public {
+        uint256 id = _create(0);
+        uint256 deadline = market.getMarket(id).tradingDeadline;
+        vm.warp(deadline + 7 days - 1);
+        vm.expectRevert(PredictionMarket.DeadlineNotReached.selector);
+        market.requestResolverSelection(id);
+        vm.warp(deadline + 7 days);
+        vm.prank(OTHER);
+        market.requestResolverSelection(id);
+        _state(id, PredictionMarket.MarketState.RESOLVER_SELECTION);
+    }
+
+    // Issue #53: a challenge one second before the window closes is still valid.
+    function testChallengeOneSecondBeforeWindowCloseSucceeds() public {
+        uint256 id = _create(0);
+        _proposal(id, PredictionMarket.ResolutionChoice.NO);
+        vm.warp(market.getResolution(id).challengeDeadline - 1);
+        vm.prank(CHALLENGER);
+        market.challengeOutcome(id, keccak256("c"));
+        _state(id, PredictionMarket.MarketState.DISPUTED);
+    }
+
+    // Issue #53: the shared vector file (docs/agent/testing/vectors/market_deadline_vectors.json)
+    // drives a real deployed-code check. Each expected action is evaluated on a fresh market in the
+    // vector's stored state, so mutating actions cannot leak between assertions. Vector timestamps
+    // are offsets from the canonical deadline 1000000; real markets warp to their own deadline
+    // plus the same offset. frontendActions belong to the frontend consumer.
+    function testSharedDeadlineVectors() public {
+        string memory json = vm.readFile("../docs/agent/testing/vectors/market_deadline_vectors.json");
+        // parseJson returns [offset][length][elements]; decoding as uint256[] yields the length
+        // without interpreting the per-vector objects.
+        uint256 count = abi.decode(vm.parseJson(json, ".vectors"), (uint256[])).length;
+        require(vm.parseJsonUint(json, ".noProposalPeriodSeconds") == market.NO_PROPOSAL_PERIOD(), "vector period");
+
+        uint256 seed;
+        for (uint256 i; i < count; ++i) {
+            string memory vector = string.concat(".vectors[", vm.toString(i), "]");
+            string memory storedState = vm.parseJsonString(json, string.concat(vector, ".storedState"));
+            uint256 vectorDeadline = vm.parseJsonUint(json, string.concat(vector, ".tradingDeadline"));
+            uint256 vectorTimestamp = vm.parseJsonUint(json, string.concat(vector, ".blockTimestamp"));
+            bool tradeAccepted = vm.parseJsonBool(json, string.concat(vector, ".expected.tradeAccepted"));
+            bool proposalAccepted = vm.parseJsonBool(json, string.concat(vector, ".expected.proposalAccepted"));
+            bool selectionAccepted =
+                vm.parseJsonBool(json, string.concat(vector, ".expected.noProposalSelectionAccepted"));
+
+            _assertVectorTrade(seed++, storedState, vectorDeadline, vectorTimestamp, tradeAccepted);
+            _assertVectorProposal(seed++, storedState, vectorDeadline, vectorTimestamp, proposalAccepted);
+            _assertVectorSelection(seed++, storedState, vectorDeadline, vectorTimestamp, selectionAccepted);
+        }
+    }
+
+    function _stateIs(string memory storedState, string memory expected) internal pure returns (bool) {
+        return keccak256(bytes(storedState)) == keccak256(bytes(expected));
+    }
+
+    // Builds a real market in the vector's stored state and returns it.
+    function _marketInState(uint256 seed, string memory storedState) internal returns (uint256 id) {
+        id = _create(seed);
+        if (_stateIs(storedState, "OPEN")) {
+            _state(id, PredictionMarket.MarketState.OPEN);
+        } else if (_stateIs(storedState, "CLOSED")) {
+            vm.prank(REGISTRAR);
+            market.closeTrading(id, keccak256("vector-early-close"));
+            _state(id, PredictionMarket.MarketState.CLOSED);
+        } else if (_stateIs(storedState, "FINALIZED")) {
+            _buy(TRADER, id, PredictionMarket.Outcome.YES, WAD);
+            _unchallenged(id, PredictionMarket.ResolutionChoice.YES);
+            _state(id, PredictionMarket.MarketState.FINALIZED);
+        } else {
+            require(_stateIs(storedState, "VOID"), "unknown storedState");
+            _unchallenged(id, PredictionMarket.ResolutionChoice.VOID);
+            _state(id, PredictionMarket.MarketState.VOID);
+        }
+    }
+
+    // Vector timestamps are absolute against the canonical deadline; warp the real market to the
+    // same offset from its own deadline.
+    function _warpVector(uint256 realDeadline, uint256 vectorDeadline, uint256 vectorTimestamp) internal {
+        vm.warp(uint256(int256(realDeadline) + int256(vectorTimestamp) - int256(vectorDeadline)));
+    }
+
+    function _assertVectorTrade(
+        uint256 seed,
+        string memory storedState,
+        uint256 vectorDeadline,
+        uint256 vectorTimestamp,
+        bool accepted
+    ) internal {
+        uint256 id = _marketInState(seed, storedState);
+        _warpVector(market.getMarket(id).tradingDeadline, vectorDeadline, vectorTimestamp);
+        if (accepted) {
+            market.quoteBuy(id, PredictionMarket.Outcome.YES, WAD);
+        } else if (_stateIs(storedState, "OPEN")) {
+            vm.expectRevert(PredictionMarket.TradingClosed.selector);
+            market.quoteBuy(id, PredictionMarket.Outcome.YES, WAD);
+        } else {
+            vm.expectPartialRevert(PredictionMarket.WrongState.selector);
+            market.quoteBuy(id, PredictionMarket.Outcome.YES, WAD);
+        }
+    }
+
+    function _assertVectorProposal(
+        uint256 seed,
+        string memory storedState,
+        uint256 vectorDeadline,
+        uint256 vectorTimestamp,
+        bool accepted
+    ) internal {
+        uint256 id = _marketInState(seed, storedState);
+        uint256 realDeadline = market.getMarket(id).tradingDeadline;
+        _warpVector(realDeadline, vectorDeadline, vectorTimestamp);
+        if (accepted) {
+            vm.prank(PROPOSER);
+            market.proposeOutcome(
+                id, PredictionMarket.ResolutionChoice.NO, keccak256("vector-proposal"), "https://example.invalid/vector"
+            );
+            _state(id, PredictionMarket.MarketState.PROPOSED);
+            return;
+        }
+        bool terminal = !_stateIs(storedState, "OPEN") && !_stateIs(storedState, "CLOSED");
+        if (terminal) {
+            // Terminal markets necessarily carry a settled resolution, so the proposal-exists
+            // guard fires before the state check; the vector still requires rejection.
+            vm.expectRevert(PredictionMarket.ProposalAlreadyExists.selector);
+        } else if (block.timestamp >= realDeadline + market.NO_PROPOSAL_PERIOD()) {
+            vm.expectRevert(PredictionMarket.ProposalExpired.selector);
+        } else {
+            vm.expectRevert(PredictionMarket.DeadlineNotReached.selector);
+        }
+        vm.prank(PROPOSER);
+        market.proposeOutcome(
+            id, PredictionMarket.ResolutionChoice.NO, keccak256("vector-proposal"), "https://example.invalid/vector"
+        );
+    }
+
+    function _assertVectorSelection(
+        uint256 seed,
+        string memory storedState,
+        uint256 vectorDeadline,
+        uint256 vectorTimestamp,
+        bool accepted
+    ) internal {
+        uint256 id = _marketInState(seed, storedState);
+        uint256 realDeadline = market.getMarket(id).tradingDeadline;
+        _warpVector(realDeadline, vectorDeadline, vectorTimestamp);
+        if (accepted) {
+            market.requestResolverSelection(id);
+            _state(id, PredictionMarket.MarketState.RESOLVER_SELECTION);
+            return;
+        }
+        bool terminal = !_stateIs(storedState, "OPEN") && !_stateIs(storedState, "CLOSED");
+        if (terminal) {
+            vm.expectPartialRevert(PredictionMarket.WrongState.selector);
+        } else {
+            vm.expectRevert(PredictionMarket.DeadlineNotReached.selector);
+        }
+        market.requestResolverSelection(id);
+    }
+
     function testWinningClaimsAndSurplusReserveOutstandingLiability() public {
         uint256 id = _create(0);
         _buy(TRADER, id, PredictionMarket.Outcome.YES, 10e18);
