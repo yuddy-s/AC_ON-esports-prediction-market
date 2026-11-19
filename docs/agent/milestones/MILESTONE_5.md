@@ -1,6 +1,6 @@
 # Milestone 5: Testing and Integration
 
-Status: active planning. Milestone 4 is merged to `main`; M5 hardens and publicly deploys
+Status: active implementation. Milestone 4 is merged to `main`; M5 hardens and publicly deploys
 that frozen feature set. Product features, contract redesign, API expansion, and network
 migration are out of scope unless integration testing proves a release-blocking defect.
 
@@ -32,7 +32,7 @@ time-controlled Anvil evidence and must be labeled as such.
 | Adriel | Deploy and validate Vercel; add read-only Playwright journeys; run manual wallet/browser tests; draft the user guide and capture sanitized screenshots. | Public URL, browser results, screenshots, and user-guide draft. |
 | Benny | Revalidate manifest, ABI/bytecode, Safe roles, resolver pool, VRF, and balances; rerun Foundry/security checks; coordinate public dispute/VRF/vote/claim transactions. | Verification report, transaction hashes/blocks/request ID, and contract rollback criteria. |
 | Matthew | Reconcile public buy/sell, bond, liabilities, payouts, duplicate claims, and creator surplus; rerun economic properties and document parameters/limitations. | Accounting comparison and economic test summary linked to public receipts. |
-| Yudhveer | Deploy Render API/indexer/registrar/proposer and Supabase migrations; add public smoke and PostgreSQL CI coverage; verify recovery; draft the developer guide; maintain evidence/defect ledgers. | Public API/worker evidence, migration/recovery record, smoke output, and developer-guide draft. |
+| Yudhveer | Deploy Render API/indexer/registrar/proposer and Supabase migrations; add public smoke and PostgreSQL CI coverage; verify recovery; draft the developer guide; maintain evidence/defect ledgers. | Blueprint, smoke, PostgreSQL CI, checklist, and guide are in implementation; public API/worker and migration/recovery evidence remains. |
 | Whole team | Run public and Anvil acceptance, triage defects, rerun CI, and rehearse results/bugs/deployment presentation. | Completed matrices with linked fixes or explicitly accepted residual risks. |
 
 ## One-Week Delivery Order

@@ -1,6 +1,7 @@
 # M5 Public Deployment And Rollback Plan
 
-Status: draft plan. Public URLs and execution evidence remain pending.
+Status: four-service Render Blueprint and public smoke tooling implemented on the M5 backend branch.
+Public URLs, paid-worker activation, and execution evidence remain pending.
 
 ## Target Topology
 
@@ -46,6 +47,14 @@ batch size at ten unless a new provider is tested.
 7. Deploy Vercel with the public Render URL and exact Sepolia addresses.
 8. Run public smoke and Playwright reads, then controlled MetaMask acceptance transactions.
 9. Record sanitized results in the integration ledger before declaring the release healthy.
+10. Suspend proposer and registrar immediately after their evidence is complete, then suspend the
+    indexer after its final safe block is recorded. Confirm billing has stopped; retain the service
+    definitions for recovery evidence.
+
+The root `render.yaml` uses the free API plan and the smallest paid worker plan. Blueprint creation
+can start new services even though later automatic deploys are disabled. Complete the backup,
+migration, environment, role, and balance checks before the initial sync and suspend workers in the
+dashboard whenever the controlled evidence window is not active.
 
 ## Readiness And Monitoring
 
@@ -73,6 +82,8 @@ batch size at ten unless a new provider is tested.
 ## Go/No-Go Checklist
 
 - [ ] Supabase backup, revision, and preservation checks recorded.
+- [x] Render Blueprint defines the API and three isolated least-privilege workers without secrets.
+- [x] Public smoke tooling validates health, CORS, chain/address/block/ABI and freshness.
 - [ ] Render web plus exactly three isolated workers healthy.
 - [ ] Vercel origin and Render CORS agree.
 - [ ] Chain ID, contract, ABI digest, deployment block, roles, VRF, and resolver pool verified.

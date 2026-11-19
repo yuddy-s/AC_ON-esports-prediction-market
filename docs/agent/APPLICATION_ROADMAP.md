@@ -6,8 +6,8 @@
 
 This is the canonical implementation checklist for coding agents and team members. It records what exists, what remains, who owns each area, and whether work can proceed without another team decision. Detailed milestone scope remains in `milestones/` and current assignments remain in `TASKS.md`.
 
-Last reviewed: 2026-11-04. PR #49 promoted the feature-complete M4 application to `main`, including
-PR #47 backend/live integration and PR #48 visual refresh. No implementation PRs are currently open.
+Last reviewed: 2026-11-18. PR #49 promoted the feature-complete M4 application to `main`, including
+PR #47 backend/live integration and PR #48 visual refresh. M5 deployment/testing work is active.
 M5 now owns public hosting, expanded integration/recovery testing, remaining Sepolia lifecycle
 evidence, defect reporting, and draft user/developer guides.
 
