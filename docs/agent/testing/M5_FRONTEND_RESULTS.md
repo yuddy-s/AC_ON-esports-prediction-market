@@ -138,6 +138,57 @@ sells correctly with MetaMask and connects Coinbase Smart Wallet. One defect was
 deadline-vector and `TradePanel` tests merged from `dev`), `npm run typecheck` clean, `npm run build`
 succeeded on this branch on November 19, 2026.
 
+## FE-B3 Fix and Regression Results (November 19, 2026)
+
+Implementation: [`db0d1e8`](https://github.com/yuddy-s/AC_ON-esports-prediction-market/commit/db0d1e8485c6294e756b9766c99277fa1c5f78ee). `useTradeFlow` delegates the transaction sequence to
+`tradeExecution.ts`; the React hook still owns status updates, reset handling and indexer polling.
+This separation lets the tests exercise the actual transaction flow without a signing wallet.
+
+After a successful approval receipt, the buy simulation uses its explicit block number rather
+than a potentially stale `latest` view from another RPC. An endpoint missing that block returns
+an RPC error, which allows the existing fallback transport to try the next endpoint. Cached
+wallet reads are invalidated after approval even if simulation or the subsequent wallet request
+fails. The simulation block is not forwarded to the wallet transaction. The contract still checks
+`maxCost` at execution; a successful historical simulation does not guarantee a future trade price.
+Buys without a new approval and sells keep their normal latest-state simulation.
+
+Before the fix, the stale-latest regression reproduced the insufficient-allowance failure. After
+it, all **13 new tests** and the full **196-test suite (22 files)** pass, as do `npm run typecheck`
+and `npm run build`. The tests use real wagmi/viem ABI encoding, simulation, revert decoding and
+fallback transport with local RPC stubs; wallet submission and receipt observation are mocked.
+They cover approval ordering, stale latest state, a missing approval block on one or all providers,
+reverted/rejected approvals, rejected buys, real slippage/allowance reverts, exact spend guards,
+no duplicate submissions, and the unchanged no-approval buy and sell paths.
+
+Run from `frontend/`:
+
+```bash
+npm test -- src/tradeExecution.test.ts
+npm test
+npm run typecheck
+npm run build
+```
+
+### Fresh Sepolia Wallet Follow-up (November 19, 2026)
+
+**Pass on the local production build of PR #70**, commit `2809636`. MetaMask account ending
+`2093b` bought one YES share on market 1 with 1% slippage. Its starting allowance was
+0.310078048318727968 ACON, below the required cap, so the run exercised a fresh approval.
+
+- [Approval](https://sepolia.etherscan.io/tx/0x78e0dddb98318dbcf1b9a35caa5c527ada662bb1c7eea72b242bb1a7a87849ad), block **12168815**: cap **0.417516952439497612 ACON**.
+- [Buy](https://sepolia.etherscan.io/tx/0x1152a2174c7c31fb05f0788e2b6ec66ac82f17de4895c828bd653f3ecf817137), block **12168823**: **1 YES** for **0.413383121227225358 ACON**.
+
+The app opened the buy confirmation automatically after approval, with no page refresh or repeat
+approval. Both receipts succeeded. The wallet debit, TradeExecuted event and ACON transfer agree;
+its YES position changed from zero to one and remaining allowance was 0.004133831212272254 ACON.
+The UI showed the mined buy and updated position. [Receipts, preflight, reconciliation and screenshot](../../../deployments/m5-fe-b3-2026-11-19/README.md).
+
+**Scope:** this is real Sepolia through a locally served production build, with no indexer API
+configured. It verifies FE-B3 on that build; ECON-05 hosted wallet acceptance and the MetaMask URL
+classification remain separate checks. The original intermittent provider response was not captured,
+and this live run did not record an RPC trace; the explicit simulation-block behavior is established
+by source review and deterministic regressions. Public Vercel deployment verification remains pending.
+
 ## Frontend Defects
 
 Also recorded as M5-005 (FE-B1), M5-004 (FE-B2) and M5-006 (FE-B3) in [`M5_DEFECT_LOG.md`](M5_DEFECT_LOG.md).
@@ -146,4 +197,4 @@ Also recorded as M5-005 (FE-B1), M5-004 (FE-B2) and M5-006 (FE-B3) in [`M5_DEFEC
 |---|---|---|---|---|---|---|
 | FE-B1 | P3 | Every page load logged `404 /favicon.ico`; the new browser journeys failed on it. | `index.html` declared no icon and the build shipped none. | Added `public/favicon.svg` and a `<link rel="icon">`. | All five journeys assert no HTTP errors; 10/10 pass after the fix. | fixed |
 | FE-B2 | P2 | On the public site, a burst of contract reads (two Playwright workers opening market pages) made the default Sepolia RPC respond without CORS headers; the browser blocked every read and the market page could not load its data (FE-04). | The wagmi transport used only viem's built-in Sepolia endpoint (`http(undefined)`), so one rate-limited provider broke all reads. | Sepolia reads now use a `fallback` transport: optional `VITE_SEPOLIA_RPC_URL`, then keyless publicnode and dRPC endpoints, then the old default. | `config.test.ts` (endpoint order, dedupe, https only); full 14-test browser suite twice with no RPC errors, locally (FE-05) and on the redeployed public site (FE-06). | verified |
-| FE-B3 | P2 | Manual wagmi 3 smoke, step 5: after the exact-maxCost ACON approval was mined, the immediate buy failed with "The market is not approved to spend enough ACON. Approve again and retry." A page refresh showed a plain **Buy YES** and the buy then succeeded. Seen once. | Likely a read-after-write race: the buy is simulated right after the approval receipt, and the read can reach a fallback RPC endpoint that has not yet seen the approval block (or reuse a cached allowance), so the simulation sees the old allowance. The same approve-then-buy path runs on wagmi 2; not yet reproduced there. | Planned: after an approval, re-read the allowance from the receipt's block (or retry the simulation once) before submitting the buy. | To add with the fix: a `useTradeFlow` test where the first post-approval simulation reports insufficient allowance. | open (workaround: refresh) |
+| FE-B3 | P2 | Manual wagmi 3 smoke, step 5: the immediate buy once reported insufficient allowance after a mined approval; refresh allowed it. | Cross-RPC receipt/latest-state mismatch reproduced with deterministic RPC stubs; the exact historical provider response remains unconfirmed. Wallet reads refreshed only after the trade receipt. | [`db0d1e8`](https://github.com/yuddy-s/AC_ON-esports-prediction-market/commit/db0d1e8485c6294e756b9766c99277fa1c5f78ee): simulate a newly approved buy at the approval receipt block; invalidate wallet queries immediately after approval; forward only transaction fields to the wallet. | `tradeExecution.test.ts`: 13 deterministic regression cases with real wagmi/viem simulation and fallback, local RPC stubs, mocked submission and receipts. | verified on local production build / real Sepolia; hosted deployment verification pending |

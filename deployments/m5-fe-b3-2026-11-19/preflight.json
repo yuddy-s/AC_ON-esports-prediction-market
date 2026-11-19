@@ -1,0 +1,49 @@
+{
+  "observed_utc": "2026-11-19T13:50:08.297692+00:00",
+  "block": 12168800,
+  "chain_timestamp_utc": "2026-11-19T13:50:00+00:00",
+  "wallet": "0xf350a4ebe6f0485bdcf8294e9e66B71473A2093b",
+  "market_contract": "0x03ae48f03C7822540a91DA2168602bd49dC510E9",
+  "token_contract": "0xf85b2278a810410c6AE0b7490d34671E0C8e6E90",
+  "native_balance_wei": "4498904102556347",
+  "acon_balance_raw": "1000000000000000000000",
+  "acon_balance": "1000",
+  "allowance_raw": "310078048318727968",
+  "market_count": "3",
+  "markets": [
+    {
+      "market_id": 1,
+      "market": {
+        "id": "1",
+        "fixtureKey": "0xb2a33b4c6e59c4cc65c919a0ec6d9fdff9df5b424e0215bb784d5e34c46862fc",
+        "question": "Will FlyQuest beat Masterclass?",
+        "tradingDeadline": "1795220100",
+        "state": "0",
+        "creator": "0xbc0b9af7065baa79f550b9a244a8ae1ae2a5dba7",
+        "yesQuantity": "6000000000000000000",
+        "noQuantity": "24000000000000000000",
+        "collateralBalance": "50463022451514214082"
+      },
+      "wallet_yes_raw": "0",
+      "wallet_no_raw": "0",
+      "one_yes_quote_raw": "413383121227225358",
+      "one_yes_max_cost_at_1_percent_raw": "417516952439497612"
+    },
+    {
+      "market_id": 2,
+      "market": {
+        "id": "2",
+        "fixtureKey": "0xe6824a454577ad2b6ed1a46889654652bedca08f3e46c4c83fb6d88e3f3e647c",
+        "question": "Will KeepBest Gaming beat A Team?",
+        "tradingDeadline": "1795076100",
+        "state": "0",
+        "creator": "0xb5ce8428dd6cb9fefd54282cb49ef7d2629d9a6a",
+        "yesQuantity": "28000000000000000000",
+        "noQuantity": "11000000000000000000",
+        "collateralBalance": "54876405572741439440"
+      },
+      "wallet_yes_raw": "0",
+      "wallet_no_raw": "0"
+    }
+  ]
+}

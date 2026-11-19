@@ -50,7 +50,7 @@ Branch `chore/m5-wagmi3-upgrade`, with merged PR #60 and current `dev` incorpora
 | Code change | `wagmi` ^2.12.17 → ^3.7.11; one source change: `coinbaseWallet({ preference: { options: "smartWalletOnly" } })` (the option became an object). viem unchanged (2.56.9). |
 | `npm audit --omit=dev` | 0 vulnerabilities (after `npm audit fix`, which moved the Coinbase wallet SDK's zod to 4.6.7) |
 | `npm run typecheck` | clean |
-| `npm test` | 183 passed on the current branch (163 in the initial isolated evaluation) |
+| `npm test` | 183 passed on reviewed PR #63 head `64bc4a1` (163 in the initial isolated evaluation); the FE-B3 follow-up has [196 passing tests](M5_FRONTEND_RESULTS.md#fe-b3-fix-and-regression-results-november-19-2026) |
 | `npm run build` | succeeded |
 | `npm run test:e2e` (local build, Sepolia) | Initial isolated evaluation: 14/14, twice. The current corrected suite discovers 24 tests; Matthew did not rerun the full browser suite during this review. |
 | Manual MetaMask smoke on Sepolia (connect, faucet, approve + buy, sell, network switch) | **pass with the FE-B3 refresh workaround**, November 19 on `432db05`; [manual results and receipts](M5_FRONTEND_RESULTS.md#manual-wallet-smoke-wagmi-3-pr-63) |
@@ -63,17 +63,23 @@ Branch `chore/m5-wagmi3-upgrade`, with merged PR #60 and current `dev` incorpora
   required the documented FE-B3 refresh workaround once.
 - **Deployment:** the upgrade reaches the public site only after deployment from the merged `dev`.
   The local manual smoke does not complete hosted wallet verification for ECON-05.
-- **Follow-up:** FE-B3 remains open, owned by Adriel. Its cause and relationship to the upgrade
-  are unconfirmed; the workaround is a page refresh after the approval. See the defect log.
+- **Follow-up:** FE-B3 has a code fix in [`db0d1e8`](https://github.com/yuddy-s/AC_ON-esports-prediction-market/commit/db0d1e8485c6294e756b9766c99277fa1c5f78ee) and deterministic regression coverage;
+  [results and limits](M5_FRONTEND_RESULTS.md#fe-b3-fix-and-regression-results-november-19-2026).
+  A fresh real-Sepolia approval and buy now pass on the local PR #70 production build, with no
+  refresh or repeat approval; [evidence](../../../deployments/m5-fe-b3-2026-11-19/README.md). Hosted
+  deployment verification remains pending. The original provider response and any relationship
+  to the wagmi upgrade remain unconfirmed.
 
 **Smoke result (November 19, 2026, commit `432db05`): pass.** MetaMask connection, wrong-network
 switching, faucet claim, approve + buy and sell all succeeded on Sepolia, and the Coinbase Smart Wallet
 popup opened and connected. Receipts are in
 [M5_FRONTEND_RESULTS.md](M5_FRONTEND_RESULTS.md#manual-wallet-smoke-wagmi-3-pr-63). `npm audit
 --omit=dev` on this commit reports 0 vulnerabilities. One recoverable defect (M5-006: a refresh was
-needed once after the buy approval) is logged with a planned follow-up; it is not specific to the
-upgrade as far as is known. wagmi 3 is ready to adopt once PR #63 is approved; the public site stays
-on wagmi 2 until it is redeployed from `dev` after the merge.
+needed once after the buy approval) is logged; the later code fix and deterministic tests are
+recorded above, followed by the successful local-build / real-Sepolia rerun. Public deployment
+verification remains pending. Its relationship to the upgrade is unconfirmed.
+The wagmi 3 adoption decision above is based on the PR #63 smoke; deploying the merged `dev`
+and verifying the public site remain separate steps.
 
 ## Keeping This Current
 
