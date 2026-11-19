@@ -65,6 +65,15 @@ Branch `chore/m5-wagmi3-upgrade`, based on `feature/m5-vercel-playwright` (PR #6
   Milestone 6, or immediately if a new advisory affects viem's HTTP transport, the injected
   connector or the Coinbase connector.
 
+**Smoke result (November 19, 2026, commit `432db05`): pass.** MetaMask connection, wrong-network
+switching, faucet claim, approve + buy and sell all succeeded on Sepolia, and the Coinbase Smart Wallet
+popup opened and connected. Receipts are in
+[M5_FRONTEND_RESULTS.md](M5_FRONTEND_RESULTS.md#manual-wallet-smoke-wagmi-3-pr-63). `npm audit
+--omit=dev` on this commit reports 0 vulnerabilities. One recoverable defect (M5-006: a refresh was
+needed once after the buy approval) is logged with a planned follow-up; it is not specific to the
+upgrade as far as is known. wagmi 3 is ready to adopt once PR #63 is approved; the public site stays
+on wagmi 2 until it is redeployed from `dev` after the merge.
+
 ## Keeping This Current
 
 - Rerun `cd frontend && npm audit --omit=dev` before each milestone and update the baseline table.

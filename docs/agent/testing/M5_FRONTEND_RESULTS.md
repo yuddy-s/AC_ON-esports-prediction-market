@@ -105,6 +105,29 @@ Commands (from `frontend/`, after `npx playwright install chromium` once, or set
 - Public site, contract reads only: `PLAYWRIGHT_BASE_URL=https://acon-esports-market.vercel.app npm run test:e2e`
 - Hosted acceptance: `PLAYWRIGHT_BASE_URL=https://acon-esports-market.vercel.app PLAYWRIGHT_EXPECT_API=1 npm run test:e2e`
 
+## Manual Wallet Smoke (wagmi 3, PR #63)
+
+Gate for merging the wagmi 2 → 3.7.11 upgrade (#54). Run November 19, 2026 by Adriel on commit
+`432db05` (`chore/m5-wagmi3-upgrade` with current `dev` merged in). Environment: macOS, Google
+Chrome with the MetaMask extension (Adriel's Sepolia account `0xbC0B…5dBA7`) and the Coinbase Smart
+Wallet popup; local `npm run dev` with `VITE_CHAIN=sepolia`, the M4 Sepolia contracts and
+`VITE_API_URL` empty (the Render API's CORS policy allows only the Vercel origin). Every receipt below
+is a successful Sepolia transaction from that account, checked with `cast receipt` and contract reads.
+
+| Step | Action | Result | Receipt |
+|---|---|---|---|
+| 1 | Connect MetaMask on Sepolia | pass: address, Sepolia label and ETH balance shown | none (no transaction) |
+| 2 | Wrong network: switch the wallet to Ethereum Mainnet, then **Switch to Sepolia** | pass: wrong-network bar shown and writes disabled; approving the switch cleared it | none |
+| 3 | Faucet: **Claim 1,000 ACON** | pass: balance 0 → 1,000 ACON | `0x8e8c170504d74d1ce67ab3dbf4ef416577b362d3ee7762c6da901f2843f1b5ba` (block 12166111) |
+| — | Market setup (not a wagmi 3 step): FlyQuest vs Masterclass, fixture registered by the registrar at block 12166366, market created from the public Vercel site because the fixture page needs the API | market 1 OPEN, deadline 2026-11-21 00:15 UTC, 34.657359 ACON subsidy | approve `0xdf1577d2ddd9886258a2614bf85b0e9c5d4acac51bf79ac27ba0ea896b393f6b`, create `0xfd391e8a92ac245d2c7bca9ba29bf5d388538213f051363c1e168f4f80d941b6` |
+| 4 | Coinbase Smart Wallet: **Connect Wallet** → Coinbase | pass: popup opened and the wallet connected (Sepolia writes are a known Coinbase limitation and were not attempted) | none |
+| 5 | Approve + buy 10 YES on market 1 at 1% slippage | pass after one retry (FE-B3): approval of exactly maxCost 5.302079 ACON mined; the buy then charged exactly the 5.249584 ACON quote; position 10 YES; 0.052496 ACON allowance left | approve `0x7092c5ab300b119776557973c41951604c0069e014118de5a3f440e91556b2ab`, buy `0x3e6a09decd226872784c335de47dd346e7cbfb11264f4d4e63b494512527c9bb` |
+| 6 | Sell 4 YES at 1% slippage | pass: received 2.159638 ACON; position 6 YES | `0x3075efb8536d0d5599a9ff4e2e60c987d3f934693e91b304ad360312bcb6f73d` |
+
+Market 1 collateral after the run is 37.747305 ACON = 34.657359 subsidy + 5.249584 buy − 2.159638
+sell, matching the contract's stored balance. Result: **pass**; wagmi 3 signs, approves, buys and
+sells correctly with MetaMask and connects Coinbase Smart Wallet. One defect was found (FE-B3).
+
 ## Unit Baseline
 
 `npm test` 183 passed (21 files: the branch's 163, including `config.test.ts` for FE-B2, plus the #62
@@ -113,9 +136,10 @@ succeeded on this branch on November 19, 2026.
 
 ## Frontend Defects
 
-Also recorded as M5-005 (FE-B1) and M5-004 (FE-B2) in [`M5_DEFECT_LOG.md`](M5_DEFECT_LOG.md).
+Also recorded as M5-005 (FE-B1), M5-004 (FE-B2) and M5-006 (FE-B3) in [`M5_DEFECT_LOG.md`](M5_DEFECT_LOG.md).
 
 | ID | Severity | Symptom and reproduction | Root cause | Fix | Regression test | Status |
 |---|---|---|---|---|---|---|
 | FE-B1 | P3 | Every page load logged `404 /favicon.ico`; the new browser journeys failed on it. | `index.html` declared no icon and the build shipped none. | Added `public/favicon.svg` and a `<link rel="icon">`. | All five journeys assert no HTTP errors; 10/10 pass after the fix. | fixed |
 | FE-B2 | P2 | On the public site, a burst of contract reads (two Playwright workers opening market pages) made the default Sepolia RPC respond without CORS headers; the browser blocked every read and the market page could not load its data (FE-04). | The wagmi transport used only viem's built-in Sepolia endpoint (`http(undefined)`), so one rate-limited provider broke all reads. | Sepolia reads now use a `fallback` transport: optional `VITE_SEPOLIA_RPC_URL`, then keyless publicnode and dRPC endpoints, then the old default. | `config.test.ts` (endpoint order, dedupe, https only); full 14-test browser suite twice with no RPC errors, locally (FE-05) and on the redeployed public site (FE-06). | verified |
+| FE-B3 | P2 | Manual wagmi 3 smoke, step 5: after the exact-maxCost ACON approval was mined, the immediate buy failed with "The market is not approved to spend enough ACON. Approve again and retry." A page refresh showed a plain **Buy YES** and the buy then succeeded. Seen once. | Likely a read-after-write race: the buy is simulated right after the approval receipt, and the read can reach a fallback RPC endpoint that has not yet seen the approval block (or reuse a cached allowance), so the simulation sees the old allowance. The same approve-then-buy path runs on wagmi 2; not yet reproduced there. | Planned: after an approval, re-read the allowance from the receipt's block (or retry the simulation once) before submitting the buy. | To add with the fix: a `useTradeFlow` test where the first post-approval simulation reports insufficient allowance. | open (workaround: refresh) |
