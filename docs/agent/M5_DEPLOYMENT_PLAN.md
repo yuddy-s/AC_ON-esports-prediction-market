@@ -1,8 +1,13 @@
 # M5 Public Deployment And Rollback Plan
 
 Status: public Vercel frontend and free Render API deployed. The team selected local operator-run
-indexer/registrar/proposer processes instead of paid hosted workers. Public freshness and remaining
-lifecycle evidence are pending a controlled local-worker window.
+indexer/registrar/proposer processes instead of paid hosted workers. The full Sepolia lifecycle —
+reviewed fixture, market creation, trades, proposal, bonded challenge, a **real fulfilled VRF
+committee draw, votes, settlement, claims and surplus** — is recorded on-chain in
+[deployments/m5-sepolia-lifecycle-2026-11-19](../../deployments/m5-sepolia-lifecycle-2026-11-19/README.md).
+Remaining acceptance: the indexed DB/API/UI reflection of the settled market (the operator
+indexer resumes and catches up), the hosted Render/Vercel verification (ECON-05), and the
+LOC-02 Render API restart subcheck.
 
 ## Target Topology
 
