@@ -1,0 +1,45 @@
+{
+  "schema": "acon.m5-vrf-funding-observations.v1",
+  "observed_at_utc": "2026-11-18T04:58:42.030504+00:00",
+  "chain_id": 11155111,
+  "coordinator": "0x9ddfaca8183c41ad55329bdeed9f6a8d53168b1b",
+  "key_hash": "0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae",
+  "dashboard_status": "pending due to low balance",
+  "observations": [
+    {
+      "billing": "LINK",
+      "consumer": "0x9c75b3717a555db09a7fad77e8ccc944e10eabe6",
+      "subscription_id": "94569606414226702999907572022463759191522426163632924499542539159235294564436",
+      "subscription_url": "https://vrf.chain.link/#/side-drawer/subscription/sepolia/94569606414226702999907572022463759191522426163632924499542539159235294564436",
+      "request_transaction": "0xcba6d00da3aea22344aaa4e30d2fae0a5010094ef2a30c57dd713216e6dc3ba0",
+      "request_url": "https://sepolia.etherscan.io/tx/0xcba6d00da3aea22344aaa4e30d2fae0a5010094ef2a30c57dd713216e6dc3ba0",
+      "request_block": 12159172,
+      "request_id": "17685178741739408101643198517554478675119999544173978436031150526479759304055",
+      "callback_gas_limit": 2000000,
+      "request_confirmations": 3,
+      "funded_balance": "10",
+      "dashboard_maximum_reserve": "248.46718474763279",
+      "unit": "LINK",
+      "callback_observed": false
+    },
+    {
+      "billing": "native",
+      "consumer": "0x14ee8d7fa7526f6ff433b64349e7764a13473c5f",
+      "subscription_id": "38178924134903421420393574097767048606615800164229084006982676070132452331303",
+      "subscription_url": "https://vrf.chain.link/#/side-drawer/subscription/sepolia/38178924134903421420393574097767048606615800164229084006982676070132452331303",
+      "request_transaction": "0xc5b14a459ff4d61462b92c2c97db26074f04f0cf624bf67b457ad0bff171b752",
+      "request_url": "https://sepolia.etherscan.io/tx/0xc5b14a459ff4d61462b92c2c97db26074f04f0cf624bf67b457ad0bff171b752",
+      "request_block": 12159214,
+      "request_id": "114062639296167468753200828824412408151547594971836365746153874951675579945730",
+      "callback_gas_limit": 2000000,
+      "request_confirmations": 3,
+      "funded_balance": "0.0015",
+      "dashboard_maximum_reserve": "1.4633045",
+      "unit": "Sepolia ETH",
+      "callback_observed": false
+    }
+  ],
+  "scope": "Historical diagnostic observations; reserve estimates are not fulfillment charges. No successful callback or complete original root cause is claimed.",
+  "native_funding_correction": "The initial 0.0015 ETH funding was based on an incorrect reserve calculation. The dashboard reports a 1.4633045 ETH maximum cost. This diagnostic has not succeeded.",
+  "issue_56_complete": false
+}

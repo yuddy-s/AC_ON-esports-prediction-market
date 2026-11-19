@@ -1,0 +1,98 @@
+{
+  "schema": "acon.m5-accounting-reconciliation.v1",
+  "validation": "pass",
+  "scope": "Offline arithmetic and consistency validation of saved public Sepolia receipts and observations; no new RPC verification or transactions",
+  "recorded_observation_date_et": "2026-11-17",
+  "chain_id": 11155111,
+  "market_id": 0,
+  "contract_address": "0x03ae48f03C7822540a91DA2168602bd49dC510E9",
+  "amounts_acon": {
+    "collateral_before_settlement": "165.670664062370061911",
+    "bond_refunded": "10",
+    "void_liability": "125.0055",
+    "payout": "125.0055",
+    "creator_surplus": "40.665164062370061911",
+    "creator_final_balance": "1000"
+  },
+  "stages": [
+    {
+      "stage": "Before VOID settlement",
+      "collateral": "165.670664062370061911",
+      "bond_escrow": "10",
+      "remaining_liability": "125.0055",
+      "contract_token_balance": "175.670664062370061911",
+      "liability_note": "Computed prospective VOID reserve; market was not yet terminal"
+    },
+    {
+      "stage": "After VOID settlement",
+      "collateral": "165.670664062370061911",
+      "bond_escrow": "0",
+      "remaining_liability": "125.0055",
+      "contract_token_balance": "165.670664062370061911"
+    },
+    {
+      "stage": "After payout",
+      "collateral": "40.665164062370061911",
+      "bond_escrow": "0",
+      "remaining_liability": "0",
+      "contract_token_balance": "40.665164062370061911"
+    },
+    {
+      "stage": "After creator surplus withdrawal",
+      "collateral": "0",
+      "bond_escrow": "0",
+      "remaining_liability": "0",
+      "contract_token_balance": "0"
+    }
+  ],
+  "transactions": [
+    {
+      "operation": "VOID settlement and bond refund",
+      "hash": "0x569d65ff15925d37ff0dabd00a8033e708a923fa68de8dd1e0cceef6cbcb4dcb",
+      "url": "https://sepolia.etherscan.io/tx/0x569d65ff15925d37ff0dabd00a8033e708a923fa68de8dd1e0cceef6cbcb4dcb",
+      "block": 12158923
+    },
+    {
+      "operation": "VOID payout",
+      "hash": "0xc7d625cf7ddb708977c3c1e44cb6f4d23a650915a041d9ac393754cb8e5fa5f9",
+      "url": "https://sepolia.etherscan.io/tx/0xc7d625cf7ddb708977c3c1e44cb6f4d23a650915a041d9ac393754cb8e5fa5f9",
+      "block": 12158940
+    },
+    {
+      "operation": "Creator surplus withdrawal",
+      "hash": "0xe4f7b7e1c8e241007fa0bf435ccd5e48e303af4c67dba2abd5f084312b1eae13",
+      "url": "https://sepolia.etherscan.io/tx/0xe4f7b7e1c8e241007fa0bf435ccd5e48e303af4c67dba2abd5f084312b1eae13",
+      "block": 12158955
+    }
+  ],
+  "read_only_rejections": {
+    "duplicate_claim": {
+      "method": "eth_call",
+      "block": 12158940,
+      "transaction_submitted": false,
+      "reverted": true,
+      "revert_data": "0x646cf558",
+      "message": "execution reverted",
+      "expected_selector": "0x646cf558",
+      "error_name": "AlreadyClaimed"
+    },
+    "repeat_surplus": {
+      "method": "eth_call",
+      "block": 12158955,
+      "transaction_submitted": false,
+      "reverted": true,
+      "revert_data": "0xc0ef17d3",
+      "message": "execution reverted",
+      "expected_selector": "0xc0ef17d3",
+      "error_name": "NoSurplus"
+    }
+  },
+  "source_files": [
+    "deployments/sepolia-2026-11-02/market-0-void-settlement-evidence.json",
+    "deployments/sepolia-2026-11-02/market-0-void-payout-evidence.json",
+    "deployments/sepolia-2026-11-02/market-0-creator-surplus-evidence.json"
+  ],
+  "public_cross_layer_status": "Separate November 18 verification passed shared Supabase and local API/UI; hosted API/UI acceptance pending. This offline script does not verify those environments.",
+  "cross_layer_evidence": "supabase-local-api-verification.json",
+  "issue_56_status": "incomplete; real callback, committee, votes and disputed settlement remain unverified"
+}

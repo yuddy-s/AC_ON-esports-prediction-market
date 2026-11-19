@@ -1,5 +1,6 @@
 import { CHOICE_LABELS, MARKET_STATE, NO_PROPOSAL_PERIOD_SECONDS, RETRY_DELAY_SECONDS } from "./predictionMarket";
 import type { Tone } from "./fixtureStatus";
+import { isTradable } from "./lmsr";
 
 // One rule for what a market is doing right now and which calls are valid.
 // Stored state alone is not enough: time passing does not change storage, so
@@ -57,7 +58,7 @@ export function marketPhase(
 
   switch (market.state) {
     case MARKET_STATE.OPEN:
-      if (now < market.tradingDeadline) {
+      if (isTradable(market.state, market.tradingDeadline, nowSeconds)) {
         return { key: "trading", label: "Trading", tone: "good", detail: `Trading closes ${date(market.tradingDeadline)}.`, actions: ["trade"] };
       }
     // Past the deadline an OPEN market behaves exactly like CLOSED.

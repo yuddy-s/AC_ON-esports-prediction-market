@@ -2,9 +2,17 @@
 
 AC_ON is a testnet-only decentralized esports prediction market for binary esports match outcomes. Users connect an Ethereum wallet and trade YES/NO shares on match results.
 
-The M4 contract lifecycle and economics implementation are merged in PRs #37/#38 and locally verified. `contracts/src/PredictionMarket.sol` includes registered fixtures, guarded buys/sells, proposals/challenges, VRF resolver rounds, settlement/VOID, claims and creator surplus. The [exact ABI and handoff](deployments/README.md) are the merged implementation baseline; a fresh M4 Sepolia deployment and deployment-specific manifest are still pending.
+Milestone 4 is feature-complete and was promoted to `main` in PR #49. The application includes
+normalized fixtures, guarded buys/sells, proposals/challenges, VRF resolver rounds,
+settlement/VOID, claims, creator surplus, M4 indexed APIs, signer gateways, portfolio/resolution UI,
+and operator-gated PandaScore ingestion. The [exact ABI and handoff](deployments/README.md) pair the
+current implementation with the fresh M4 Sepolia deployment.
 
-The existing frontend/backend configuration still targets the previously deployed buy-only ABI. Its quote → wallet buy → mined event → indexer → API → frontend flow was verified locally, and the [historical Sepolia handoff](deployments/sepolia-m3.json) records a confirmed buy. Migrating those consumers to the current contracts and completing the full feature-complete integration remain team work.
+Milestone 5 now owns public Vercel/Render/Supabase integration, expanded integration and recovery
+testing, remaining Sepolia lifecycle evidence, defect reporting, and draft user/developer guides.
+The root `render.yaml` defines the M5 API plus isolated indexer, registrar, and proposer workers;
+automatic deploys are disabled and paid workers are suspended outside controlled evidence windows.
+The historical M3 handoff remains available only as an earlier release record.
 
 ## What Works Now
 
@@ -29,12 +37,15 @@ The existing frontend/backend configuration still targets the previously deploye
 
 - Sample match data is fake Milestone 2 display data only.
 - PostgreSQL/Supabase is not authoritative for real market state.
-- Contracts are authoritative for market state, positions, resolution and payouts. M4 lifecycle code and economics are locally verified and merged; M4 deployment and full application integration remain pending.
+- Contracts are authoritative for market state, positions, resolution and payouts. The M4
+  implementation and Sepolia deployment are merged; public hosted integration is active M5 work.
 - Ethereum Sepolia (chain ID `11155111`) is the selected Milestone 3 testnet; the team is not planning a network migration during MVP integration.
 - The full M3 quote-to-buy-to-indexer-to-frontend flow works on a local Anvil chain; the contracts are live on Sepolia but the hosted indexer/API is not yet. The old M2 address is not an M3 deployment.
-- ACON is the test-only payment/collateral token; Sepolia ETH pays gas. Current source implements sells and payouts, but previously deployed contracts and consumer configurations still expose the buy-only interface.
+- ACON is the test-only payment/collateral token; Sepolia ETH pays gas. The current M4 deployment
+  and consumers support buys, sells, resolution, and payouts; the M3 deployment is historical.
 - The [current contract ABI](docs/agent/interfaces/CONTRACT_ABI.md) describes the implementation; the [M3 interface](docs/agent/interfaces/M3_TRADING_INTERFACE.md) describes the historical deployment. Pair addresses and ABIs from the same release.
-- The [Milestone 4 feature-complete plan](docs/agent/milestones/MILESTONE_4.md) and [PR #28-approved target design](docs/agent/interfaces/M4_FEATURE_COMPLETE_INTERFACE.md) define acceptance. PRs #37/#38 merged the locally verified M4 implementation, exact ABI/event artifacts, and economic proof. Safe/VRF setup, deployment, backend/frontend integration, and cross-layer acceptance remain pending.
+- The [Milestone 5 plan](docs/agent/milestones/MILESTONE_5.md) defines current testing,
+  public-deployment, evidence, defect, and draft-guide work. The M4 design remains frozen.
 
 ## Quick Start (macOS / Linux)
 
@@ -105,14 +116,14 @@ Copy `frontend/.env.example` to `frontend/.env.local` (gitignored) and fill it i
 | Variable | Meaning |
 |---|---|
 | `VITE_CHAIN` | `sepolia` (default) for the real demo, `anvil` for a local chain on `127.0.0.1:8545` |
-| `VITE_PREDICTION_MARKET_ADDRESS` | `PredictionMarket` address from the deployment handoff. The frontend now uses the **M4** ABI (`deployments/abi`); the M3 Sepolia deployment is not compatible, so use a local M4 Anvil deployment until the M4 Sepolia handoff is published |
+| `VITE_PREDICTION_MARKET_ADDRESS` | `PredictionMarket` address from the deployment handoff. The frontend uses the **M4** ABI (`deployments/abi`), so pair it with the [M4 Sepolia deployment](deployments/sepolia-2026-11-02/README.md) or a local M4 Anvil deployment; the M3 Sepolia deployment is not compatible |
 | `VITE_ACON_TOKEN_ADDRESS` | ACON token address from the deployment handoff |
 | `VITE_DEMO_MARKET_ID` | Featured market, listed first on the markets page (default `0`) |
 | `VITE_API_URL` | FastAPI backend, e.g. `http://localhost:8000`; used for the "indexed" step |
 | `VITE_ANVIL_ACCOUNT` | Optional: which default Anvil account the local test wallet uses (default account #0) |
 | `VITE_FIXTURE_SOURCE` | Optional: `api` reads the fixture catalog from the backend's `/api/fixtures` (default when `VITE_API_URL` is set); `mock` shows fictional fixtures bundled with the frontend |
 
-Restart `npm run dev` after changing env values. `.env.example` already has the Sepolia M3 addresses and lists the local Anvil ones. To keep a local Anvil `.env.local` and still try Sepolia, put the Sepolia values in `frontend/.env.sepolia.local` and run `npm run dev:sepolia`.
+Restart `npm run dev` after changing env values. `.env.example` already has the M4 Sepolia addresses (market `0x03ae48f03C7822540a91DA2168602bd49dC510E9`, ACON `0xf85b2278a810410c6AE0b7490d34671E0C8e6E90`) and explains the local Anvil ones. The API at `VITE_API_URL` must index the same chain and market address; otherwise the price chart, trade history and "indexed" step stay hidden while contract reads still work. To keep a local Anvil `.env.local` and still try Sepolia, put the Sepolia values in `frontend/.env.sepolia.local` and run `npm run dev:sepolia`.
 
 ## Run The Backend
 
@@ -280,6 +291,14 @@ npm run typecheck
 npm run build
 ```
 
+Read-only browser journeys (Playwright, no wallet). Without `PLAYWRIGHT_BASE_URL` this builds and previews the app against the public M4 Sepolia contracts with no backend; `PLAYWRIGHT_CHANNEL=chrome` uses an installed Chrome, otherwise run `npx playwright install chromium` once. Results: [M5 frontend results](docs/agent/testing/M5_FRONTEND_RESULTS.md).
+
+```bash
+cd frontend
+npm run test:e2e
+PLAYWRIGHT_BASE_URL=https://<deployment>.vercel.app npm run test:e2e
+```
+
 Backend (with the virtual environment activated):
 
 ```bash
@@ -301,9 +320,34 @@ python3 script/smoke.py --start-anvil
 
 The frontend no longer advertises a lint command without an ESLint configuration. TypeScript checking runs locally and in CI. A configured lint rule set can be added later as a separate check.
 
+## Deploy The Frontend (Vercel)
+
+The frontend is a static Vite build with hash routes, so it needs no server rewrites. `frontend/vercel.json` pins the install/build commands, the `dist` output and basic security headers. In Vercel, set **Root Directory** to `frontend` and add these public environment variables (never secrets):
+
+| Variable | Value |
+|---|---|
+| `VITE_CHAIN` | `sepolia` |
+| `VITE_PREDICTION_MARKET_ADDRESS` | `0x03ae48f03C7822540a91DA2168602bd49dC510E9` |
+| `VITE_ACON_TOKEN_ADDRESS` | `0xf85b2278a810410c6AE0b7490d34671E0C8e6E90` |
+| `VITE_DEMO_MARKET_ID` | `0` |
+| `VITE_API_URL` | the public Render API URL (leave unset until Render is live; the app then shows contract reads only and the mock fixture catalog) |
+
+Vite inlines these at build time, so redeploy after changing any of them. Give the exact Vercel origin to the backend owner for CORS, then rerun the browser journeys against the public URL with `PLAYWRIGHT_EXPECT_API=1`.
+
 ## Dependency Security Follow-Up
 
-On 2026-10-22, `npm audit --omit=dev` reported **25 production dependency findings**: 23 moderate, 2 high (`follow-redirects` and `ws`), and 0 critical. These are transitive dependencies in the current frontend lockfile. Review compatible upstream updates and rerun the wallet, trade, build, and audit checks before a public or production release; do not apply a major wallet-library upgrade without integration testing.
+On 2026-10-22, `npm audit --omit=dev` reported **25 production dependency findings**: 23 moderate, 2 high (`follow-redirects` and `ws`), and 0 critical.
+
+On 2026-11-07 the frontend owner (Adriel) applied every non-breaking fix (`npm audit fix`, lockfile only) and reran tests (159 passing), typecheck and build. `npm audit --omit=dev` went from 29 findings (12 moderate, 17 high) to **27 (11 moderate, 16 high, 0 critical)**. Every remaining finding comes from four transitive packages pulled in by the wallet stack (`wagmi` 2 → WalletConnect/Reown, Coinbase SDK):
+
+| Package | Severity | Issue | Exposure in this app |
+|---|---|---|---|
+| `ws` | high | Memory-exhaustion DoS; uninitialized memory disclosure | Wallet-connector WebSocket client in the browser; no server in this app accepts `ws` connections |
+| `zod` | high | Memory exhaustion validating oversized collections | Used inside wallet libraries on wallet/RPC responses, not on user input we accept |
+| `decode-uri-component` | high | DoS from malformed percent-encoding | WalletConnect URL parsing in the user's own browser tab |
+| `uuid` | moderate | Missing buffer bounds check when `buf` is passed | Wallet libraries call it without a caller buffer |
+
+The only automatic fix is `npm audit fix --force`, which upgrades `wagmi` 2 → 3 (a breaking major). **Mitigation:** the app is testnet-only and these packages run client-side in the user's own browser, not on a server we host. **Owner:** Adriel. **Plan (M5):** upgrade `wagmi`/`viem` together on a separate branch before public Vercel hosting, then rerun the wallet, trade, claim, build and audit checks. Do not apply the major upgrade without that integration testing.
 
 ## Not Here Yet
 

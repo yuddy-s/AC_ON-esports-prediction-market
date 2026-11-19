@@ -1,0 +1,72 @@
+{
+  "verified_date_et": "2026-11-19",
+  "scope": "Real Ethereum Sepolia transactions through the locally served PR #70 production build. This is not hosted Vercel/Render acceptance.",
+  "source_commit": "2809636ab93600439d8ca927c11d2987f2550dcc",
+  "frontend_tree": "cb7d6a5ece1e63b926280786e3ea63166141f009",
+  "served_origin": "http://127.0.0.1:4175",
+  "chain_id": 11155111,
+  "market_id": 1,
+  "wallet": "0xf350a4ebe6f0485bdcf8294e9e66B71473A2093b",
+  "market_contract": "0x03ae48f03C7822540a91DA2168602bd49dC510E9",
+  "token_contract": "0xf85b2278a810410c6AE0b7490d34671E0C8e6E90",
+  "api_url_configured": false,
+  "trade": {
+    "outcome": "YES",
+    "shares_raw": "1000000000000000000",
+    "slippage_bps": 100,
+    "starting_allowance_raw": "310078048318727968",
+    "approval_cap_raw": "417516952439497612",
+    "cost_raw": "413383121227225358",
+    "remaining_allowance_raw": "4133831212272254",
+    "starting_acon_balance_raw": "1000000000000000000000",
+    "ending_acon_balance_raw": "999586616878772774642",
+    "ending_yes_shares_raw": "1000000000000000000",
+    "ending_no_shares_raw": "0"
+  },
+  "approval": {
+    "hash": "0x78e0dddb98318dbcf1b9a35caa5c527ada662bb1c7eea72b242bb1a7a87849ad",
+    "status": 1,
+    "block": 12168815,
+    "nonce": 27
+  },
+  "buy": {
+    "hash": "0x1152a2174c7c31fb05f0788e2b6ec66ac82f17de4895c828bd653f3ecf817137",
+    "status": 1,
+    "block": 12168823,
+    "nonce": 28
+  },
+  "observations": {
+    "single_approval_and_single_buy": true,
+    "automatic_transition_to_buy_prompt": true,
+    "page_refresh_or_repeat_approval_required": false,
+    "final_ui_reported_mined": true,
+    "final_ui_reported_yes_position": "1",
+    "indexer_step": "not configured; skipped"
+  },
+  "checks": {
+    "decoded_transaction_targets_and_arguments": true,
+    "approval_covers_cost": true,
+    "approval_minus_cost_matches_allowance": true,
+    "wallet_debit_matches_trade_event_and_token_transfer": true,
+    "one_yes_share_received": true
+  },
+  "limits": [
+    "The original intermittent provider response was not captured. This successful live run complements the deterministic stale-RPC regression.",
+    "No browser RPC trace was recorded; the simulation block choice is established by the reviewed source and deterministic tests, not separately asserted from live network telemetry.",
+    "The local build has no indexer API configured. Hosted API/UI acceptance and the MetaMask classification of the public Vercel URL remain separate."
+  ],
+  "build_asset_sha256": {
+    "assets/ccip-Cp6FcR1v.js": "b309becd3f7b6e3d7887cf7253c0e4248eeb4884ac28a5d4eb0bc96c8ed80c30",
+    "assets/index-BLMCiQW9.js": "ae6b4d628ffc59c63b48392871e54e8abb9627e1d0db8ec575f73debf5ce8319",
+    "assets/index-BWfq9FN-.js": "d20ba13feba3dbb4b5b26082099cd38f094d9c15009afcb1b9fe7b563b176105",
+    "assets/index-CTBVVzS2.css": "ea8fd14b0f7077df3ffa932786ec82def4fe032deb5616971abb2d188ba0c6ac",
+    "assets/secp256k1-B9WVsz8Y.js": "70a347c99edaa4b826b55b11b01c18821212e11240586a2d7ee515132caff31b"
+  },
+  "evidence_sha256": {
+    "preflight.json": "678dad87ae8ac78518618577b4628479d9a390c0e487ae1fc9ca09262ce3764e",
+    "approval-receipt.json": "337b7eafa983758c787a3958f55c8624e2e35331abdf6092561d0c0714b650a7",
+    "buy-receipt.json": "275d1e2dd91339801dfd3ffe2a1a2cd335169482508415c430257b798c70fd79",
+    "final-ui.png": "75572c5d5b0135f1512c56eac94fe0fa8968fbe6251cc60c6982f5f3b55516ee",
+    "final-ui-ax-diff.txt": "f318716665bf8da73aa9b525fe302e22fa590fbec9102659efa8568ac3a50db8"
+  }
+}

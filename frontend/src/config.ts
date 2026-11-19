@@ -42,7 +42,25 @@ export const ANVIL_ACCOUNT =
   readAddress("VITE_ANVIL_ACCOUNT", import.meta.env.VITE_ANVIL_ACCOUNT) ??
   getAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
 
-export const DEMO_MARKET_ID = BigInt(import.meta.env.VITE_DEMO_MARKET_ID ?? "0");
+// Keyless public Sepolia endpoints that allow browser (CORS) requests, tried in
+// order. wagmi's built-in default (thirdweb) comes last: under load it answers
+// without CORS headers, so the browser sees every read fail (M5 FE-B2).
+export const PUBLIC_SEPOLIA_RPCS = [
+  "https://ethereum-sepolia-rpc.publicnode.com",
+  "https://sepolia.drpc.org",
+] as const;
+
+// Optional VITE_SEPOLIA_RPC_URL goes first. It is visible to every visitor, so
+// use only a keyless URL or a key restricted to this site's domain.
+export function sepoliaRpcUrls(custom: string | undefined): string[] {
+  const first = custom?.trim();
+  if (first && !/^https:\/\//.test(first)) throw new Error(`VITE_SEPOLIA_RPC_URL must be an https URL, got "${first}"`);
+  return [...new Set([...(first ? [first] : []), ...PUBLIC_SEPOLIA_RPCS])];
+}
+
+export const SEPOLIA_RPC_URLS = sepoliaRpcUrls(import.meta.env.VITE_SEPOLIA_RPC_URL);
+
+export const DEMO_MARKET_ID =BigInt(import.meta.env.VITE_DEMO_MARKET_ID ?? "0");
 
 // FastAPI backend (indexed markets/trades). Optional until the indexer runs.
 export const API_URL = (import.meta.env.VITE_API_URL ?? "").replace(/\/+$/, "");

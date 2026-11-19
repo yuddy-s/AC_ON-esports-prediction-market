@@ -4,7 +4,41 @@
 > [M4_APPLICATION_RUNBOOK.md](M4_APPLICATION_RUNBOOK.md). This file retains historical
 > M3 deployment and recovery context; do not copy its M3 addresses into M4 configuration.
 
-This runbook documents the deployed M3 API, PostgreSQL projections, and single indexer worker; M4 contract deployment and service integration are not yet operational. Ethereum contracts remain authoritative.
+The actual M5 deployment uses a free Render FastAPI service and local operator-run indexer,
+registrar, and proposer processes. The root `render.yaml` retains the optional reviewed paid-worker
+topology but is not synced for this deployment. The historical M3 details below remain audit context
+and must not supply current addresses. Ethereum contracts remain authoritative.
+
+## Current M5 Hybrid Procedure
+
+Use `deployments/sepolia-2026-11-02/manifest.post-setup.json` and its versioned PredictionMarket
+ABI. Back up Supabase, record revision/counts, confirm head `20261102_0008`, and rotate any exposed
+credential before a public or local process uses the database.
+
+Create only the free Render web service from `dev`; do not sync the paid-worker Blueprint. Leave
+Render's root directory unset and use:
+
+```text
+cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+
+Set only `DATABASE_URL`, exact `FRONTEND_ORIGIN`, and `INDEXER_CHAIN_ID=11155111` on the API. Keep
+RPC/provider credentials and every private key local. From `backend/`, run exactly one local indexer
+with `python -m app.indexer.worker --once` for catch-up or without `--once` during a live window.
+Run registrar/proposer separately only after inspecting the expected queue; stop each after its job
+is confirmed.
+
+The public endpoints are `https://ac-on-esports-prediction-market.onrender.com` and
+`https://acon-esports-market.vercel.app`. Validate the public stack while the local indexer is
+current:
+
+```text
+python -m scripts.smoke_public --api-base-url RENDER_URL --frontend-url VERCEL_URL --manifest ../deployments/sepolia-2026-11-02/manifest.post-setup.json --max-indexer-age-seconds 120 --max-indexer-lag-blocks 20 --output ../deployments/M5-public-smoke.json
+```
+
+Store the output only after confirming it contains public data. After testing, stop proposer and
+registrar immediately, then stop the indexer after recording its last safe block. The API remains
+public; its status timestamp accurately reveals when local indexing is no longer current.
 
 ## Required handoff
 

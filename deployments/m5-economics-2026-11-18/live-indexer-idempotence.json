@@ -1,0 +1,21 @@
+{
+  "checked_at_utc": "2026-11-18T21:01:06.063934+00:00",
+  "environment": "local corrected indexer against shared Supabase and configured Sepolia RPC",
+  "results": [
+    {
+      "latest_observed_block": 12163952,
+      "last_safe_block": 12163950,
+      "processed_logs": 0,
+      "batches": 8,
+      "rebuilt_after_reorg": false
+    },
+    {
+      "latest_observed_block": 12163952,
+      "last_safe_block": 12163950,
+      "processed_logs": 0,
+      "batches": 0,
+      "rebuilt_after_reorg": false
+    }
+  ],
+  "duplicate_events_processed": 0
+}

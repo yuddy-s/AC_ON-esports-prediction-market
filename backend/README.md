@@ -107,6 +107,10 @@ PR #39 implemented and tested this provider adapter. Live polling is deliberatel
 
 Migration `20261102_0008` adds rebuildable fixture-registration, lifecycle-event, and wallet-position projections. The indexer automatically selects the exact-signature M4 decoder when the configured ABI contains the complete M4 event surface; historical M3 deployments retain the strict M3 decoder. M4 reads are under `/api/v2` and always report chain, contract, ABI, safe-block, freshness, and `authoritative:false` metadata.
 
+After deploying the payout projection correction, previously processed claims need a projection
+rebuild. See the [M5 payout reconciliation and recovery runbook](../docs/agent/testing/M5_INDEXER_PAYOUT_RECONCILIATION.md)
+for the regression coverage, deployment-scoped replay and receipt comparison.
+
 Configure `REGISTRAR_PRIVATE_KEY` and `PROPOSER_PRIVATE_KEY` as distinct, narrowly permissioned accounts. Never commit either key. Run exactly one process of each kind:
 
 ```powershell

@@ -1,0 +1,22 @@
+{
+  "api_base_url": "https://ac-on-esports-prediction-market.onrender.com",
+  "checked_at": "2026-11-19T16:10:50.285945Z",
+  "cors": "pass",
+  "frontend_url": "https://acon-esports-market.vercel.app",
+  "health": "pass",
+  "indexer": {
+    "abi_version": "PredictionMarket.721a6fef039a.4af9297937eb.abi.json",
+    "age_seconds": 39,
+    "chain_id": 11155111,
+    "contract_address": "0x03ae48f03c7822540a91da2168602bd49dc510e9",
+    "deployment_block": 12051223,
+    "lag_blocks": 2,
+    "latest_observed_block": 12169479,
+    "max_age_seconds": 120,
+    "max_lag_blocks": 20,
+    "safe_block": 12169477,
+    "updated_at": "2026-11-19T16:10:10.945636Z"
+  },
+  "schema_version": 1,
+  "status": "pass"
+}

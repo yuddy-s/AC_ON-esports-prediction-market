@@ -28,6 +28,7 @@ contract SafeExecutionMock {
 
 contract SubscriptionMock is VRFCoordinatorMock {
     address public owner;
+    uint96 public linkBalance = 300e18;
     address[] private consumers;
 
     constructor(address safe) {
@@ -36,7 +37,11 @@ contract SubscriptionMock is VRFCoordinatorMock {
 
     function getSubscription(uint256 id) external view returns (uint96, uint96, uint64, address, address[] memory) {
         require(id == 1, "unknown subscription");
-        return (1e18, 0, 0, owner, consumers);
+        return (linkBalance, 0, 0, owner, consumers);
+    }
+
+    function setLinkBalance(uint96 balance) external {
+        linkBalance = balance;
     }
 
     function addConsumer(uint256 id, address consumer) external {
@@ -77,7 +82,9 @@ contract DeploymentTest is MarketTestBase {
         SafeSetupPlan.SafeCall[] memory calls = planner.calls(market, REGISTRAR, PROPOSER, _pool());
         require(calls.length == 15, "incomplete setup plan");
         safe.execute(calls);
-        require(verifier.verify(market, address(safe), address(this), REGISTRAR, PROPOSER), "handoff incomplete");
+        require(
+            verifier.verify(market, address(safe), address(this), REGISTRAR, PROPOSER, 300e18), "handoff incomplete"
+        );
         require(
             !market.hasRole(bytes32(0), address(this)) && !registry.hasRole(bytes32(0), address(this)),
             "old admin retained"
@@ -88,7 +95,7 @@ contract DeploymentTest is MarketTestBase {
 
     function testVerifierRejectsPendingHandoff() public {
         vm.expectRevert(bytes("Safe does not own both contracts"));
-        verifier.verify(market, address(safe), address(this), REGISTRAR, PROPOSER);
+        verifier.verify(market, address(safe), address(this), REGISTRAR, PROPOSER, 300e18);
     }
 
     function testPlanRejectsOverlappingRolesDuplicatesAndUndersizedPool() public {
@@ -112,7 +119,21 @@ contract DeploymentTest is MarketTestBase {
         vm.prank(address(safe));
         registry.setResolverStatus(REGISTRAR, true);
         vm.expectRevert(bytes("conflicted resolver-only address"));
-        verifier.verify(market, address(safe), address(this), REGISTRAR, PROPOSER);
+        verifier.verify(market, address(safe), address(this), REGISTRAR, PROPOSER, 300e18);
+    }
+
+    function testVerifierRejectsUnsetReserveAndPositiveButInsufficientBalance() public {
+        safe.execute(planner.calls(market, REGISTRAR, PROPOSER, _pool()));
+        vm.expectRevert(bytes("VRF minimum LINK reserve must be configured"));
+        verifier.verify(market, address(safe), address(this), REGISTRAR, PROPOSER, 0);
+        SubscriptionMock(address(vrf)).setLinkBalance(10e18);
+        vm.expectRevert(bytes("VRF LINK reserve below required minimum"));
+        verifier.verify(market, address(safe), address(this), REGISTRAR, PROPOSER, 300e18);
+        SubscriptionMock(address(vrf)).setLinkBalance(300e18 - 1);
+        vm.expectRevert(bytes("VRF LINK reserve below required minimum"));
+        verifier.verify(market, address(safe), address(this), REGISTRAR, PROPOSER, 300e18);
+        SubscriptionMock(address(vrf)).setLinkBalance(300e18);
+        require(verifier.verify(market, address(safe), address(this), REGISTRAR, PROPOSER, 300e18));
     }
 
     function testPlanRequiresMatchingPendingAdministrators() public {

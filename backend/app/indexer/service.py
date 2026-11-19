@@ -361,6 +361,9 @@ class EventIndexer:
             self._change_position(session, contract, chain_log, add=False)
         elif name == "MarketClosed":
             market.state = "CLOSED"
+            # closeTrading before the deadline shortens the stored deadline; the event
+            # carries the post-close value (unchanged for proposal/timeout closes).
+            market.trading_deadline = datetime.fromtimestamp(int(payload["trading_deadline"]), UTC)
         elif name == "OutcomeProposed":
             market.state = "PROPOSED"
         elif name == "OutcomeChallenged":
@@ -377,10 +380,13 @@ class EventIndexer:
             market.final_outcome = 2
         elif name == "PayoutClaimed":
             position = self._position(session, contract, market_id, str(payload["account"]), chain_log.block_number)
+            market.yes_quantity -= Decimal(str(payload["yes_shares"]))
+            market.no_quantity -= Decimal(str(payload["no_shares"]))
             position.yes_shares = Decimal(0)
             position.no_shares = Decimal(0)
             position.claimed = True
             position.payout = Decimal(str(payload["payout"]))
+            position.updated_block_number = chain_log.block_number
 
         market.source_block_number = chain_log.block_number
         market.source_block_hash = chain_log.block_hash.lower()

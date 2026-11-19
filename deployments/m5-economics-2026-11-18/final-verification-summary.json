@@ -1,0 +1,9 @@
+{
+  "checked_at_utc": "2026-11-18T21:02:01.057842+00:00",
+  "api_assertions_pass": true,
+  "six_public_trades_reconciled": true,
+  "repeat_sync_has_no_duplicate_events": true,
+  "evidence_json_parses": true,
+  "configured_secret_values_absent_from_checked_json": true,
+  "hosted_acceptance": "pending; URLs not identified"
+}

@@ -1,0 +1,303 @@
+{
+  "schema": "acon.m5-contract-test-summary.v1",
+  "passed": 120,
+  "failed": 0,
+  "skipped": 0,
+  "suite_count": 12,
+  "fuzz_test_count": 7,
+  "invariant_result_count": 3,
+  "invariant_suite_count": 3,
+  "suites": [
+    {
+      "suite": "test/ACONTestToken.t.sol:ACONTestTokenTest",
+      "tests": 4,
+      "statuses": {
+        "Success": 4
+      },
+      "invariants": [],
+      "fuzz_tests": []
+    },
+    {
+      "suite": "test/Deployment.t.sol:DeploymentTest",
+      "tests": 6,
+      "statuses": {
+        "Success": 6
+      },
+      "invariants": [],
+      "fuzz_tests": []
+    },
+    {
+      "suite": "test/LMSR.t.sol:LMSRInvariantTest",
+      "tests": 1,
+      "statuses": {
+        "Success": 1
+      },
+      "invariants": [
+        {
+          "name": "invariantMarketMakerLossIsBoundedBySubsidy()",
+          "runs": 256,
+          "calls": 128000,
+          "reverts": 0,
+          "workers": 1,
+          "metrics": {
+            "test/LMSR.t.sol:LMSRBuyHandler.buyYes": {
+              "calls": 64215,
+              "reverts": 0,
+              "discards": 0
+            },
+            "test/LMSR.t.sol:LMSRBuyHandler.buyNo": {
+              "calls": 63785,
+              "reverts": 0,
+              "discards": 0
+            }
+          },
+          "failed_corpus_replays": 0,
+          "optimization_best_value": null
+        }
+      ],
+      "fuzz_tests": []
+    },
+    {
+      "suite": "test/LMSR.t.sol:LMSRTest",
+      "tests": 20,
+      "statuses": {
+        "Success": 20
+      },
+      "invariants": [],
+      "fuzz_tests": [
+        {
+          "name": "testFuzzBoundedLoss(uint256,uint256)",
+          "first_case": {
+            "gas": 43460,
+            "stipend": 21656
+          },
+          "runs": 256,
+          "mean_gas": 21271,
+          "median_gas": 21408,
+          "failed_corpus_replays": 0
+        },
+        {
+          "name": "testFuzzBuyCostMatchesPotentialDifference(uint256,uint256,uint256,bool)",
+          "first_case": {
+            "gas": 78904,
+            "stipend": 22272
+          },
+          "runs": 256,
+          "mean_gas": 55446,
+          "median_gas": 55389,
+          "failed_corpus_replays": 0
+        },
+        {
+          "name": "testFuzzPricesAreSymmetricAndSumExactly(uint256,uint256)",
+          "first_case": {
+            "gas": 38161,
+            "stipend": 21656
+          },
+          "runs": 256,
+          "mean_gas": 15848,
+          "median_gas": 16459,
+          "failed_corpus_replays": 0
+        }
+      ]
+    },
+    {
+      "suite": "test/MarketEconomics.t.sol:MarketPricingSemanticsTest",
+      "tests": 1,
+      "statuses": {
+        "Success": 1
+      },
+      "invariants": [],
+      "fuzz_tests": []
+    },
+    {
+      "suite": "test/MarketEconomics.t.sol:MarketSettlementInvariantTest",
+      "tests": 1,
+      "statuses": {
+        "Success": 1
+      },
+      "invariants": [
+        {
+          "name": "invariantClaimsBondsAndSurplusPreserveLiabilities()",
+          "runs": 256,
+          "calls": 128000,
+          "reverts": 0,
+          "workers": 1,
+          "metrics": {
+            "test/MarketEconomics.t.sol:MarketSettlementHandler.claim": {
+              "calls": 31998,
+              "reverts": 0,
+              "discards": 0
+            },
+            "test/MarketEconomics.t.sol:MarketSettlementHandler.settleBondedMarket": {
+              "calls": 32161,
+              "reverts": 0,
+              "discards": 0
+            },
+            "test/MarketEconomics.t.sol:MarketSettlementHandler.attemptDuplicateClaim": {
+              "calls": 32199,
+              "reverts": 0,
+              "discards": 0
+            },
+            "test/MarketEconomics.t.sol:MarketSettlementHandler.withdrawSurplus": {
+              "calls": 31642,
+              "reverts": 0,
+              "discards": 0
+            }
+          },
+          "failed_corpus_replays": 0,
+          "optimization_best_value": null
+        }
+      ],
+      "fuzz_tests": []
+    },
+    {
+      "suite": "test/MarketEconomics.t.sol:MarketTradingInvariantTest",
+      "tests": 1,
+      "statuses": {
+        "Success": 1
+      },
+      "invariants": [
+        {
+          "name": "invariantRepeatedBuysAndSellsPreserveEconomics()",
+          "runs": 256,
+          "calls": 128000,
+          "reverts": 0,
+          "workers": 1,
+          "metrics": {
+            "test/MarketEconomics.t.sol:MarketTradingHandler.sellNo": {
+              "calls": 31789,
+              "reverts": 0,
+              "discards": 0
+            },
+            "test/MarketEconomics.t.sol:MarketTradingHandler.buyYes": {
+              "calls": 32164,
+              "reverts": 0,
+              "discards": 0
+            },
+            "test/MarketEconomics.t.sol:MarketTradingHandler.sellYes": {
+              "calls": 32041,
+              "reverts": 0,
+              "discards": 0
+            },
+            "test/MarketEconomics.t.sol:MarketTradingHandler.buyNo": {
+              "calls": 32006,
+              "reverts": 0,
+              "discards": 0
+            }
+          },
+          "failed_corpus_replays": 0,
+          "optimization_best_value": null
+        }
+      ],
+      "fuzz_tests": []
+    },
+    {
+      "suite": "test/MarketLifecycle.t.sol:MarketLifecycleTest",
+      "tests": 20,
+      "statuses": {
+        "Success": 20
+      },
+      "invariants": [],
+      "fuzz_tests": []
+    },
+    {
+      "suite": "test/MarketPricing.t.sol:MarketPricingTest",
+      "tests": 9,
+      "statuses": {
+        "Success": 9
+      },
+      "invariants": [],
+      "fuzz_tests": [
+        {
+          "name": "testFuzzExactInverseTradesCannotCreateValue(uint256,uint256,uint256)",
+          "first_case": {
+            "gas": 1343343,
+            "stipend": 22144
+          },
+          "runs": 256,
+          "mean_gas": 1331232,
+          "median_gas": 1330127,
+          "failed_corpus_replays": 0
+        },
+        {
+          "name": "testFuzzNearIntegerBoundaries(uint256,uint256,uint256)",
+          "first_case": {
+            "gas": 667929,
+            "stipend": 22144
+          },
+          "runs": 256,
+          "mean_gas": 646032,
+          "median_gas": 645982,
+          "failed_corpus_replays": 0
+        }
+      ]
+    },
+    {
+      "suite": "test/MarketSecurity.t.sol:MarketSecurityTest",
+      "tests": 18,
+      "statuses": {
+        "Success": 18
+      },
+      "invariants": [],
+      "fuzz_tests": [
+        {
+          "name": "testFuzzMixedMarketsTradesClaimsAndSurplusPreserveLedger(uint256)",
+          "first_case": {
+            "gas": 19694043,
+            "stipend": 21396
+          },
+          "runs": 256,
+          "mean_gas": 19695406,
+          "median_gas": 19689505,
+          "failed_corpus_replays": 0
+        }
+      ]
+    },
+    {
+      "suite": "test/PredictionMarket.t.sol:PredictionMarketTest",
+      "tests": 16,
+      "statuses": {
+        "Success": 16
+      },
+      "invariants": [],
+      "fuzz_tests": []
+    },
+    {
+      "suite": "test/Resolvers.t.sol:ResolverTest",
+      "tests": 23,
+      "statuses": {
+        "Success": 23
+      },
+      "invariants": [],
+      "fuzz_tests": [
+        {
+          "name": "testFuzzCommitteeIsDistinctAndWithinFrozenPool(uint256)",
+          "first_case": {
+            "gas": 2272491,
+            "stipend": 21396
+          },
+          "runs": 256,
+          "mean_gas": 2251046,
+          "median_gas": 2250999,
+          "failed_corpus_replays": 0
+        }
+      ]
+    }
+  ],
+  "command": [
+    "/Users/matthewleong/.foundry/bin/forge",
+    "test",
+    "--offline",
+    "--json",
+    "--fuzz-seed",
+    "0x0000000000000000000000000000000000000000000000000000000000000005"
+  ],
+  "seed": "0x0000000000000000000000000000000000000000000000000000000000000005",
+  "elapsed_seconds": 504.344,
+  "started_at_utc": "2026-11-18T05:06:00.706550+00:00",
+  "finished_at_utc": "2026-11-18T05:14:25.182737+00:00",
+  "source_metadata": "run-metadata.json",
+  "environment": "local Foundry EVM",
+  "invariant_handler_calls": 384000,
+  "invariant_handler_reverts": 0
+}
