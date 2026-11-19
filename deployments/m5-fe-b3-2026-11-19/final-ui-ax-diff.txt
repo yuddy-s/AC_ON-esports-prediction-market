@@ -1,0 +1,30 @@
+Browser tab: 860963366, Title: "AC_ON · Esports Prediction Market", URL: "http://127.0.0.1:4175/#/markets/1".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+~				23 text 999.58 ACON
+~			27 text YES FlyQuest 41.6% ≈  0.42  ACON / share VS NO Masterclass 58.4% ≈  0.58  ACON / share
+~			28 image YES 41.6%
+~			37 text STORED STATE OPEN Trading open DEADLINE 1d 10h 11/20/2026, 7:15:00 PM YES SHARES 7 outstanding NO SHARES 24 outstanding Creator  0xbC0B...dBA7 Collateral  50.87  ACON Match start  11/20/2026, 7:30:00 PM
+~				42 tab (selected, settable, boolean) BUY, Value: 1
+~				43 tab (selectable, settable, boolean) SELL, Value: 0
+~			44 button YES FlyQuest
+~				45 text YES
++				75 text FlyQuest
+~			47 button NO Masterclass
+~				48 text NO
++				76 text Masterclass
+~				52 text field (settable) SHARES · MAX 100, Value: 1
+~				55 text field (settable) MAX SLIPPAGE %, Value: 1
+~			68 text Quoted cost 0.4182 ACON You pay at most 0.4224 ACON Your ACON 999.58
+~			57 button APPROVE ACON, THEN BUY YES· FlyQuest
+~				58 text APPROVE ACON, THEN BUY
++				77 text YES
++				78 text ·
++				79 text FlyQuest
++			80 text Two wallet steps: first allow the market to spend up to the max cost in ACON, then the buy itself.
+~			74 text Mined in block 12168823. Your shares are on-chain. (No indexer API configured, so the indexed step is skipped.)
++			81 container
++				82 text Transaction:
++				83 link Description: 0x1152a217…817137, Value: sepolia.etherscan.io/tx/0x1152a2174c7c31fb05f0788e2b6ec66ac82f17de4895c828bd653f3ecf817137
++			84 button New trade
+~			64 text 1
+The focused UI element is 0 AXWebArea AC_ON · Esports Prediction Market, URL: 127.0.0.1:4175/#/markets/1
