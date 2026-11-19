@@ -78,8 +78,76 @@ Render web service; no signer key or provider token is hosted there.
   reconcile receipt/nonce/contract state, rotate/fund a replacement, then resume. Never blindly retry
   an uncertain submission.
 - **Provider outage:** retain the last timestamped observation and stop new proposal work.
-- **Contract fault:** pause public writes and escalate to the Safe. Existing contracts are not
-  upgraded; a new deployment requires a new manifest, ABI/address configuration, and full acceptance.
+- **Contract fault:** suspend team-operated frontend and signer writes, warn users about the
+  affected chain/address, and escalate to the Safe. This does not freeze direct contract calls.
+  Existing contracts are not upgraded; a new deployment requires a new manifest, ABI/address
+  configuration, and full acceptance.
+
+### Contract rollback criteria
+
+Contracts are immutable, so a contract rollback never reverts bytecode in place. It means leaving
+the current deployment at its recorded state and moving public activity to a fresh deployment with
+a new versioned manifest. Any one of the following triggers a rollback review:
+
+- A demonstrated or reported defect that can lose or misdirect funds (pricing, payout, surplus, or
+  bond accounting).
+- Compromise of a Safe owner key, or exposure of a role key whose damage cannot be contained by
+  revoking that role through the Safe.
+- VRF fulfillment permanently impossible on the deployed immutable configuration (deprecated gas
+  lane or key hash, discontinued LINK billing, or a coordinator limit incompatible with the frozen
+  2,000,000 callback gas), evidenced by the diagnostic records and, where possible, Chainlink
+  communication.
+- Deployed bytecode no longer matching the frozen ABI/source records in
+  `deployments/sepolia-2026-11-02`, or an unexplained coordinator/subscription ownership change.
+
+Repair these without redeploying instead:
+
+- Frontend, API, indexer, or database defects (service redeploy or derived-projection rebuild).
+- An underfunded VRF subscription (fund to the reviewed minimum; the merged preflight rejects
+  balances below it).
+- Stale, duplicate, or superseded VRF requests (the contract ignores them; retry and advance
+  paths exist).
+- Non-admin key exposure with revocable roles (rotate through the Safe, then resume).
+
+Contain team-operated writes first:
+
+- Adriel deploys a read-only/maintenance frontend with transaction controls disabled, or withdraws
+  the public frontend until that release is ready. Display a notice identifying the affected
+  chain and contract address.
+- Yudhveer stops the registrar and proposer workers. The indexer may keep reading if its
+  configuration and database remain trusted.
+- The Safe revokes exposed operational roles and rotates service accounts where it still has
+  trusted administrative control.
+
+These are off-chain service controls and narrow role changes, not a global on-chain pause.
+The deployed `PredictionMarket` has no contract-wide pause function: users can still submit
+`buy`, `sell`, and other permitted calls directly or through another frontend. Stopping workers
+or changing the public site's contract address does not block those calls. The Safe cannot
+rewrite positions, prices, payouts, or confirmed transactions.
+
+If the incident requires stopping trades on an affected OPEN market, a registrar can call
+`closeTrading` with a nonzero evidence hash before its deadline. This is an irreversible market
+closure, not a temporary pause: it shortens the stored deadline to the close time, starts the
+deadline-based proposal/timeout timing from that value, and the market cannot be reopened.
+Use it only as an explicitly recorded Safe incident decision, with the market IDs, evidence,
+old/new deadlines and receipts. Closing does not immediately settle or refund positions;
+resolution and claims continue under the existing contract rules.
+
+Classify the defect as blocker (funds loss or compromise), degraded (functionality unavailable),
+or cosmetic, and record the trusted Safe decision (2/3) with evidence links. Then choose
+accept-and-mitigate, redeploy the same source with changed configuration, or redeploy changed
+source. If a trusted Safe quorum is unavailable, keep team-operated writes suspended and resolve
+trusted administration for a replacement before releasing it. Rollback owner for contracts: Benny.
+
+If a rollback proceeds: snapshot the state evidence (manifest, receipts, final block), deploy from
+reviewed source per `docs/agent/CONTRACT_DEPLOYMENT.md`, rerun the Safe setup and the six-argument
+`VerifyAdministration.verify`, publish a new versioned manifest and ABI, update Vercel, Render, and
+local-worker configuration, and rerun full acceptance before team-operated writes resume. Positions
+do not migrate: claims and creator surplus on the old address remain claimable there under contract rules,
+and the old manifest stays the record for that deployment.
+
+Last known-good contract record: `deployments/sepolia-2026-11-02` (deployed source `721a6fe`,
+PredictionMarket `0x03ae48f0…10E9`).
 
 ## Go/No-Go Checklist
 
