@@ -23,10 +23,12 @@ services:
     plan: 0.5c-512mb
     numInstances: 1
     buildCommand: pip install -r backend/requirements.txt
-    startCommand: cd backend && python -m app.indexer.worker
+    startCommand: cd backend && if [ "$INDEXER_WORKER_ENABLED" = "true" ]; then python -m app.indexer.worker; else echo "indexer disabled"; exec sleep infinity; fi
     autoDeployTrigger: "off"
     maxShutdownDelaySeconds: 60
     envVars:
+      - key: INDEXER_WORKER_ENABLED
+        value: "false"
       - key: DATABASE_URL
         sync: false
       - key: SEPOLIA_RPC_URL
@@ -53,10 +55,12 @@ services:
     plan: 0.5c-512mb
     numInstances: 1
     buildCommand: pip install -r backend/requirements.txt
-    startCommand: cd backend && python -m app.registrar_process
+    startCommand: cd backend && if [ "$REGISTRAR_WORKER_ENABLED" = "true" ]; then python -m app.registrar_process; else echo "registrar disabled"; exec sleep infinity; fi
     autoDeployTrigger: "off"
     maxShutdownDelaySeconds: 60
     envVars:
+      - key: REGISTRAR_WORKER_ENABLED
+        value: "false"
       - key: DATABASE_URL
         sync: false
       - key: SEPOLIA_RPC_URL
@@ -79,10 +83,12 @@ services:
     plan: 0.5c-512mb
     numInstances: 1
     buildCommand: pip install -r backend/requirements.txt
-    startCommand: cd backend && python -m app.proposer_process
+    startCommand: cd backend && if [ "$PROPOSER_WORKER_ENABLED" = "true" ]; then python -m app.proposer_process; else echo "proposer disabled"; exec sleep infinity; fi
     autoDeployTrigger: "off"
     maxShutdownDelaySeconds: 60
     envVars:
+      - key: PROPOSER_WORKER_ENABLED
+        value: "false"
       - key: DATABASE_URL
         sync: false
       - key: SEPOLIA_RPC_URL

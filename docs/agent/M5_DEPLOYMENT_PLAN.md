@@ -42,8 +42,10 @@ batch size at ten unless a new provider is tested.
 2. Back up Supabase and record table counts plus current Alembic revision.
 3. Apply `alembic upgrade head`; verify revision `20261102_0008` and preserved counts.
 4. Deploy the Render web service and verify `/health` without exposing configuration.
-5. Start exactly one indexer; verify chain/address/ABI, safe-block advancement, and two-block lag.
-6. Start isolated registrar and proposer workers; verify roles/balances before accepting jobs.
+5. Set `INDEXER_WORKER_ENABLED=true` and manually deploy exactly one indexer; verify
+   chain/address/ABI, safe-block advancement, and two-block lag.
+6. After verifying roles, balances, and pending work, set the registrar and proposer enable flags
+   to `true` and manually deploy the isolated signer workers.
 7. Deploy Vercel with the public Render URL and exact Sepolia addresses.
 8. Run public smoke and Playwright reads, then controlled MetaMask acceptance transactions.
 9. Record sanitized results in the integration ledger before declaring the release healthy.
@@ -52,9 +54,10 @@ batch size at ten unless a new provider is tested.
     definitions for recovery evidence.
 
 The root `render.yaml` uses the free API plan and the smallest paid worker plan. Blueprint creation
-can start new services even though later automatic deploys are disabled. Complete the backup,
-migration, environment, role, and balance checks before the initial sync and suspend workers in the
-dashboard whenever the controlled evidence window is not active.
+can start billing even though later automatic deploys are disabled, so every worker command is
+gated by a service-specific `*_WORKER_ENABLED` variable that defaults to `false`. Complete the
+backup, migration, environment, role, and balance checks before enabling a worker. Suspend workers
+and restore their flags to `false` whenever the controlled evidence window is not active.
 
 ## Readiness And Monitoring
 

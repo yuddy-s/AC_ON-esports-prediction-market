@@ -14,16 +14,17 @@ Ethereum contracts remain authoritative.
 Use `deployments/sepolia-2026-11-02/manifest.post-setup.json` and its versioned PredictionMarket
 ABI. Before the initial Blueprint sync, back up Supabase, record revision/counts, confirm head
 `20261102_0008`, and prepare every dashboard-only variable. Blueprint creation can start paid
-workers immediately.
+billing immediately, but all three worker commands remain dormant while their enable flags are
+`false`.
 
 Do not set Render's `rootDir` to `backend`: Render excludes files outside that directory and the
 indexer needs the frozen ABI under `deployments/`. The four commands run from the repository root:
 
 ```text
 cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
-cd backend && python -m app.indexer.worker
-cd backend && python -m app.registrar_process
-cd backend && python -m app.proposer_process
+cd backend && if [ "$INDEXER_WORKER_ENABLED" = "true" ]; then python -m app.indexer.worker; else echo "indexer disabled"; exec sleep infinity; fi
+cd backend && if [ "$REGISTRAR_WORKER_ENABLED" = "true" ]; then python -m app.registrar_process; else echo "registrar disabled"; exec sleep infinity; fi
+cd backend && if [ "$PROPOSER_WORKER_ENABLED" = "true" ]; then python -m app.proposer_process; else echo "proposer disabled"; exec sleep infinity; fi
 ```
 
 Set `DATABASE_URL` separately on all four services and `SEPOLIA_RPC_URL` on the workers. Put only
@@ -31,16 +32,18 @@ Set `DATABASE_URL` separately on all four services and `SEPOLIA_RPC_URL` on the 
 the exact Vercel origin on the API. Safe-owner, resolver, creator, trader, and challenger keys are
 never Render variables.
 
-Start the API first, then exactly one indexer. Start signer workers only after inspecting expected
-pending work and verifying role/balance state. Validate the public stack from `backend/`:
+Start the API first. Set `INDEXER_WORKER_ENABLED=true` and manually deploy exactly one indexer.
+Enable and manually deploy signer workers only after inspecting expected pending work and verifying
+role/balance state. Validate the public stack from `backend/`:
 
 ```text
 python -m scripts.smoke_public --api-base-url RENDER_URL --frontend-url VERCEL_URL --manifest ../deployments/sepolia-2026-11-02/manifest.post-setup.json --output ../deployments/M5-public-smoke.json
 ```
 
 Store the output only after confirming it contains public data. After testing, suspend proposer and
-registrar immediately, then suspend the indexer after recording its last safe block. Confirm the
-dashboard reports all three workers suspended so paid runtime has stopped.
+registrar immediately, then suspend the indexer after recording its last safe block. Restore all
+three enable flags to `false` and confirm the dashboard reports all three workers suspended so paid
+runtime has stopped.
 
 ## Required handoff
 

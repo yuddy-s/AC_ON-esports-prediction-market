@@ -52,8 +52,8 @@ Slither, coverage, and secret scanning.
 ## Render And Supabase Deployment
 
 The root `render.yaml` defines one free API and three smallest-plan paid workers. Automatic deploys
-are off. The initial Blueprint sync can start paid instances, so back up and verify Supabase, enter
-all secrets, and be ready to suspend workers before syncing. Services deploy from the repository
+are off. The initial Blueprint sync can start billing for paid instances, but each worker starts in
+a dormant state because its `*_WORKER_ENABLED` value is `false`. Services deploy from the repository
 root so the indexer can read the frozen ABI under `deployments/`; their commands explicitly enter
 `backend/`.
 
@@ -61,11 +61,14 @@ root so the indexer can read the frozen ABI under `deployments/`; their commands
 2. Apply migrations from one controlled release process. Expected head is `20261102_0008`.
 3. Create the Blueprint and enter every `sync: false` value in Render.
 4. Deploy the API and confirm `/health`.
-5. Start exactly one indexer and wait for `/api/v2/indexer/status` to become current.
-6. Start registrar/proposer only after confirming their roles, balances, and expected pending work.
+5. Set `INDEXER_WORKER_ENABLED=true`, manually deploy exactly one indexer, and wait for
+   `/api/v2/indexer/status` to become current.
+6. Set `REGISTRAR_WORKER_ENABLED=true` and `PROPOSER_WORKER_ENABLED=true`, then manually deploy the
+   signer workers only after confirming their roles, balances, and expected pending work.
 7. Configure the exact Vercel origin as `FRONTEND_ORIGIN` and run the public smoke command.
-8. After evidence capture, suspend proposer and registrar, then the indexer. Confirm suspension in
-   Render billing; leave the free API available.
+8. After evidence capture, suspend proposer and registrar, then the indexer. Set all three enable
+   flags back to `false` before any later deployment and confirm suspension in Render billing; leave
+   the free API available.
 
 The registrar environment receives only `REGISTRAR_PRIVATE_KEY`; the proposer receives only
 `PROPOSER_PRIVATE_KEY`. PandaScore import remains an operator action and its token is not required by
