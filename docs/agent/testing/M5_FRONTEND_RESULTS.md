@@ -36,7 +36,7 @@ Command: `cd frontend && PLAYWRIGHT_CHANNEL=chrome npm run test:e2e` (installed 
 
 ## Frontend Defects
 
-Add these to `M5_DEFECT_LOG.md` once PR #59 (which rewrites that table) is merged.
+Also recorded as M5-003 in [`M5_DEFECT_LOG.md`](M5_DEFECT_LOG.md).
 
 | ID | Severity | Symptom and reproduction | Root cause | Fix | Regression test | Status |
 |---|---|---|---|---|---|---|

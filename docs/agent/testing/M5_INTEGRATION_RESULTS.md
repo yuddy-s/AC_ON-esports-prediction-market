@@ -12,6 +12,10 @@ acceptance rows below; hosted Render/Vercel verification remains pending. The
 still shows no successful callback, committee or votes, so issue #56 remains open. Local test
 results do not replace the pending CI rows below.
 
+Hosted frontend: https://acon-esports-market.vercel.app (Vercel, M4 Sepolia contracts). It reads
+contracts only until the Render API URL is configured as `VITE_API_URL`; see
+[frontend results](M5_FRONTEND_RESULTS.md).
+
 ## Automated Baseline
 
 | Layer | Command/check | Environment | Result | Evidence | Notes |
