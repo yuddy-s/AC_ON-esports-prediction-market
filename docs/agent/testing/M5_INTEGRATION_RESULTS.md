@@ -25,7 +25,7 @@ contracts only until the Render API URL is configured as `VITE_API_URL`; see
 | PostgreSQL | migrations, 78-digit values, replay/rebuild | CI PostgreSQL service | pending implementation | pending | SQLite remains the fast unit path. |
 | Contracts | Foundry unit/fuzz/invariant and six journeys | GitHub Actions / Anvil | pending M5 rerun | pending CI/artifact | Record exact test summary. |
 | Security | Slither, coverage, ABI/runtime and GitGuardian | GitHub Actions | pending M5 rerun | pending CI/artifact | Do not copy secret scanner payloads. |
-| Browser | Playwright read-only journeys | local build and public Vercel (contract reads only); Render pending | local pass 10/10; public Vercel pass 10/10; with API pending | [frontend results](M5_FRONTEND_RESULTS.md) | MetaMask writes remain manual. |
+| Browser | Playwright read-only and wallet-failure journeys | local build and public Vercel (contract reads only); Render pending | read-only: local 10/10, public 10/10; full 14-test suite: public 12/14 before the RPC fix (M5-004), local 14/14 after; with API pending | [frontend results](M5_FRONTEND_RESULTS.md) | MetaMask writes remain manual. |
 
 ## Public Cross-Layer Acceptance
 
@@ -53,7 +53,7 @@ contracts only until the Render API URL is configured as `VITE_API_URL`; see
 | LOC-05 | Seven-day no-proposal timeout | Anvil time control | permissionless resolver selection | pending | pending | — |
 | LOC-06 | First-round failure and replacement | Anvil time control | exactly one replacement round | pending | pending | — |
 | LOC-07 | Round-two failure and VOID | Anvil time control | VOID and half-value claims | pending | pending | — |
-| LOC-08 | Wrong network/rejected/reverted wallet action | browser/manual | clear non-authoritative failure state | pending | pending | — |
+| LOC-08 | Wrong network/rejected/reverted wallet action | browser/manual | clear non-authoritative failure state | Wrong network and rejected request: Playwright with a scripted non-signing wallet, 4/4 on public Vercel and 4/4 on the local build ([frontend results](M5_FRONTEND_RESULTS.md#wallet-failure-journeys-loc-08)). Reverted receipt: `tradeStatus` unit tests; manual MetaMask run pending. | pass (wrong network, rejection); reverted manual pending | M5-004 found during this run |
 
 ## Result Rules
 

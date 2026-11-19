@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// Read-only browser journeys (M5). No wallet and no transactions: MetaMask writes stay manual.
+// Browser journeys (M5): read-only pages plus wallet-failure paths (LOC-08) driven by a scripted
+// wallet that rejects every request. No keys and no transactions: MetaMask writes stay manual.
 //
 //   PLAYWRIGHT_BASE_URL=https://<deployment>.vercel.app npm run test:e2e   # public site
 //   npm run test:e2e                                                        # local production build
