@@ -1,0 +1,70 @@
+{
+  "description": "Shared market state and deadline vectors for issue #53. The contract is authoritative: storedState is what getMarket returns and what the indexer projects from events; the expected fields are what the contract accepts at blockTimestamp. Frontend tests derive the effective phase from the same inputs. Times are Unix seconds.",
+  "source": "contracts/src/PredictionMarket.sol: trades revert TradingClosed when blockTimestamp >= tradingDeadline; proposeOutcome needs tradingDeadline <= blockTimestamp < tradingDeadline + NO_PROPOSAL_PERIOD; requestResolverSelection without a dispute needs blockTimestamp >= tradingDeadline + NO_PROPOSAL_PERIOD; closeTrading before the deadline sets tradingDeadline to the close time.",
+  "noProposalPeriodSeconds": 604800,
+  "vectors": [
+    {
+      "name": "open-one-second-before-deadline",
+      "storedState": "OPEN",
+      "tradingDeadline": 1000000,
+      "blockTimestamp": 999999,
+      "expected": { "tradeAccepted": true, "proposalAccepted": false, "noProposalSelectionAccepted": false, "frontendActions": ["trade"] }
+    },
+    {
+      "name": "open-exactly-at-deadline",
+      "storedState": "OPEN",
+      "tradingDeadline": 1000000,
+      "blockTimestamp": 1000000,
+      "expected": { "tradeAccepted": false, "proposalAccepted": true, "noProposalSelectionAccepted": false, "frontendActions": [] }
+    },
+    {
+      "name": "open-one-second-after-deadline",
+      "storedState": "OPEN",
+      "tradingDeadline": 1000000,
+      "blockTimestamp": 1000001,
+      "expected": { "tradeAccepted": false, "proposalAccepted": true, "noProposalSelectionAccepted": false, "frontendActions": [] }
+    },
+    {
+      "name": "open-last-second-of-proposal-window",
+      "storedState": "OPEN",
+      "tradingDeadline": 1000000,
+      "blockTimestamp": 1604799,
+      "expected": { "tradeAccepted": false, "proposalAccepted": true, "noProposalSelectionAccepted": false, "frontendActions": [] }
+    },
+    {
+      "name": "open-no-proposal-timeout",
+      "storedState": "OPEN",
+      "tradingDeadline": 1000000,
+      "blockTimestamp": 1604800,
+      "expected": { "tradeAccepted": false, "proposalAccepted": false, "noProposalSelectionAccepted": true, "frontendActions": ["request-selection"] }
+    },
+    {
+      "name": "closed-early-by-registrar",
+      "storedState": "CLOSED",
+      "tradingDeadline": 1000000,
+      "blockTimestamp": 1000000,
+      "expected": { "tradeAccepted": false, "proposalAccepted": true, "noProposalSelectionAccepted": false, "frontendActions": [] }
+    },
+    {
+      "name": "closed-no-proposal-timeout",
+      "storedState": "CLOSED",
+      "tradingDeadline": 1000000,
+      "blockTimestamp": 1604800,
+      "expected": { "tradeAccepted": false, "proposalAccepted": false, "noProposalSelectionAccepted": true, "frontendActions": ["request-selection"] }
+    },
+    {
+      "name": "finalized-is-terminal",
+      "storedState": "FINALIZED",
+      "tradingDeadline": 1000000,
+      "blockTimestamp": 2000000,
+      "expected": { "tradeAccepted": false, "proposalAccepted": false, "noProposalSelectionAccepted": false }
+    },
+    {
+      "name": "void-is-terminal",
+      "storedState": "VOID",
+      "tradingDeadline": 1000000,
+      "blockTimestamp": 2000000,
+      "expected": { "tradeAccepted": false, "proposalAccepted": false, "noProposalSelectionAccepted": false }
+    }
+  ]
+}
