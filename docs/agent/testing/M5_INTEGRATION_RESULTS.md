@@ -12,22 +12,37 @@ acceptance rows below; hosted Render/Vercel verification remains pending. The
 still shows no successful callback, committee or votes, so issue #56 remains open. Local test
 results do not replace the pending CI rows below.
 
+November 19 public check: `https://acon-esports-market.vercel.app` and the free API at
+`https://ac-on-esports-prediction-market.onrender.com` are reachable. After credential rotation, a
+local one-time indexer advanced the shared checkpoint from safe block 12,163,950 to 12,165,866 in
+192 bounded batches. No new contract logs were present and every recorded source, review,
+registration, market, trade, event, and position count was preserved. Public smoke then passed
+frontend, health, database, CORS, chain, address, deployment block, ABI, freshness (19 seconds), and
+two-block lag checks. A second indexer process resumed from the checkpoint, processed one six-block
+range, and left all log/projection counts unchanged. See the
+[sanitized verification record](../../../deployments/m5-public-2026-11-19/backend-public-verification.json).
+Two one-shot registrar starts preserved the confirmed registration and its four audit events. The
+second initial proposer start exposed a Supabase transaction-pooler `DuplicatePreparedStatement`
+failure. Disabling psycopg automatic preparation fixed it; 33 focused tests and two consecutive
+post-fix proposer starts passed without adding intents, events, logs, or transactions. The Render
+API restart remains the only incomplete LOC-02 subcheck.
+
 ## Automated Baseline
 
 | Layer | Command/check | Environment | Result | Evidence | Notes |
 |---|---|---|---|---|---|
-| Frontend | Vitest, typecheck, production build | local | 159 passed; typecheck/build passed | M5 backend branch local run, 2026-11-18 | GitHub Actions rerun remains required. |
-| Backend | Alembic-compatible SQLite Pytest suite | local SQLite | 133 passed, 1 PostgreSQL-only test skipped | M5 backend branch local run, 2026-11-18 | The focused recovery/review slice was 76 passed. |
-| PostgreSQL | migrations, 78-digit values, replay/rebuild/reorg/preservation | disposable CI PostgreSQL 16 | implemented; CI pending | backend PostgreSQL job and `test_postgres_integration.py` | Never connects to Supabase. |
-| Contracts | Foundry unit/fuzz/invariant and six journeys | GitHub Actions / Anvil | pending M5 rerun | pending CI/artifact | Record exact test summary. |
-| Security | Slither, coverage, ABI/runtime and GitGuardian | GitHub Actions | pending M5 rerun | pending CI/artifact | Do not copy secret scanner payloads. |
+| Frontend | Vitest, typecheck, production build | GitHub Actions | pass | PR #64 CI run `44446727316` | Build completed after merging current `dev` changes. |
+| Backend | Alembic-compatible SQLite Pytest suite | local + GitHub Actions | 142 passed, 1 PostgreSQL-only local skip; PR #65 CI pending | PR #64 CI plus PR #65 local run | Includes public-smoke, database-target safety, and Supabase pooler regressions. |
+| PostgreSQL | migrations, 78-digit values, replay/rebuild/reorg/preservation | disposable CI PostgreSQL 16 | pass | PR #64 PostgreSQL job, CI run `44446727316` | Dedicated validated `TEST_POSTGRES_URL`; never connects to Supabase. |
+| Contracts | Foundry unit/fuzz/invariant and six journeys | GitHub Actions / Anvil | pass | PR #64 CI run `44446727316` | Public VRF callback evidence remains separate and pending. |
+| Security | Slither, coverage, ABI/runtime and GitGuardian | GitHub Actions | pass | PR #64 CI run `44446727316` | No secret values are copied into this ledger. |
 | Browser | Playwright read-only journeys | public Vercel/Render | pending implementation | pending trace/screenshots | MetaMask writes remain manual. |
 
 ## Public Cross-Layer Acceptance
 
 | ID | Journey/check | Environment | UTC time | Fixture/market | Actor role | Tx/block | Contract result | DB/API result | UI result | Evidence | Status | Defect |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| PUB-01 | Health, chain/address/ABI and CORS agreement | public stack | pending | n/a | operator | n/a | n/a | pending | pending | pending | pending | — |
+| PUB-01 | Health, chain/address/ABI and CORS agreement | public Vercel/Render/Supabase plus local indexer | 2026-11-19T03:36:50Z | n/a | operator | n/a | chain/address/block/ABI matched manifest | health/database/CORS pass; safe block 12,165,866, lag 2, age 19 seconds | frontend reachable | [sanitized JSON](../../../deployments/m5-public-2026-11-19/backend-public-verification.json) | pass | — |
 | PUB-02 | Reviewed fixture registration | Sepolia/public stack | pending | pending | user + registrar | pending | pending | pending | pending | pending | pending | — |
 | PUB-03 | User-funded market creation | Sepolia/public stack | pending | pending | creator | pending | pending | pending | pending | pending | pending | — |
 | PUB-04 | Guarded buy and indexed position | Sepolia/public stack | pending | pending | trader | pending | pending | pending | pending | pending | pending | — |
@@ -43,7 +58,7 @@ results do not replace the pending CI rows below.
 | ID | Scenario | Environment | Expected result | Evidence | Status | Defect |
 |---|---|---|---|---|---|---|
 | LOC-01 | Provider 429/outage/malformed response | deterministic transport | retain last observation and stop proposal work | `test_pandascore.py` included in 76-test focused pass | pass | — |
-| LOC-02 | API/indexer/worker restart | local + Supabase staging | resume without duplicate transactions/logs | pending | pending | — |
+| LOC-02 | API/indexer/worker restart | local + Supabase staging | resume without duplicate transactions/logs | indexer and empty/confirmed-queue registrar/proposer restart subchecks passed without duplicate rows or transactions; Render API restart pending in [sanitized JSON](../../../deployments/m5-public-2026-11-19/backend-public-verification.json) | pending | M5-003 fixed; API subcheck pending |
 | LOC-03 | Duplicate/reordered/missed logs and reorg | Pytest provider | deterministic canonical rebuild | `test_indexer.py` included in 76-test focused pass | pass | — |
 | LOC-04 | Uncertain signer submission | mock RPC/gateway | quarantine and reconcile before retry | registration/oracle tests included in 76-test focused pass | pass | — |
 | LOC-05 | Seven-day no-proposal timeout | Anvil time control | permissionless resolver selection | pending | pending | — |

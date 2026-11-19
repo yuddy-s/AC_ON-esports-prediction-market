@@ -13,6 +13,11 @@ class Base(DeclarativeBase):
 def _connect_args(database_url: str) -> dict[str, object]:
     if database_url.startswith("sqlite"):
         return {"check_same_thread": False}
+    if database_url.startswith("postgresql+psycopg://"):
+        # Supabase's transaction pooler can hand a client connection to a backend that already has
+        # psycopg's generated prepared-statement name. Disable automatic preparation so independent
+        # API/worker processes can safely share the pooler without DuplicatePreparedStatement.
+        return {"prepare_threshold": None}
     return {}
 
 

@@ -1,7 +1,8 @@
 # AC_ON Developer Guide
 
-Status: Milestone 5 draft. Local implementation and deployment configuration are complete; public
-Render/Vercel URLs and hosted acceptance evidence remain pending.
+Status: Milestone 5 draft. The Vercel frontend and free Render API are public. Supabase and Sepolia
+are persistent public dependencies; the indexer, registrar, proposer, and PandaScore tools are
+operator-run locally during controlled integration windows.
 
 ## Architecture And Trust Boundaries
 
@@ -49,37 +50,41 @@ replay, rebuild preservation, and reorganization behavior. Existing SQLite tests
 unit path. Foundry CI also runs ABI/source/runtime checks, pricing vectors, six Anvil journeys,
 Slither, coverage, and secret scanning.
 
-## Render And Supabase Deployment
+## Hybrid Render, Supabase, And Local-Worker Deployment
 
-The root `render.yaml` defines one free API and three smallest-plan paid workers. Automatic deploys
-are off. The initial Blueprint sync can start billing for paid instances, but each worker starts in
-a dormant state because its `*_WORKER_ENABLED` value is `false`. Services deploy from the repository
-root so the indexer can read the frozen ABI under `deployments/`; their commands explicitly enter
-`backend/`.
+The deployed M5 topology uses the public Vercel frontend at
+`https://acon-esports-market.vercel.app`, the free Render API at
+`https://ac-on-esports-prediction-market.onrender.com`, Supabase PostgreSQL, and the Sepolia M4
+contracts. The root `render.yaml` documents an optional paid-worker topology; it is not the topology
+currently deployed. Do not sync that Blueprint when the intent is to use only the free API.
 
-1. Record Supabase revision and pre-deployment counts; back it up outside Git.
-2. Apply migrations from one controlled release process. Expected head is `20261102_0008`.
-3. Create the Blueprint and enter every `sync: false` value in Render.
-4. Deploy the API and confirm `/health`.
-5. Set `INDEXER_WORKER_ENABLED=true`, manually deploy exactly one indexer, and wait for
-   `/api/v2/indexer/status` to become current.
-6. Set `REGISTRAR_WORKER_ENABLED=true` and `PROPOSER_WORKER_ENABLED=true`, then manually deploy the
-   signer workers only after confirming their roles, balances, and expected pending work.
-7. Configure the exact Vercel origin as `FRONTEND_ORIGIN` and run the public smoke command.
-8. After evidence capture, suspend proposer and registrar, then the indexer. Set all three enable
-   flags back to `false` before any later deployment and confirm suspension in Render billing; leave
-   the free API available.
+1. Rotate any exposed credential, back up Supabase, and record revision/table counts. Expected head
+   is `20261102_0008`.
+2. Create a free Render web service from `dev`, leave the root directory unset, build with
+   `pip install -r backend/requirements.txt`, and start with
+   `cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
+3. Give the API only `DATABASE_URL`, exact `FRONTEND_ORIGIN`, and explicit
+   `INDEXER_CHAIN_ID=11155111`. Never give it RPC/provider credentials or private keys.
+4. Confirm `/health`, then run exactly one local indexer from `backend/` with
+   `python -m app.indexer.worker`. Use `--once` for a catch-up pass or leave it polling during a
+   demonstration. The API reads the resulting Supabase projections without a restart.
+5. Inspect expected jobs before running `python -m app.registrar_process` or
+   `python -m app.proposer_process`. Each uses its separate local signer account; stop it after the
+   intended job is confirmed. `--once` performs one controlled processing pass.
+6. Run PandaScore import/review commands only from the private operator environment.
+7. While the local indexer is current, run the public smoke command and record sanitized evidence.
 
-The registrar environment receives only `REGISTRAR_PRIVATE_KEY`; the proposer receives only
-`PROPOSER_PRIVATE_KEY`. PandaScore import remains an operator action and its token is not required by
-these four services.
+The laptop must remain awake while a continuously polling local worker is needed. When it stops,
+the frontend and API remain public but indexed projections become stale. Evidence and presentation
+material must call these processes `local operator-run workers`, not hosted Render workers.
 
 ## Monitoring And Recovery
 
 - `/health` checks API/database availability.
 - `/api/v2/indexer/status` must match chain, contract, deployment block, ABI, safe block, and recent
   update time. A small lag with an old timestamp is stale.
-- On indexer failure, suspend duplicates, retain one worker, verify configuration, then resume.
+- On indexer failure, stop duplicate local processes, retain one worker, verify configuration, then
+  resume from the stored checkpoint.
 - On signer uncertainty, check receipt, nonce, and contract state before retrying.
 - Rebuild only chain-derived fixtures, markets, events, positions, and checkpoints. Preserve source,
   review, registration, assessment, intent, attempt, and audit records.

@@ -4,46 +4,41 @@
 > [M4_APPLICATION_RUNBOOK.md](M4_APPLICATION_RUNBOOK.md). This file retains historical
 > M3 deployment and recovery context; do not copy its M3 addresses into M4 configuration.
 
-The current M5 service definition is the root `render.yaml`: one free FastAPI service and three
-isolated smallest-plan paid workers for the deployed M4 contracts. Automatic deployments are off.
-The historical M3 details below remain audit context and must not supply current addresses.
-Ethereum contracts remain authoritative.
+The actual M5 deployment uses a free Render FastAPI service and local operator-run indexer,
+registrar, and proposer processes. The root `render.yaml` retains the optional reviewed paid-worker
+topology but is not synced for this deployment. The historical M3 details below remain audit context
+and must not supply current addresses. Ethereum contracts remain authoritative.
 
-## Current M5 Render Procedure
+## Current M5 Hybrid Procedure
 
 Use `deployments/sepolia-2026-11-02/manifest.post-setup.json` and its versioned PredictionMarket
-ABI. Before the initial Blueprint sync, back up Supabase, record revision/counts, confirm head
-`20261102_0008`, and prepare every dashboard-only variable. Blueprint creation can start paid
-billing immediately, but all three worker commands remain dormant while their enable flags are
-`false`.
+ABI. Back up Supabase, record revision/counts, confirm head `20261102_0008`, and rotate any exposed
+credential before a public or local process uses the database.
 
-Do not set Render's `rootDir` to `backend`: Render excludes files outside that directory and the
-indexer needs the frozen ABI under `deployments/`. The four commands run from the repository root:
+Create only the free Render web service from `dev`; do not sync the paid-worker Blueprint. Leave
+Render's root directory unset and use:
 
 ```text
 cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
-cd backend && if [ "$INDEXER_WORKER_ENABLED" = "true" ]; then python -m app.indexer.worker; else echo "indexer disabled"; exec sleep infinity; fi
-cd backend && if [ "$REGISTRAR_WORKER_ENABLED" = "true" ]; then python -m app.registrar_process; else echo "registrar disabled"; exec sleep infinity; fi
-cd backend && if [ "$PROPOSER_WORKER_ENABLED" = "true" ]; then python -m app.proposer_process; else echo "proposer disabled"; exec sleep infinity; fi
 ```
 
-Set `DATABASE_URL` separately on all four services and `SEPOLIA_RPC_URL` on the workers. Put only
-`REGISTRAR_PRIVATE_KEY` on the registrar and only `PROPOSER_PRIVATE_KEY` on the proposer. Configure
-the exact Vercel origin on the API. Safe-owner, resolver, creator, trader, and challenger keys are
-never Render variables.
+Set only `DATABASE_URL`, exact `FRONTEND_ORIGIN`, and `INDEXER_CHAIN_ID=11155111` on the API. Keep
+RPC/provider credentials and every private key local. From `backend/`, run exactly one local indexer
+with `python -m app.indexer.worker --once` for catch-up or without `--once` during a live window.
+Run registrar/proposer separately only after inspecting the expected queue; stop each after its job
+is confirmed.
 
-Start the API first. Set `INDEXER_WORKER_ENABLED=true` and manually deploy exactly one indexer.
-Enable and manually deploy signer workers only after inspecting expected pending work and verifying
-role/balance state. Validate the public stack from `backend/`:
+The public endpoints are `https://ac-on-esports-prediction-market.onrender.com` and
+`https://acon-esports-market.vercel.app`. Validate the public stack while the local indexer is
+current:
 
 ```text
 python -m scripts.smoke_public --api-base-url RENDER_URL --frontend-url VERCEL_URL --manifest ../deployments/sepolia-2026-11-02/manifest.post-setup.json --max-indexer-age-seconds 120 --max-indexer-lag-blocks 20 --output ../deployments/M5-public-smoke.json
 ```
 
-Store the output only after confirming it contains public data. After testing, suspend proposer and
-registrar immediately, then suspend the indexer after recording its last safe block. Restore all
-three enable flags to `false` and confirm the dashboard reports all three workers suspended so paid
-runtime has stopped.
+Store the output only after confirming it contains public data. After testing, stop proposer and
+registrar immediately, then stop the indexer after recording its last safe block. The API remains
+public; its status timestamp accurately reveals when local indexing is no longer current.
 
 ## Required handoff
 
