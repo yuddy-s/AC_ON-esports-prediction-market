@@ -1,11 +1,13 @@
 # Milestone 5: Testing and Integration
 
 Status: implementation complete. Milestone 4 is merged to `main`; M5 publicly deploys and
-hardens that frozen feature set. The (M4) action item — the real Sepolia VRF-to-settlement
-demonstration — was completed on November 19: a reviewed fixture, user-funded market, trades,
-proposal, bonded challenge, a fulfilled Chainlink VRF committee draw, three matching votes,
-settlement, claims and surplus are evidenced in
+hardens that frozen feature set. The on-chain leg of the (M4) action item — the real Sepolia
+VRF-to-settlement demonstration — was completed on November 19: a reviewed fixture,
+user-funded market, trades, proposal, bonded challenge, a fulfilled Chainlink VRF committee
+draw, three matching votes, settlement, claims and surplus are evidenced on-chain in
 [deployments/m5-sepolia-lifecycle-2026-11-19](../../../deployments/m5-sepolia-lifecycle-2026-11-19/README.md).
+The indexed DB/API/UI reflection of the settled market — the issue's cross-layer criterion —
+completes once the operator indexer resumes and catches up.
 Product features, contract redesign, API expansion, and network migration are out of scope unless integration testing proves a release-blocking defect.
 
 ## Course Deliverables

@@ -53,10 +53,11 @@ external match `1805897`, scheduled start **2026-11-19T08:30:00Z**.
 | 1 | `0xB5ce…9A6A` | YES | 10 | 5.249584441082326514 | [`0xc1f9a796…93c`](https://sepolia.etherscan.io/tx/0xc1f9a79614833b6a3787150f5c6684853b4ac6a9c18f29daaa0d5ae3bc75193c) | 12166671 |
 | 2 | `0xB5ce…9A6A` | YES | 17 | 10.051193344465086260 | [`0xb250577e…9b9`](https://sepolia.etherscan.io/tx/0xb250577eedd814b83bcb2081db3738423aad693a765337c4e97fb133a92cb9b9) | 12166674 |
 | 3 | `0x6a51…ffaCc` (R01) | YES | 11 | 7.225546927180017441 | [`0x874844b3…09b59`](https://sepolia.etherscan.io/tx/0x874844b3b8b9e86eb5736e23b03635d084e245a3f67bcc518f30acb2ec209b59) | 12167081 |
-| 4 | `0xcddb…15A8C` (R02) | NO | 11 | 3.774452226301475576 | [`0x0d6cbe38…a29f4`](https://sepolia.etherscan.io/tx/0x0d6cbe38914869505df89d10f56483f14467be192d1f5221b5dfd647e75a29f4) | 12167093 |
+| 4 | `0xcddb…15A8C` (R02) | NO | 11 | 3.774453072819982560 | [`0x0d6cbe38…a29f4`](https://sepolia.etherscan.io/tx/0x0d6cbe38914869505df89d10f56483f14467be192d1f5221b5dfd647e75a29f4) | 12167093 |
 
 - On-chain state reconciles: 38 YES / 11 NO outstanding, collateral `60.958136813544678246` =
-  subsidy 34.657359027997265471 + buys 26.300777785547412775.
+  subsidy 34.657359027997265471 + buys 26.300777785547412775
+  (5.249584441082326514 + 10.051193344465086260 + 7.225546927180017441 + 3.774453072819982560).
 - **Committee-eligibility consequence:** R01 (challenger + trader) and R02 (trader/holder) are
   excluded from selection for this market by `_notConflicted`. The eligible pool is R03–R10
   (eight wallets) — above the five needed to freeze the snapshot. No further resolver wallets
@@ -155,14 +156,14 @@ matching YES triggered settlement.
 | Order | Voter | Vote | Tx | Block |
 |---|---|---|---|---|
 | 1 | R04 `0x2897…1b55` | YES | [`0x2a342ac0…dc07`](https://sepolia.etherscan.io/tx/0x2a342ac0b55678d5bbf03638b4db1ba20015ec06904035a4f8876a19611adc07) | 12169235 |
-| 2 | R08 `0x7939…d755` | NO | [`0x4da4c265…f701`](https://sepolia.etherscan.io/tx/0x4da4c26583dfa90a57aec8a347beb70c4de24db7762a592ef2fc1192bfd3f701) | 12169246 |
-| 3 | R05 `0xffa3…4dce` | YES | [`0x0456e179…fc99`](https://sepolia.etherscan.io/tx/0x0456e179063a313347c0b7550e3cd91f9737fbf0c88f18d28dddc6c806edfc99) | 12169236 |
-| 4 | R03 `0xbedc…99f8` | NO | [`0x5bae24a9…1def`](https://sepolia.etherscan.io/tx/0x5bae24a960a1102e4bf51abbd2b4b8410dc2328d4479518070e69dd527091def) | 12169237 |
-| 5 | R09 `0x748b…0a56` | NO | [`0x4f69e3a9…b12`](https://sepolia.etherscan.io/tx/0x4f69e3a952493a01873d12731df2d6a9d9b863f133238feabd5588274c0f7b12) | 12169245 |
-| settle | R08 `0x7939…d755` | **YES (3rd match)** | [`0x4da4c265…f701`](https://sepolia.etherscan.io/tx/0x4da4c26583dfa90a57aec8a347beb70c4de24db7762a592ef2fc1192bfd3f701) | 12169246 |
+| 2 | R05 `0xffa3…4dce` | YES | [`0x0456e179…fc99`](https://sepolia.etherscan.io/tx/0x0456e179063a313347c0b7550e3cd91f9737fbf0c88f18d28dddc6c806edfc99) | 12169236 |
+| 3 | R03 `0xbedc…99f8` | NO | [`0x5bae24a9…1def`](https://sepolia.etherscan.io/tx/0x5bae24a960a1102e4bf51abbd2b4b8410dc2328d4479518070e69dd527091def) | 12169237 |
+| 4 | R09 `0x748b…0a56` | NO | [`0x4f69e3a9…b12`](https://sepolia.etherscan.io/tx/0x4f69e3a952493a01873d12731df2d6a9d9b863f133238feabd5588274c0f7b12) | 12169245 |
+| 5 | R08 `0x7939…d755` | **YES (3rd match — settles)** | [`0x4da4c265…f701`](https://sepolia.etherscan.io/tx/0x4da4c26583dfa90a57aec8a347beb70c4de24db7762a592ef2fc1192bfd3f701) | 12169246 |
 
-(The broadcast order was R04, R05, R03, R09, R08 after a key-roster correction; the tallies
-above are the on-chain `voteCounts` sequence.) Final on-chain record:
+(Broadcast order R04 → R05 → R03 → R09 → R08; an initial key-roster mislabel briefly pointed
+R08's vote at R07's address and was corrected before broadcasting — R07 received a
+`ResolverNotSelected` revert and no transaction.) Final on-chain record:
 
 - `voteCounts (YES, NO, VOID) = (3, 2, 0)`; market **FINALIZED (6)** at block 12169246,
   2026-11-19T15:21:48Z.
@@ -185,8 +186,9 @@ mismatch — corrected before broadcasting).
 | Winning | R01 `0x6a51…ffaCc` | 11 YES | **11 ACON** | [`0x256772e1…e92`](https://sepolia.etherscan.io/tx/0x256772e1aa887d1e4f2060574161b4b54480ccf415980c64395609ebf0108e92) | 12169252 |
 | Losing close-out | R02 `0xcddb…15A8C` | 11 NO | **0 ACON** (closes the position) | [`0x85f33a8c…cf24`](https://sepolia.etherscan.io/tx/0x85f33a8c5ebc00cbbf8a1ee45c30a704831b8d34a5f5bbaf51cddd680961cf24) | 12169254 |
 
-- Wallet reconciliation exact: Benny 960.407877055525 ACON after claim (+17 over pre-claim
-  943.407877055525); R01 1003.77445307282 (+11 over post-refund 992.77445307282).
+- Wallet reconciliation exact (wei): Benny post-claim `960.407877055525024275` (+17 over
+  pre-claim `943.407877055525024275`); R01 post-claim `1003.774453072819982559` (+11 over
+  post-refund `992.774453072819982559`).
 - **Duplicate-claim rejection**: a read-only `claimPayout(2)` from Benny's address reverts
   `AlreadyClaimed` (`hasClaimed = true` for all three wallets).
 
@@ -199,21 +201,32 @@ mismatch — corrected before broadcasting).
 - **Creator surplus**: `withdrawableSurplus(2)` = `26.876405572741439440` = collateral
   54.876405572741440 − 28 ACON winning liability; withdrawn by the creator
   [`0x94460bde…a3a`](https://sepolia.etherscan.io/tx/0x94460bdec7b3d6416a21397ee6b6c92845e2621b70c4aafe1f680ff762da0a3a)
-  block 12169256 (`CreatorSurplusWithdrawn`). Benny's final ACON 987.2842826282665 =
-  post-claim 960.407877055525 + surplus 26.876405572741440 — exact.
+  block 12169256 (`CreatorSurplusWithdrawn`). Benny's final ACON `987.284282628266463715` =
+  post-claim `960.407877055525024275` + surplus `26.876405572741439440` — exact.
 - **Terminal accounting**: market 2 collateral **0**; total liabilities 28 ACON paid to YES
-  holders; losing close-out paid 0. The contract's global residual balance (50.87640557274144)
-  belongs to market 1 (FlyQuest, still live: 7 YES / 24 NO outstanding + its 34.657… subsidy)
-  — verified separately, not part of this journey.
+  holders; losing close-out paid 0 (R02 final ACON `996.22554692718001744`). The contract's
+  global residual balance (50.87640557274144) belongs to market 1 (FlyQuest, still live: 7 YES
+  / 24 NO outstanding + its 34.657… subsidy) — verified separately, not part of this journey.
 
-## Journey complete
+## Cross-layer reflection status (pending operator indexer window)
 
-Every issue #56 acceptance criterion now has live Sepolia evidence: guarded sell (PUB-05 +
-M4-era quote-equals-proceeds record), reviewed proposal and bonded challenge (PUB-06), real
-VRF request ID/callback and five-member committee (PUB-07), three matching votes and truthful
-settlement (PUB-08), payouts and duplicate-claim rejection (PUB-09), and full bond/liability/
-surplus reconciliation (PUB-10). Local Anvil evidence (LOC-05/06/07) remains separately
-labeled and does not substitute for this record.
+The operator indexer stopped at safe block 12167172 (last update 2026-11-19T08:09:31Z), which
+covers the trades (PUB-04/05 rows carry verified DB/API reflection) but predates the proposal,
+challenge, VRF, votes, settlement, claims and surplus (blocks 12169177–12169256). The public
+API therefore still reports market 2 as OPEN with final outcome unset, and the DB/API/UI cells
+of PUB-06–10 are **pending** until the operator resumes the indexer and the catch-up is
+verified. The on-chain columns above stand on their own: every hash, block and amount was read
+directly from Sepolia. Issue #56 stays open until that cross-layer verification is recorded.
+
+## On-chain journey complete
+
+The on-chain leg of every issue #56 acceptance criterion is evidenced live on Sepolia: guarded
+sell (PUB-05 + the M4-era quote-equals-proceeds record), reviewed proposal and bonded challenge
+(PUB-06), real VRF request ID/callback and five-member committee (PUB-07), three matching votes
+and truthful settlement (PUB-08), payouts and duplicate-claim rejection (PUB-09), and full
+bond/liability/surplus reconciliation (PUB-10). Local Anvil evidence (LOC-05/06/07) remains
+separately labeled and does not substitute for this record. The DB/API/UI verification of the
+post-trading rows completes the issue's cross-layer criterion once the indexer resumes.
 
 ## Funding record
 
