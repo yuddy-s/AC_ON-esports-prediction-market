@@ -107,12 +107,13 @@ Commands (from `frontend/`, after `npx playwright install chromium` once, or set
 
 ## Unit Baseline
 
-`npm test` 163 passed (19 files, including the new `config.test.ts` for FE-B2), `npm run typecheck`
-clean, `npm run build` succeeded on this branch.
+`npm test` 183 passed (21 files: the branch's 163, including `config.test.ts` for FE-B2, plus the #62
+deadline-vector and `TradePanel` tests merged from `dev`), `npm run typecheck` clean, `npm run build`
+succeeded on this branch on November 19, 2026.
 
 ## Frontend Defects
 
-Also recorded as M5-003 and M5-004 in [`M5_DEFECT_LOG.md`](M5_DEFECT_LOG.md).
+Also recorded as M5-005 (FE-B1) and M5-004 (FE-B2) in [`M5_DEFECT_LOG.md`](M5_DEFECT_LOG.md).
 
 | ID | Severity | Symptom and reproduction | Root cause | Fix | Regression test | Status |
 |---|---|---|---|---|---|---|
