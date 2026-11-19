@@ -12,6 +12,10 @@ acceptance rows below; hosted Render/Vercel verification remains pending. The
 still shows no successful callback, committee or votes, so issue #56 remains open. Local test
 results do not replace the pending CI rows below.
 
+Hosted frontend: https://acon-esports-market.vercel.app (Vercel, M4 Sepolia contracts), built with
+`VITE_API_URL=https://ac-on-esports-prediction-market.onrender.com` since November 19; see
+[frontend results](M5_FRONTEND_RESULTS.md#hosted-results-vercel--render).
+
 November 19 public check: `https://acon-esports-market.vercel.app` and the free API at
 `https://ac-on-esports-prediction-market.onrender.com` are reachable. After credential rotation, a
 local one-time indexer advanced the shared checkpoint from safe block 12,163,950 to 12,165,866 in
@@ -36,7 +40,7 @@ API restart remains the only incomplete LOC-02 subcheck.
 | PostgreSQL | migrations, 78-digit values, replay/rebuild/reorg/preservation | disposable CI PostgreSQL 16 | pass | PR #64 PostgreSQL job, CI run `44446727316` | Dedicated validated `TEST_POSTGRES_URL`; never connects to Supabase. |
 | Contracts | Foundry unit/fuzz/invariant and six journeys | GitHub Actions / Anvil | pass | PR #64 CI run `44446727316` | Public VRF callback evidence remains separate and pending. |
 | Security | Slither, coverage, ABI/runtime and GitGuardian | GitHub Actions | pass | PR #64 CI run `44446727316` | No secret values are copied into this ledger. |
-| Browser | Playwright read-only journeys | public Vercel/Render | pending implementation | pending trace/screenshots | MetaMask writes remain manual. |
+| Browser | Playwright read-only and wallet-failure journeys, plus API-state regressions | local build and public Vercel; hosted Vercel + Render (FE-07) | read-only: local 10/10, public 10/10; full 14-test suite: public 12/14 before the RPC fix (M5-004), 14/14 after it both locally and on the redeployed public site; hosted with strict API checks (status body, six market 0 receipts, API fixture catalog) and 10 mocked regressions: 24/24 twice | [frontend results](M5_FRONTEND_RESULTS.md#hosted-results-vercel--render) | MetaMask writes remain manual. The indexer worker runs on a team machine, so the site can show its stale notice. |
 
 ## Public Cross-Layer Acceptance
 
@@ -64,7 +68,7 @@ API restart remains the only incomplete LOC-02 subcheck.
 | LOC-05 | Seven-day no-proposal timeout | Anvil time control | permissionless resolver selection | pending | pending | — |
 | LOC-06 | First-round failure and replacement | Anvil time control | exactly one replacement round | pending | pending | — |
 | LOC-07 | Round-two failure and VOID | Anvil time control | VOID and half-value claims | pending | pending | — |
-| LOC-08 | Wrong network/rejected/reverted wallet action | browser/manual | clear non-authoritative failure state | pending | pending | — |
+| LOC-08 | Wrong network/rejected/reverted wallet action | browser/manual | clear non-authoritative failure state | Wrong network and rejected request: Playwright with a scripted non-signing wallet, 4/4 on public Vercel and 4/4 on the local build ([frontend results](M5_FRONTEND_RESULTS.md#wallet-failure-journeys-loc-08)). Reverted receipt: `tradeStatus` unit tests; manual MetaMask run pending. | pass (wrong network, rejection); reverted manual pending | M5-004 found during this run |
 
 ## Result Rules
 

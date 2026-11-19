@@ -8,6 +8,7 @@ interface ImportMetaEnv {
   readonly VITE_API_URL?: string;
   readonly VITE_ANVIL_ACCOUNT?: string;
   readonly VITE_FIXTURE_SOURCE?: string;
+  readonly VITE_SEPOLIA_RPC_URL?: string;
 }
 
 interface ImportMeta {

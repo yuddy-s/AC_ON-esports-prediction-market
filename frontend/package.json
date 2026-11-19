@@ -9,7 +9,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@coinbase/wallet-sdk": "^4.2.3",
@@ -20,6 +21,7 @@
     "wagmi": "^2.12.17"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.2",
