@@ -78,8 +78,10 @@ Render web service; no signer key or provider token is hosted there.
   reconcile receipt/nonce/contract state, rotate/fund a replacement, then resume. Never blindly retry
   an uncertain submission.
 - **Provider outage:** retain the last timestamped observation and stop new proposal work.
-- **Contract fault:** pause public writes and escalate to the Safe. Existing contracts are not
-  upgraded; a new deployment requires a new manifest, ABI/address configuration, and full acceptance.
+- **Contract fault:** suspend team-operated frontend and signer writes, warn users about the
+  affected chain/address, and escalate to the Safe. This does not freeze direct contract calls.
+  Existing contracts are not upgraded; a new deployment requires a new manifest, ABI/address
+  configuration, and full acceptance.
 
 ### Contract rollback criteria
 
@@ -107,17 +109,41 @@ Repair these without redeploying instead:
   paths exist).
 - Non-admin key exposure with revocable roles (rotate through the Safe, then resume).
 
-Decision procedure: pause public writes (stop the registrar/proposer workers; the indexer may keep
-reading), classify the defect as blocker (funds loss or compromise), degraded (functionality
-unavailable), or cosmetic, and record the Safe decision (2/3) with evidence links. Then choose
+Contain team-operated writes first:
+
+- Adriel deploys a read-only/maintenance frontend with transaction controls disabled, or withdraws
+  the public frontend until that release is ready. Display a notice identifying the affected
+  chain and contract address.
+- Yudhveer stops the registrar and proposer workers. The indexer may keep reading if its
+  configuration and database remain trusted.
+- The Safe revokes exposed operational roles and rotates service accounts where it still has
+  trusted administrative control.
+
+These are off-chain service controls and narrow role changes, not a global on-chain pause.
+The deployed `PredictionMarket` has no contract-wide pause function: users can still submit
+`buy`, `sell`, and other permitted calls directly or through another frontend. Stopping workers
+or changing the public site's contract address does not block those calls. The Safe cannot
+rewrite positions, prices, payouts, or confirmed transactions.
+
+If the incident requires stopping trades on an affected OPEN market, a registrar can call
+`closeTrading` with a nonzero evidence hash before its deadline. This is an irreversible market
+closure, not a temporary pause: it shortens the stored deadline to the close time, starts the
+deadline-based proposal/timeout timing from that value, and the market cannot be reopened.
+Use it only as an explicitly recorded Safe incident decision, with the market IDs, evidence,
+old/new deadlines and receipts. Closing does not immediately settle or refund positions;
+resolution and claims continue under the existing contract rules.
+
+Classify the defect as blocker (funds loss or compromise), degraded (functionality unavailable),
+or cosmetic, and record the trusted Safe decision (2/3) with evidence links. Then choose
 accept-and-mitigate, redeploy the same source with changed configuration, or redeploy changed
-source. Rollback owner for contracts: Benny.
+source. If a trusted Safe quorum is unavailable, keep team-operated writes suspended and resolve
+trusted administration for a replacement before releasing it. Rollback owner for contracts: Benny.
 
 If a rollback proceeds: snapshot the state evidence (manifest, receipts, final block), deploy from
 reviewed source per `docs/agent/CONTRACT_DEPLOYMENT.md`, rerun the Safe setup and the six-argument
 `VerifyAdministration.verify`, publish a new versioned manifest and ABI, update Vercel, Render, and
-local-worker configuration, and rerun full acceptance before public writes resume. Positions do not
-migrate: claims and creator surplus on the old address remain claimable there under contract rules,
+local-worker configuration, and rerun full acceptance before team-operated writes resume. Positions
+do not migrate: claims and creator surplus on the old address remain claimable there under contract rules,
 and the old manifest stays the record for that deployment.
 
 Last known-good contract record: `deployments/sepolia-2026-11-02` (deployed source `721a6fe`,
