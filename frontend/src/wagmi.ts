@@ -11,7 +11,7 @@ const connectors: CreateConnectorFn[] = [
   // demo machines should use. Only works on public networks (Sepolia).
   coinbaseWallet({
     appName: "Esports Prediction Market",
-    preference: "smartWalletOnly",
+    preference: { options: "smartWalletOnly" },
   }),
   // Fallback: for users who already have MetaMask or another extension.
   injected(),

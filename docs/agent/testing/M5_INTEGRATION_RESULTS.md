@@ -68,7 +68,7 @@ API restart remains the only incomplete LOC-02 subcheck.
 | LOC-05 | Seven-day no-proposal timeout | Anvil time control | permissionless resolver selection | pending | pending | — |
 | LOC-06 | First-round failure and replacement | Anvil time control | exactly one replacement round | pending | pending | — |
 | LOC-07 | Round-two failure and VOID | Anvil time control | VOID and half-value claims | pending | pending | — |
-| LOC-08 | Wrong network/rejected/reverted wallet action | browser/manual | clear non-authoritative failure state | Wrong network and rejected request: Playwright with a scripted non-signing wallet, 4/4 on public Vercel and 4/4 on the local build ([frontend results](M5_FRONTEND_RESULTS.md#wallet-failure-journeys-loc-08)). Reverted receipt: `tradeStatus` unit tests; manual MetaMask run pending. | pass (wrong network, rejection); reverted manual pending | M5-004 found during this run |
+| LOC-08 | Wrong network/rejected/reverted wallet action | browser/manual | clear non-authoritative failure state | Wrong network and rejected request: Playwright with a scripted non-signing wallet, 4/4 on public Vercel and 4/4 on the local build ([frontend results](M5_FRONTEND_RESULTS.md#wallet-failure-journeys-loc-08)). Wrong network also passed manually with MetaMask on the wagmi 3 build (November 19, [manual wallet smoke](M5_FRONTEND_RESULTS.md#manual-wallet-smoke-wagmi-3-pr-63)). Reverted receipt: `tradeStatus` unit tests; manual reverted-receipt run pending. | pass (wrong network, rejection); reverted manual pending | M5-004 found during this run |
 
 ## Result Rules
 
