@@ -26,7 +26,7 @@ result:
 
 | Layer | Test | Status |
 |---|---|---|
-| Frontend | `frontend/src/deadlineVectors.test.ts` (tradability and effective phase per vector) and `frontend/src/TradePanel.test.tsx` (an expired `OPEN` market renders "Trading is closed for this market." with the buy button disabled; a positive control before the deadline is enabled) | in place |
+| Frontend | `frontend/src/deadlineVectors.test.ts` (tradability and effective phase per vector) and `frontend/src/TradePanel.test.tsx` (an expired `OPEN` market renders "Trading is closed for this market." with the buy and the sell button disabled; positive controls before the deadline are enabled) | in place |
 | Contracts | Foundry test that warps to each `blockTimestamp` and asserts `tradeAccepted`, `proposalAccepted` and `noProposalSelectionAccepted` (Foundry can read this file with `vm.readFile` once `fs_permissions` allows it) | owner: Benny |
 | Backend/API | Pytest that indexes the matching lifecycle events and asserts the API returns the raw `storedState` and `tradingDeadline` | owner: Benny / Yudhveer |
 
