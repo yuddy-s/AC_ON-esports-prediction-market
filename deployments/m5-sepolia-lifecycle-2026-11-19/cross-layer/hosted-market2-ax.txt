@@ -1,0 +1,144 @@
+Browser tab: 860963412, Title: "AC_ON · Esports Prediction Market", URL: "https://acon-esports-market.vercel.app/#/markets/2".
+1 AXWebArea AC_ON · Esports Prediction Market, URL: acon-esports-market.vercel.app/#/markets/2
+	2 container root
+		3 container
+			4 link Description: AC_ON ESPORTS PREDICTION MARKET, Value: acon-esports-market.vercel.app/#/
+			5 link Description: MARKETS, Value: acon-esports-market.vercel.app/#/
+			6 link Description: FIXTURES, Value: acon-esports-market.vercel.app/#/fixtures
+			7 link Description: PORTFOLIO, Value: acon-esports-market.vercel.app/#/portfolio
+			8 text SEPOLIA TESTNET
+			9 button CONNECT
+		10 container
+			11 link Description: ← ALL MARKETS, Value: acon-esports-market.vercel.app/#/
+			15 text MKT- 002  · VALORANT TRADING CLOSED
+			16 heading Will KeepBest Gaming beat A Team?, Value: 1
+				17 text Will KeepBest Gaming beat A Team?
+			18 text YES KeepBest Gaming 50.0% ≈  0.50  ACON / share VS NO A Team 50.0% ≈  0.50  ACON / share
+			19 image YES 50.0%
+			20 text RESOLUTION
+			21 heading FINAL: YES, Value: 2
+				22 text FINAL: YES
+			23 text FINALIZED
+			24 text Settled. Winning shares pay 1 ACON each; claim once.
+			125 text PROPOSED RESULT
+			126 text NO (A Team wins)
+			127 container
+				128 text by  0x137F...c0Df  ·
+				129 link Description: evidence, Value: egamersworld.com/valorant/match/fyQReleD60/keepbest-gaming-vs-a-team-ZD59-Lj4XM
+			130 text CHALLENGE
+			131 container
+				132 text Challenged by  0x6a51...faCc  (10 ACON bond)
+			133 container
+				134 text RESOLVER COMMITTEE · ROUND  1
+			135 content list
+				136 text 0xFfA3...4DCE
+				137 text 0x748b...0a56
+				138 text 0x2897...1B55
+				139 text 0x7939...D755
+				140 text 0xBEDC...99f8
+			141 container
+				142 text Votes:  YES  3  ·  NO  2  · VOID 0 (3 matching settle it)
+			25 text Connect a wallet to challenge, vote or claim.
+			26 text CHART
+			27 heading YES PRICE, Value: 2
+				28 text YES PRICE
+			29 text AFTER EACH INDEXED TRADE
+			30 container YES price over 5 trades, now 58.4%. Use the arrow keys to step through trades.
+			31 text MARKET
+			32 heading DETAILS, Value: 2
+				33 text DETAILS
+			34 text STORED STATE FINALIZED Trading closed DEADLINE Closed 11/19/2026, 3:15:00 AM YES SHARES 0 outstanding NO SHARES 0 outstanding Creator  0xB5ce...9A6A Collateral  0  ACON Match start  11/19/2026, 3:30:00 AM
+			35 link Description: Contract on explorer, Value: sepolia.etherscan.io/address/0x03ae48f03C7822540a91DA2168602bd49dC510E9
+			36 text Prices are the LMSR formula on outstanding shares (display only). What you pay or receive always comes from the contract's quote.
+			37 text TAPE
+			38 heading RECENT TRADES, Value: 2
+				39 text RECENT TRADES
+			40 text FROM THE INDEXER API
+			41 text Indexed up to block 12169477 (2 blocks behind the chain).
+			42 table
+				43 row
+					44 cell
+						45 text BLOCK
+					46 cell
+						47 text TRADER
+					48 cell
+						49 text ACTION
+					50 cell
+						51 text SIDE
+					52 cell
+						53 text SHARES
+					54 cell
+						55 text COST / PROCEEDS
+				56 row
+					57 cell
+						58 link Description: 12167125, Value: sepolia.etherscan.io/tx/0x187b919ab754c1d51d57515e590955a9f4885cc5c933669a497389a8db4d2e3c
+					59 cell
+						60 text 0xb5ce...9a6a
+					61 cell
+						62 text SELL
+					63 cell
+						64 text YES
+					65 cell
+						66 text 10
+					67 cell
+						68 text 6.08
+				69 row
+					70 cell
+						71 link Description: 12167093, Value: sepolia.etherscan.io/tx/0x0d6cbe38914869505df89d10f56483f14467be192d1f5221b5dfd647e75a29f4
+					72 cell
+						73 text 0xcddb...5a8c
+					74 cell
+						75 text BUY
+					76 cell
+						77 text NO
+					78 cell
+						79 text 11
+					80 cell
+						81 text 3.77
+				82 row
+					83 cell
+						84 link Description: 12167081, Value: sepolia.etherscan.io/tx/0x874844b3b8b9e86eb5736e23b03635d084e245a3f67bcc518f30acb2ec209b59
+					85 cell
+						86 text 0x6a51...facc
+					87 cell
+						88 text BUY
+					89 cell
+						90 text YES
+					91 cell
+						92 text 11
+					93 cell
+						94 text 7.22
+				95 row
+					96 cell
+						97 link Description: 12166674, Value: sepolia.etherscan.io/tx/0xb250577eedd814b83bcb2081db3738423aad693a765337c4e97fb133a92cb9b9
+					98 cell
+						99 text 0xb5ce...9a6a
+					100 cell
+						101 text BUY
+					102 cell
+						103 text YES
+					104 cell
+						105 text 17
+					106 cell
+						107 text 10.05
+				108 row
+					109 cell
+						110 link Description: 12166671, Value: sepolia.etherscan.io/tx/0xc1f9a79614833b6a3787150f5c6684853b4ac6a9c18f29daaa0d5ae3bc75193c
+					111 cell
+						112 text 0xb5ce...9a6a
+					113 cell
+						114 text BUY
+					115 cell
+						116 text YES
+					117 cell
+						118 text 10
+					119 cell
+						120 text 5.24
+			121 container
+				122 text TRADE YES = TEAM A · NO = TEAM B Connect a wallet (top right) to trade this market.
+		13 container
+			14 text AC_ON · ESPORTS PREDICTION MARKET ·  SEPOLIA TESTNET TEST TOKENS ONLY · NO REAL MONEY
+	123 container grammarly-integration
+		124 text {"mode":"limited","isActive":false,"isUserDisabled":false}
+
+The focused UI element is 1 AXWebArea AC_ON · Esports Prediction Market, URL: acon-esports-market.vercel.app/#/markets/2

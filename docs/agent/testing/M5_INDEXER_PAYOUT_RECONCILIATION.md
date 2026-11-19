@@ -1,5 +1,10 @@
 # M5 Indexer Payout Reconciliation
 
+November 19 follow-up: the [market 2 public lifecycle and cross-layer verification](../../../deployments/m5-sepolia-lifecycle-2026-11-19/cross-layer/README.md)
+now records a successful real VRF callback, settlement/claims, and matching shared DB/API/hosted
+read-only UI state for issue #56. The dated checks below describe this document's original
+preflight or market 0 scope; they do not substitute for that new evidence.
+
 The payout projection now removes the claimed YES and NO shares from the indexed market's
 outstanding quantities and records the claim block on the wallet position. Previously,
 `PayoutClaimed` cleared the wallet's positions but left the market quantities and the position's

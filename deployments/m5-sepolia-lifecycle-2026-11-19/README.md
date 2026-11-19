@@ -2,7 +2,7 @@
 
 Live Sepolia evidence for issue #56: a reviewed fixture registered, a user-funded market
 created, guarded trades executed, and the real VRF-to-settlement journey completed on-chain.
-Post-trading DB/API/UI verification remains pending the operator indexer catch-up.
+Post-trading DB/API and hosted read-only UI verification passed in the [final cross-layer check](cross-layer/README.md).
 Every hash below links to Sepolia Etherscan. This record is the handoff source for the
 `PUB-02`–`PUB-10` rows in `docs/agent/testing/M5_INTEGRATION_RESULTS.md`; local Anvil
 evidence (LOC-05/06/07) stays separately labeled and does not substitute for this record.
@@ -209,25 +209,20 @@ mismatch — corrected before broadcasting).
   global residual balance (50.87640557274144) belongs to market 1 (FlyQuest, still live: 7 YES
   / 24 NO outstanding + its 34.657… subsidy) — verified separately, not part of this journey.
 
-## Cross-layer reflection status (pending operator indexer window)
+## Public cross-layer verification complete
 
-The operator indexer stopped at safe block 12167172 (last update 2026-11-19T08:09:31Z), which
-covers the trades (PUB-04/05 rows carry verified DB/API reflection) but predates the proposal,
-challenge, VRF, votes, settlement, claims and surplus (blocks 12169177–12169256). The public
-API therefore still reports market 2 as OPEN with final outcome unset, and the DB/API/UI cells
-of PUB-06–10 are **pending** until the operator resumes the indexer and the catch-up is
-verified. The on-chain columns above stand on their own: every hash, block and amount was read
-directly from Sepolia. Issue #56 stays open until that cross-layer verification is recorded.
+On November 19, 2026, Matthew resumed the confirmed-event indexer and verified the shared
+Supabase database, public Render API, and actual Vercel market page against this run's
+receipts and contract reads. All 22 market events match the database, all 21 public
+trade/resolution/claim events match the API, and all three positions are claimed with the
+correct payout and zero shares. The hosted page shows final YES, the five-member committee,
+3 YES / 2 NO votes, zero outstanding shares and zero collateral, plus the indexed trade tape.
 
-## On-chain journey complete
-
-The on-chain leg of every issue #56 acceptance criterion is evidenced live on Sepolia: guarded
-sell (PUB-05 + the M4-era quote-equals-proceeds record), reviewed proposal and bonded challenge
-(PUB-06), real VRF request ID/callback and five-member committee (PUB-07), three matching votes
-and truthful settlement (PUB-08), payouts and duplicate-claim rejection (PUB-09), and full
-bond/liability/surplus reconciliation (PUB-10). Local Anvil evidence (LOC-05/06/07) remains
-separately labeled and does not substitute for this record. The DB/API/UI verification of the
-post-trading rows completes the issue's cross-layer criterion once the indexer resumes.
+The [final cross-layer evidence](cross-layer/README.md) includes exact quote/guard and wallet
+accounting, duplicate-claim rejection, sync/idempotence results, public API JSON and a hosted
+screenshot. These results complete issue #56's public lifecycle evidence. The browser check
+was read-only; holder-wallet portfolio screens and the separate MetaMask classification were
+not exercised. Local Anvil timeout/replacement/VOID evidence remains separately labeled.
 
 ## Funding record
 

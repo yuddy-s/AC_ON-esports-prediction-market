@@ -1,0 +1,862 @@
+{
+  "checked_at": "2026-11-19T16:06:51.765652+00:00",
+  "api_base_url": "https://ac-on-esports-prediction-market.onrender.com",
+  "frontend_origin": "https://acon-esports-market.vercel.app",
+  "responses": {
+    "/health": {
+      "status": 200,
+      "allow_origin": "https://acon-esports-market.vercel.app",
+      "body": {
+        "status": "ok",
+        "database": "available",
+        "message": "Backend and database connection are healthy."
+      }
+    },
+    "/api/v2/indexer/status": {
+      "status": 200,
+      "allow_origin": "https://acon-esports-market.vercel.app",
+      "body": {
+        "configured": true,
+        "chain_id": 11155111,
+        "contract_address": "0x03ae48f03c7822540a91da2168602bd49dc510e9",
+        "abi_version": "PredictionMarket.721a6fef039a.4af9297937eb.abi.json",
+        "deployment_block": 12051223,
+        "latest_observed_block": 12169462,
+        "last_safe_block": 12169460,
+        "next_block": 12169461,
+        "lag_blocks": 2,
+        "updated_at": "2026-11-19T16:06:17.884063Z",
+        "authoritative": false
+      }
+    },
+    "/api/v2/markets/2": {
+      "status": 200,
+      "allow_origin": "https://acon-esports-market.vercel.app",
+      "body": {
+        "data": {
+          "market_id": 2,
+          "fixture_key": "0xe6824a454577ad2b6ed1a46889654652bedca08f3e46c4c83fb6d88e3f3e647c",
+          "question": "Will KeepBest Gaming beat A Team?",
+          "trading_deadline": "2026-11-19T08:15:00Z",
+          "state": "FINALIZED",
+          "creator": "0xb5ce8428dd6cb9fefd54282cb49ef7d2629d9a6a",
+          "yes_quantity": "0",
+          "no_quantity": "0",
+          "final_outcome": 0,
+          "source_block_number": 12169256,
+          "source_transaction_hash": "0x94460bdec7b3d6416a21397ee6b6c92845e2621b70c4aafe1f680ff762da0a3a",
+          "authoritative": false
+        },
+        "metadata": {
+          "chain_id": 11155111,
+          "contract_address": "0x03ae48f03c7822540a91da2168602bd49dc510e9",
+          "abi_version": "PredictionMarket.721a6fef039a.4af9297937eb.abi.json",
+          "safe_block": 12169460,
+          "updated_at": "2026-11-19T16:06:17.884063Z",
+          "authoritative": false
+        }
+      }
+    },
+    "/api/v2/markets/2/history": {
+      "status": 200,
+      "allow_origin": "https://acon-esports-market.vercel.app",
+      "body": {
+        "items": [
+          {
+            "event": "TradeExecuted",
+            "kind": "BUY",
+            "market_id": 2,
+            "actor": "0xb5ce8428dd6cb9fefd54282cb49ef7d2629d9a6a",
+            "trader": "0xb5ce8428dd6cb9fefd54282cb49ef7d2629d9a6a",
+            "outcome": 0,
+            "shares": "10000000000000000000",
+            "amount": "5249584441082326514",
+            "cost": "5249584441082326514",
+            "proceeds": null,
+            "yes_quantity": "10000000000000000000",
+            "no_quantity": "0",
+            "payload": {
+              "market_id": "2",
+              "trader": "0xb5ce8428dd6cb9fefd54282cb49ef7d2629d9a6a",
+              "outcome": "0",
+              "shares": "10000000000000000000",
+              "cost": "5249584441082326514",
+              "yes_quantity": "10000000000000000000",
+              "no_quantity": "0"
+            },
+            "block_number": 12166671,
+            "block_hash": "0xa1e88e90d38a5f775f2549221ede19abebbbefe07e974eaaf63790280cd086a4",
+            "transaction_hash": "0xc1f9a79614833b6a3787150f5c6684853b4ac6a9c18f29daaa0d5ae3bc75193c",
+            "log_index": 3,
+            "authoritative": false
+          },
+          {
+            "event": "TradeExecuted",
+            "kind": "BUY",
+            "market_id": 2,
+            "actor": "0xb5ce8428dd6cb9fefd54282cb49ef7d2629d9a6a",
+            "trader": "0xb5ce8428dd6cb9fefd54282cb49ef7d2629d9a6a",
+            "outcome": 0,
+            "shares": "17000000000000000000",
+            "amount": "10051193344465086260",
+            "cost": "10051193344465086260",
+            "proceeds": null,
+            "yes_quantity": "27000000000000000000",
+            "no_quantity": "0",
+            "payload": {
+              "market_id": "2",
+              "trader": "0xb5ce8428dd6cb9fefd54282cb49ef7d2629d9a6a",
+              "outcome": "0",
+              "shares": "17000000000000000000",
+              "cost": "10051193344465086260",
+              "yes_quantity": "27000000000000000000",
+              "no_quantity": "0"
+            },
+            "block_number": 12166674,
+            "block_hash": "0xa21b0089c45e47c9a13bf3ecfdb2c2b5f8bebbc51597ff299cd4807e51bd7387",
+            "transaction_hash": "0xb250577eedd814b83bcb2081db3738423aad693a765337c4e97fb133a92cb9b9",
+            "log_index": 4,
+            "authoritative": false
+          },
+          {
+            "event": "TradeExecuted",
+            "kind": "BUY",
+            "market_id": 2,
+            "actor": "0x6a51348c2fe42f8cf4312c74445e211469cffacc",
+            "trader": "0x6a51348c2fe42f8cf4312c74445e211469cffacc",
+            "outcome": 0,
+            "shares": "11000000000000000000",
+            "amount": "7225546927180017441",
+            "cost": "7225546927180017441",
+            "proceeds": null,
+            "yes_quantity": "38000000000000000000",
+            "no_quantity": "0",
+            "payload": {
+              "market_id": "2",
+              "trader": "0x6a51348c2fe42f8cf4312c74445e211469cffacc",
+              "outcome": "0",
+              "shares": "11000000000000000000",
+              "cost": "7225546927180017441",
+              "yes_quantity": "38000000000000000000",
+              "no_quantity": "0"
+            },
+            "block_number": 12167081,
+            "block_hash": "0x6ae0bf645d23597b66a1f9f5cae826c7b153c60f57edad295538cc1b8f215f71",
+            "transaction_hash": "0x874844b3b8b9e86eb5736e23b03635d084e245a3f67bcc518f30acb2ec209b59",
+            "log_index": 222,
+            "authoritative": false
+          },
+          {
+            "event": "TradeExecuted",
+            "kind": "BUY",
+            "market_id": 2,
+            "actor": "0xcddb0148f527a44113c038b0109bf41b38615a8c",
+            "trader": "0xcddb0148f527a44113c038b0109bf41b38615a8c",
+            "outcome": 1,
+            "shares": "11000000000000000000",
+            "amount": "3774453072819982560",
+            "cost": "3774453072819982560",
+            "proceeds": null,
+            "yes_quantity": "38000000000000000000",
+            "no_quantity": "11000000000000000000",
+            "payload": {
+              "market_id": "2",
+              "trader": "0xcddb0148f527a44113c038b0109bf41b38615a8c",
+              "outcome": "1",
+              "shares": "11000000000000000000",
+              "cost": "3774453072819982560",
+              "yes_quantity": "38000000000000000000",
+              "no_quantity": "11000000000000000000"
+            },
+            "block_number": 12167093,
+            "block_hash": "0x3e770032317f98b332bb554204a47e9b286fe3b2326ce10806a09b78eb18990b",
+            "transaction_hash": "0x0d6cbe38914869505df89d10f56483f14467be192d1f5221b5dfd647e75a29f4",
+            "log_index": 6,
+            "authoritative": false
+          },
+          {
+            "event": "SellExecuted",
+            "kind": "SELL",
+            "market_id": 2,
+            "actor": "0xb5ce8428dd6cb9fefd54282cb49ef7d2629d9a6a",
+            "trader": "0xb5ce8428dd6cb9fefd54282cb49ef7d2629d9a6a",
+            "outcome": 0,
+            "shares": "10000000000000000000",
+            "amount": "6081731240803238806",
+            "cost": null,
+            "proceeds": "6081731240803238806",
+            "yes_quantity": "28000000000000000000",
+            "no_quantity": "11000000000000000000",
+            "payload": {
+              "market_id": "2",
+              "trader": "0xb5ce8428dd6cb9fefd54282cb49ef7d2629d9a6a",
+              "outcome": "0",
+              "shares": "10000000000000000000",
+              "proceeds": "6081731240803238806",
+              "yes_quantity": "28000000000000000000",
+              "no_quantity": "11000000000000000000"
+            },
+            "block_number": 12167125,
+            "block_hash": "0xeba9e8cb77e057b89aee1f04016a74d604d113529f90eea278cfd508de5f4d9d",
+            "transaction_hash": "0x187b919ab754c1d51d57515e590955a9f4885cc5c933669a497389a8db4d2e3c",
+            "log_index": 1,
+            "authoritative": false
+          }
+        ],
+        "total": 5,
+        "limit": 50,
+        "offset": 0,
+        "metadata": {
+          "chain_id": 11155111,
+          "contract_address": "0x03ae48f03c7822540a91da2168602bd49dc510e9",
+          "abi_version": "PredictionMarket.721a6fef039a.4af9297937eb.abi.json",
+          "safe_block": 12169460,
+          "updated_at": "2026-11-19T16:06:17.884063Z",
+          "authoritative": false
+        }
+      }
+    },
+    "/api/v2/markets/2/resolution": {
+      "status": 200,
+      "allow_origin": "https://acon-esports-market.vercel.app",
+      "body": {
+        "items": [
+          {
+            "event": "MarketClosed",
+            "kind": "MarketClosed",
+            "market_id": 2,
+            "actor": "0x137f79cc7ea5c59fa66bc09351b5f9331225c0df",
+            "trader": null,
+            "outcome": null,
+            "shares": null,
+            "amount": null,
+            "cost": null,
+            "proceeds": null,
+            "yes_quantity": null,
+            "no_quantity": null,
+            "payload": {
+              "market_id": "2",
+              "trading_deadline": "1795076100",
+              "caller": "0x137f79cc7ea5c59fa66bc09351b5f9331225c0df",
+              "evidence_hash": "0x0000000000000000000000000000000000000000000000000000000000000000"
+            },
+            "block_number": 12169177,
+            "block_hash": "0xecb1a0c914234fa0ad75bb92bb76d0f595dfb151f7832eacc5744fb43d9aa92b",
+            "transaction_hash": "0x9ca27bfbf88d685ac0dcc6d2f5d48c73d4bde665352a66cae5902b30ff861d06",
+            "log_index": 104,
+            "authoritative": false
+          },
+          {
+            "event": "OutcomeProposed",
+            "kind": "OutcomeProposed",
+            "market_id": 2,
+            "actor": "0x137f79cc7ea5c59fa66bc09351b5f9331225c0df",
+            "trader": null,
+            "outcome": 1,
+            "shares": null,
+            "amount": null,
+            "cost": null,
+            "proceeds": null,
+            "yes_quantity": null,
+            "no_quantity": null,
+            "payload": {
+              "market_id": "2",
+              "proposer": "0x137f79cc7ea5c59fa66bc09351b5f9331225c0df",
+              "outcome": "1",
+              "evidence_hash": "0x90a8d312ebbb904afa2f76cd2f0f8f0da69c6cb86b44e6325bcd34338f496f22",
+              "evidence_uri": "https://egamersworld.com/valorant/match/fyQReleD60/keepbest-gaming-vs-a-team-ZD59-Lj4XM",
+              "challenge_deadline": "1795187256"
+            },
+            "block_number": 12169177,
+            "block_hash": "0xecb1a0c914234fa0ad75bb92bb76d0f595dfb151f7832eacc5744fb43d9aa92b",
+            "transaction_hash": "0x9ca27bfbf88d685ac0dcc6d2f5d48c73d4bde665352a66cae5902b30ff861d06",
+            "log_index": 105,
+            "authoritative": false
+          },
+          {
+            "event": "OutcomeChallenged",
+            "kind": "OutcomeChallenged",
+            "market_id": 2,
+            "actor": "0x6a51348c2fe42f8cf4312c74445e211469cffacc",
+            "trader": null,
+            "outcome": null,
+            "shares": null,
+            "amount": null,
+            "cost": null,
+            "proceeds": null,
+            "yes_quantity": null,
+            "no_quantity": null,
+            "payload": {
+              "market_id": "2",
+              "challenger": "0x6a51348c2fe42f8cf4312c74445e211469cffacc",
+              "evidence_hash": "0x90a8d312ebbb904afa2f76cd2f0f8f0da69c6cb86b44e6325bcd34338f496f22",
+              "bond": "10000000000000000000"
+            },
+            "block_number": 12169199,
+            "block_hash": "0x9f6f3d2d0a866990c2fa51da0c453a54c4144b8b8e504b6e66453bdce28b0c1f",
+            "transaction_hash": "0x7c0ddbe44de2174b6952b63b4e115ceccac9c1dcc66fb66bd6ae3afd0df6b743",
+            "log_index": 104,
+            "authoritative": false
+          },
+          {
+            "event": "ResolverSelectionRequested",
+            "kind": "ResolverSelectionRequested",
+            "market_id": 2,
+            "actor": null,
+            "trader": null,
+            "outcome": null,
+            "shares": null,
+            "amount": null,
+            "cost": null,
+            "proceeds": null,
+            "yes_quantity": null,
+            "no_quantity": null,
+            "payload": {
+              "market_id": "2",
+              "round": "1",
+              "request_id": "64454812201355125149715950417696302771148563436230064546743731846367863751153",
+              "selection_deadline": "1795705968",
+              "snapshot_hash": "0x601b9c3fd4203bf75d0220ceaa6afbf0042106526804b17b5568650bc821bb22"
+            },
+            "block_number": 12169201,
+            "block_hash": "0xdee3b33d965744c9e06f2bcc17c5a12cd98f899acd68075379c1595e8393716b",
+            "transaction_hash": "0x095e53589a5cd579fc4d9b67f9afb7fda78e506853465aafa3a56b3be3374e35",
+            "log_index": 74,
+            "authoritative": false
+          },
+          {
+            "event": "ResolverCommitteeSelected",
+            "kind": "ResolverCommitteeSelected",
+            "market_id": 2,
+            "actor": null,
+            "trader": null,
+            "outcome": null,
+            "shares": null,
+            "amount": null,
+            "cost": null,
+            "proceeds": null,
+            "yes_quantity": null,
+            "no_quantity": null,
+            "payload": {
+              "market_id": "2",
+              "round": "1",
+              "request_id": "64454812201355125149715950417696302771148563436230064546743731846367863751153",
+              "committee": [
+                "0xffa3101454f5d73d7d7a2a11e5df9dd4309f4dce",
+                "0x748b388699054c5e395857b356369ea4367f0a56",
+                "0x2897358d07b54a7b92af12936fa8f3a7e1f21b55",
+                "0x79391b2c3d123c59e0f2ca6970c5c4cad30ad755",
+                "0xbedcedb7809b21c8d308383b876061f8c18e99f8"
+              ],
+              "vote_deadline": "1795274028"
+            },
+            "block_number": 12169206,
+            "block_hash": "0x29cf54b329f1529d459a400f519a544077dada729e5ed737428e56d35048e30e",
+            "transaction_hash": "0x90e45813aefe950558afa346389a3dbe7267e959dbdec045a0155ed23bc75d22",
+            "log_index": 98,
+            "authoritative": false
+          },
+          {
+            "event": "ResolverVoteCast",
+            "kind": "ResolverVoteCast",
+            "market_id": 2,
+            "actor": "0x2897358d07b54a7b92af12936fa8f3a7e1f21b55",
+            "trader": null,
+            "outcome": 0,
+            "shares": null,
+            "amount": null,
+            "cost": null,
+            "proceeds": null,
+            "yes_quantity": null,
+            "no_quantity": null,
+            "payload": {
+              "market_id": "2",
+              "resolver": "0x2897358d07b54a7b92af12936fa8f3a7e1f21b55",
+              "round": "1",
+              "outcome": "0",
+              "votes": "1"
+            },
+            "block_number": 12169235,
+            "block_hash": "0xad12114542541a1c9b182e81b072ccd91bc9096bcc28d1d369c2b0647c790787",
+            "transaction_hash": "0x2a342ac0b55678d5bbf03638b4db1ba20015ec06904035a4f8876a19611adc07",
+            "log_index": 33,
+            "authoritative": false
+          },
+          {
+            "event": "ResolverVoteCast",
+            "kind": "ResolverVoteCast",
+            "market_id": 2,
+            "actor": "0xffa3101454f5d73d7d7a2a11e5df9dd4309f4dce",
+            "trader": null,
+            "outcome": 0,
+            "shares": null,
+            "amount": null,
+            "cost": null,
+            "proceeds": null,
+            "yes_quantity": null,
+            "no_quantity": null,
+            "payload": {
+              "market_id": "2",
+              "resolver": "0xffa3101454f5d73d7d7a2a11e5df9dd4309f4dce",
+              "round": "1",
+              "outcome": "0",
+              "votes": "2"
+            },
+            "block_number": 12169236,
+            "block_hash": "0x4948a0dfc40ae88ef56c533458c7d78f17e39fd3434084b83118d093f0e2075c",
+            "transaction_hash": "0x0456e179063a313347c0b7550e3cd91f9737fbf0c88f18d28dddc6c806edfc99",
+            "log_index": 51,
+            "authoritative": false
+          },
+          {
+            "event": "ResolverVoteCast",
+            "kind": "ResolverVoteCast",
+            "market_id": 2,
+            "actor": "0xbedcedb7809b21c8d308383b876061f8c18e99f8",
+            "trader": null,
+            "outcome": 1,
+            "shares": null,
+            "amount": null,
+            "cost": null,
+            "proceeds": null,
+            "yes_quantity": null,
+            "no_quantity": null,
+            "payload": {
+              "market_id": "2",
+              "resolver": "0xbedcedb7809b21c8d308383b876061f8c18e99f8",
+              "round": "1",
+              "outcome": "1",
+              "votes": "1"
+            },
+            "block_number": 12169237,
+            "block_hash": "0xb95dba649d3ad3cff7183c15e854c380152694b925475095beff65ade912636a",
+            "transaction_hash": "0x5bae24a960a1102e4bf51abbd2b4b8410dc2328d4479518070e69dd527091def",
+            "log_index": 49,
+            "authoritative": false
+          },
+          {
+            "event": "ResolverVoteCast",
+            "kind": "ResolverVoteCast",
+            "market_id": 2,
+            "actor": "0x748b388699054c5e395857b356369ea4367f0a56",
+            "trader": null,
+            "outcome": 1,
+            "shares": null,
+            "amount": null,
+            "cost": null,
+            "proceeds": null,
+            "yes_quantity": null,
+            "no_quantity": null,
+            "payload": {
+              "market_id": "2",
+              "resolver": "0x748b388699054c5e395857b356369ea4367f0a56",
+              "round": "1",
+              "outcome": "1",
+              "votes": "2"
+            },
+            "block_number": 12169245,
+            "block_hash": "0x57dae4f03f332d459ca46b0693122b5a4168e89b48ee79574b81a5be9890c393",
+            "transaction_hash": "0x4f69e3a952493a01873d12731df2d6a9d9b863f133238feabd5588274c0f7b12",
+            "log_index": 82,
+            "authoritative": false
+          },
+          {
+            "event": "ResolverVoteCast",
+            "kind": "ResolverVoteCast",
+            "market_id": 2,
+            "actor": "0x79391b2c3d123c59e0f2ca6970c5c4cad30ad755",
+            "trader": null,
+            "outcome": 0,
+            "shares": null,
+            "amount": null,
+            "cost": null,
+            "proceeds": null,
+            "yes_quantity": null,
+            "no_quantity": null,
+            "payload": {
+              "market_id": "2",
+              "resolver": "0x79391b2c3d123c59e0f2ca6970c5c4cad30ad755",
+              "round": "1",
+              "outcome": "0",
+              "votes": "3"
+            },
+            "block_number": 12169246,
+            "block_hash": "0x40dd53ab7924373783a4dc0b79fd3c02527e2d3c23ad29c5253bebdb79f05d66",
+            "transaction_hash": "0x4da4c26583dfa90a57aec8a347beb70c4de24db7762a592ef2fc1192bfd3f701",
+            "log_index": 130,
+            "authoritative": false
+          },
+          {
+            "event": "ChallengeBondResolved",
+            "kind": "ChallengeBondResolved",
+            "market_id": 2,
+            "actor": "0x6a51348c2fe42f8cf4312c74445e211469cffacc",
+            "trader": null,
+            "outcome": null,
+            "shares": null,
+            "amount": null,
+            "cost": null,
+            "proceeds": null,
+            "yes_quantity": null,
+            "no_quantity": null,
+            "payload": {
+              "market_id": "2",
+              "challenger": "0x6a51348c2fe42f8cf4312c74445e211469cffacc",
+              "amount": "10000000000000000000",
+              "refunded": true
+            },
+            "block_number": 12169246,
+            "block_hash": "0x40dd53ab7924373783a4dc0b79fd3c02527e2d3c23ad29c5253bebdb79f05d66",
+            "transaction_hash": "0x4da4c26583dfa90a57aec8a347beb70c4de24db7762a592ef2fc1192bfd3f701",
+            "log_index": 132,
+            "authoritative": false
+          },
+          {
+            "event": "MarketFinalized",
+            "kind": "MarketFinalized",
+            "market_id": 2,
+            "actor": null,
+            "trader": null,
+            "outcome": 0,
+            "shares": null,
+            "amount": null,
+            "cost": null,
+            "proceeds": null,
+            "yes_quantity": null,
+            "no_quantity": null,
+            "payload": {
+              "market_id": "2",
+              "outcome": "0",
+              "remaining_liability": "28000000000000000000"
+            },
+            "block_number": 12169246,
+            "block_hash": "0x40dd53ab7924373783a4dc0b79fd3c02527e2d3c23ad29c5253bebdb79f05d66",
+            "transaction_hash": "0x4da4c26583dfa90a57aec8a347beb70c4de24db7762a592ef2fc1192bfd3f701",
+            "log_index": 133,
+            "authoritative": false
+          }
+        ],
+        "total": 12,
+        "limit": 100,
+        "offset": 0,
+        "metadata": {
+          "chain_id": 11155111,
+          "contract_address": "0x03ae48f03c7822540a91da2168602bd49dc510e9",
+          "abi_version": "PredictionMarket.721a6fef039a.4af9297937eb.abi.json",
+          "safe_block": 12169460,
+          "updated_at": "2026-11-19T16:06:17.884063Z",
+          "authoritative": false
+        }
+      }
+    },
+    "/api/v2/markets/2/claims": {
+      "status": 200,
+      "allow_origin": "https://acon-esports-market.vercel.app",
+      "body": {
+        "items": [
+          {
+            "event": "PayoutClaimed",
+            "kind": "PayoutClaimed",
+            "market_id": 2,
+            "actor": "0xb5ce8428dd6cb9fefd54282cb49ef7d2629d9a6a",
+            "trader": null,
+            "outcome": null,
+            "shares": null,
+            "amount": null,
+            "cost": null,
+            "proceeds": null,
+            "yes_quantity": null,
+            "no_quantity": null,
+            "payload": {
+              "market_id": "2",
+              "account": "0xb5ce8428dd6cb9fefd54282cb49ef7d2629d9a6a",
+              "payout": "17000000000000000000",
+              "yes_shares": "17000000000000000000",
+              "no_shares": "0",
+              "remaining_liability": "11000000000000000000"
+            },
+            "block_number": 12169251,
+            "block_hash": "0x6ad4478c5c84ba425f36e3a3f755587ef068114cb4aa795b217e35d773ec84bb",
+            "transaction_hash": "0xda3f38f438f5053bdccf2da5b9e659f9efc485cfdbbf1a02061b5611525004a4",
+            "log_index": 72,
+            "authoritative": false
+          },
+          {
+            "event": "PayoutClaimed",
+            "kind": "PayoutClaimed",
+            "market_id": 2,
+            "actor": "0x6a51348c2fe42f8cf4312c74445e211469cffacc",
+            "trader": null,
+            "outcome": null,
+            "shares": null,
+            "amount": null,
+            "cost": null,
+            "proceeds": null,
+            "yes_quantity": null,
+            "no_quantity": null,
+            "payload": {
+              "market_id": "2",
+              "account": "0x6a51348c2fe42f8cf4312c74445e211469cffacc",
+              "payout": "11000000000000000000",
+              "yes_shares": "11000000000000000000",
+              "no_shares": "0",
+              "remaining_liability": "0"
+            },
+            "block_number": 12169252,
+            "block_hash": "0xb6050dcdafc85c4a9eac81072ea1208b17175233942a3d9830f5f2e3fa5541af",
+            "transaction_hash": "0x256772e1aa887d1e4f2060574161b4b54480ccf415980c64395609ebf0108e92",
+            "log_index": 132,
+            "authoritative": false
+          },
+          {
+            "event": "PayoutClaimed",
+            "kind": "PayoutClaimed",
+            "market_id": 2,
+            "actor": "0xcddb0148f527a44113c038b0109bf41b38615a8c",
+            "trader": null,
+            "outcome": null,
+            "shares": null,
+            "amount": null,
+            "cost": null,
+            "proceeds": null,
+            "yes_quantity": null,
+            "no_quantity": null,
+            "payload": {
+              "market_id": "2",
+              "account": "0xcddb0148f527a44113c038b0109bf41b38615a8c",
+              "payout": "0",
+              "yes_shares": "0",
+              "no_shares": "11000000000000000000",
+              "remaining_liability": "0"
+            },
+            "block_number": 12169254,
+            "block_hash": "0xcc42c76a90bf42f87455b94d4251737ba40c8f2e7783d30f4e949010abcfccab",
+            "transaction_hash": "0x85f33a8c5ebc00cbbf8a1ee45c30a704831b8d34a5f5bbaf51cddd680961cf24",
+            "log_index": 59,
+            "authoritative": false
+          },
+          {
+            "event": "CreatorSurplusWithdrawn",
+            "kind": "CreatorSurplusWithdrawn",
+            "market_id": 2,
+            "actor": "0xb5ce8428dd6cb9fefd54282cb49ef7d2629d9a6a",
+            "trader": null,
+            "outcome": null,
+            "shares": null,
+            "amount": null,
+            "cost": null,
+            "proceeds": null,
+            "yes_quantity": null,
+            "no_quantity": null,
+            "payload": {
+              "market_id": "2",
+              "creator": "0xb5ce8428dd6cb9fefd54282cb49ef7d2629d9a6a",
+              "amount": "26876405572741439440"
+            },
+            "block_number": 12169256,
+            "block_hash": "0xde677059abdbe3606cefabf1e3462d4df21f505f830b6e64fa5f930e730bbb9d",
+            "transaction_hash": "0x94460bdec7b3d6416a21397ee6b6c92845e2621b70c4aafe1f680ff762da0a3a",
+            "log_index": 110,
+            "authoritative": false
+          }
+        ],
+        "total": 4,
+        "limit": 100,
+        "offset": 0,
+        "metadata": {
+          "chain_id": 11155111,
+          "contract_address": "0x03ae48f03c7822540a91da2168602bd49dc510e9",
+          "abi_version": "PredictionMarket.721a6fef039a.4af9297937eb.abi.json",
+          "safe_block": 12169460,
+          "updated_at": "2026-11-19T16:06:17.884063Z",
+          "authoritative": false
+        }
+      }
+    },
+    "/api/v2/portfolio/0xb5ce8428dd6cb9fefd54282cb49ef7d2629d9a6a": {
+      "status": 200,
+      "allow_origin": "https://acon-esports-market.vercel.app",
+      "body": {
+        "wallet_address": "0xb5ce8428dd6cb9fefd54282cb49ef7d2629d9a6a",
+        "items": [
+          {
+            "market_id": 1,
+            "market": {
+              "market_id": 1,
+              "fixture_key": "0xb2a33b4c6e59c4cc65c919a0ec6d9fdff9df5b424e0215bb784d5e34c46862fc",
+              "question": "Will FlyQuest beat Masterclass?",
+              "trading_deadline": "2026-11-21T00:15:00Z",
+              "state": "OPEN",
+              "creator": "0xbc0b9af7065baa79f550b9a244a8ae1ae2a5dba7",
+              "yes_quantity": "7000000000000000000",
+              "no_quantity": "24000000000000000000",
+              "final_outcome": null,
+              "source_block_number": 12168823,
+              "source_transaction_hash": "0x1152a2174c7c31fb05f0788e2b6ec66ac82f17de4895c828bd653f3ecf817137",
+              "authoritative": false
+            },
+            "yes_shares": "0",
+            "no_shares": "24000000000000000000",
+            "claimed": false,
+            "payout": "0",
+            "updated_block_number": 12166840,
+            "authoritative": false
+          },
+          {
+            "market_id": 2,
+            "market": {
+              "market_id": 2,
+              "fixture_key": "0xe6824a454577ad2b6ed1a46889654652bedca08f3e46c4c83fb6d88e3f3e647c",
+              "question": "Will KeepBest Gaming beat A Team?",
+              "trading_deadline": "2026-11-19T08:15:00Z",
+              "state": "FINALIZED",
+              "creator": "0xb5ce8428dd6cb9fefd54282cb49ef7d2629d9a6a",
+              "yes_quantity": "0",
+              "no_quantity": "0",
+              "final_outcome": 0,
+              "source_block_number": 12169256,
+              "source_transaction_hash": "0x94460bdec7b3d6416a21397ee6b6c92845e2621b70c4aafe1f680ff762da0a3a",
+              "authoritative": false
+            },
+            "yes_shares": "0",
+            "no_shares": "0",
+            "claimed": true,
+            "payout": "17000000000000000000",
+            "updated_block_number": 12169251,
+            "authoritative": false
+          }
+        ],
+        "metadata": {
+          "chain_id": 11155111,
+          "contract_address": "0x03ae48f03c7822540a91da2168602bd49dc510e9",
+          "abi_version": "PredictionMarket.721a6fef039a.4af9297937eb.abi.json",
+          "safe_block": 12169460,
+          "updated_at": "2026-11-19T16:06:17.884063Z",
+          "authoritative": false
+        }
+      }
+    },
+    "/api/v2/portfolio/0x6a51348c2fe42f8cf4312c74445e211469cffacc": {
+      "status": 200,
+      "allow_origin": "https://acon-esports-market.vercel.app",
+      "body": {
+        "wallet_address": "0x6a51348c2fe42f8cf4312c74445e211469cffacc",
+        "items": [
+          {
+            "market_id": 2,
+            "market": {
+              "market_id": 2,
+              "fixture_key": "0xe6824a454577ad2b6ed1a46889654652bedca08f3e46c4c83fb6d88e3f3e647c",
+              "question": "Will KeepBest Gaming beat A Team?",
+              "trading_deadline": "2026-11-19T08:15:00Z",
+              "state": "FINALIZED",
+              "creator": "0xb5ce8428dd6cb9fefd54282cb49ef7d2629d9a6a",
+              "yes_quantity": "0",
+              "no_quantity": "0",
+              "final_outcome": 0,
+              "source_block_number": 12169256,
+              "source_transaction_hash": "0x94460bdec7b3d6416a21397ee6b6c92845e2621b70c4aafe1f680ff762da0a3a",
+              "authoritative": false
+            },
+            "yes_shares": "0",
+            "no_shares": "0",
+            "claimed": true,
+            "payout": "11000000000000000000",
+            "updated_block_number": 12169252,
+            "authoritative": false
+          }
+        ],
+        "metadata": {
+          "chain_id": 11155111,
+          "contract_address": "0x03ae48f03c7822540a91da2168602bd49dc510e9",
+          "abi_version": "PredictionMarket.721a6fef039a.4af9297937eb.abi.json",
+          "safe_block": 12169460,
+          "updated_at": "2026-11-19T16:06:17.884063Z",
+          "authoritative": false
+        }
+      }
+    },
+    "/api/v2/portfolio/0xcddb0148f527a44113c038b0109bf41b38615a8c": {
+      "status": 200,
+      "allow_origin": "https://acon-esports-market.vercel.app",
+      "body": {
+        "wallet_address": "0xcddb0148f527a44113c038b0109bf41b38615a8c",
+        "items": [
+          {
+            "market_id": 2,
+            "market": {
+              "market_id": 2,
+              "fixture_key": "0xe6824a454577ad2b6ed1a46889654652bedca08f3e46c4c83fb6d88e3f3e647c",
+              "question": "Will KeepBest Gaming beat A Team?",
+              "trading_deadline": "2026-11-19T08:15:00Z",
+              "state": "FINALIZED",
+              "creator": "0xb5ce8428dd6cb9fefd54282cb49ef7d2629d9a6a",
+              "yes_quantity": "0",
+              "no_quantity": "0",
+              "final_outcome": 0,
+              "source_block_number": 12169256,
+              "source_transaction_hash": "0x94460bdec7b3d6416a21397ee6b6c92845e2621b70c4aafe1f680ff762da0a3a",
+              "authoritative": false
+            },
+            "yes_shares": "0",
+            "no_shares": "0",
+            "claimed": true,
+            "payout": "0",
+            "updated_block_number": 12169254,
+            "authoritative": false
+          }
+        ],
+        "metadata": {
+          "chain_id": 11155111,
+          "contract_address": "0x03ae48f03c7822540a91da2168602bd49dc510e9",
+          "abi_version": "PredictionMarket.721a6fef039a.4af9297937eb.abi.json",
+          "safe_block": 12169460,
+          "updated_at": "2026-11-19T16:06:17.884063Z",
+          "authoritative": false
+        }
+      }
+    },
+    "/api/fixtures/566": {
+      "status": 200,
+      "allow_origin": "https://acon-esports-market.vercel.app",
+      "body": {
+        "id": 566,
+        "provider_id": "pandascore",
+        "game_id": "valorant",
+        "external_match_id": "1805897",
+        "scheduled_start": "2026-11-19T08:30:00Z",
+        "match_status": "scheduled",
+        "team_a_id": "133828",
+        "team_a_name": "KeepBest Gaming",
+        "team_b_id": "139027",
+        "team_b_name": "A Team",
+        "evidence_url": "https://api.pandascore.co/matches/1805897",
+        "evidence_hash": "0x0d94e946341f7d859f3231355c1c23601abdaff12ce327d780066cdc0816f02b",
+        "source_updated_at": "2026-11-18T22:09:44Z",
+        "imported_at": "2026-11-19T05:16:47.939269Z",
+        "latest_result": null,
+        "registration_request_status": "confirmed",
+        "registration_eligible": false,
+        "operator_review": {
+          "reviewer": "Yudhveer-M5-operator",
+          "approved": true,
+          "evidence_url": "https://www.vlr.gg/788031/keepbest-gaming-vs-a-team-china-national-tournament-season-7-pro-qualifier-d7",
+          "evidence_hash": "0x40ddfac5adba445234eba2481e612b21069e7d15a555cf49daa0d38e1763d203",
+          "reviewed_at": "2026-11-19T06:14:01.436756Z"
+        },
+        "fixture_key": "0xe6824a454577ad2b6ed1a46889654652bedca08f3e46c4c83fb6d88e3f3e647c",
+        "onchain_registration": {
+          "chain_id": 11155111,
+          "contract_address": "0x03ae48f03c7822540a91da2168602bd49dc510e9",
+          "registrar": "0xffb7c2d7b39a3da503ef30761ccd1b19b767edaa",
+          "revision_hash": "0xdc3ed7d292eb1e3c4c1703e0f27ddfd105f02f4a8538752ee189f0ef39a7073d",
+          "transaction_hash": "0x99963bd521123bc165c928870f717cd72a7b1620392e888cda01a48f0ab7bff9",
+          "block_number": 12166634,
+          "market_id": 2,
+          "authoritative": false
+        },
+        "authoritative": false
+      }
+    }
+  }
+}
