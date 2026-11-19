@@ -12,22 +12,30 @@ acceptance rows below; hosted Render/Vercel verification remains pending. The
 still shows no successful callback, committee or votes, so issue #56 remains open. Local test
 results do not replace the pending CI rows below.
 
+November 19 public check: `https://acon-esports-market.vercel.app` and the free API at
+`https://ac-on-esports-prediction-market.onrender.com` are reachable. `/health` reported an
+available database. The public smoke passed frontend, health, CORS, chain, address, deployment
+block, ABI, and two-block lag checks, then correctly failed freshness: the last local indexer update
+was `2026-11-18T21:01:05.673906Z` (23,266 seconds old at the check). This is partial public-stack
+evidence, not a passing PUB-01 result; rerun after the exposed database credential is rotated and
+one local indexer catch-up completes.
+
 ## Automated Baseline
 
 | Layer | Command/check | Environment | Result | Evidence | Notes |
 |---|---|---|---|---|---|
-| Frontend | Vitest, typecheck, production build | local | 159 passed; typecheck/build passed | M5 backend branch local run, 2026-11-18 | GitHub Actions rerun remains required. |
-| Backend | Alembic-compatible SQLite Pytest suite | local SQLite | 133 passed, 1 PostgreSQL-only test skipped | M5 backend branch local run, 2026-11-18 | The focused recovery/review slice was 76 passed. |
-| PostgreSQL | migrations, 78-digit values, replay/rebuild/reorg/preservation | disposable CI PostgreSQL 16 | implemented; CI pending | backend PostgreSQL job and `test_postgres_integration.py` | Never connects to Supabase. |
-| Contracts | Foundry unit/fuzz/invariant and six journeys | GitHub Actions / Anvil | pending M5 rerun | pending CI/artifact | Record exact test summary. |
-| Security | Slither, coverage, ABI/runtime and GitGuardian | GitHub Actions | pending M5 rerun | pending CI/artifact | Do not copy secret scanner payloads. |
+| Frontend | Vitest, typecheck, production build | GitHub Actions | pass | PR #64 CI run `44446727316` | Build completed after merging current `dev` changes. |
+| Backend | Alembic-compatible SQLite Pytest suite | local + GitHub Actions | 139 passed, 1 PostgreSQL-only local skip; CI pass | PR #64 commit `0d34132`, CI run `44446727316` | Includes public-smoke and database-target safety regressions. |
+| PostgreSQL | migrations, 78-digit values, replay/rebuild/reorg/preservation | disposable CI PostgreSQL 16 | pass | PR #64 PostgreSQL job, CI run `44446727316` | Dedicated validated `TEST_POSTGRES_URL`; never connects to Supabase. |
+| Contracts | Foundry unit/fuzz/invariant and six journeys | GitHub Actions / Anvil | pass | PR #64 CI run `44446727316` | Public VRF callback evidence remains separate and pending. |
+| Security | Slither, coverage, ABI/runtime and GitGuardian | GitHub Actions | pass | PR #64 CI run `44446727316` | No secret values are copied into this ledger. |
 | Browser | Playwright read-only journeys | public Vercel/Render | pending implementation | pending trace/screenshots | MetaMask writes remain manual. |
 
 ## Public Cross-Layer Acceptance
 
 | ID | Journey/check | Environment | UTC time | Fixture/market | Actor role | Tx/block | Contract result | DB/API result | UI result | Evidence | Status | Defect |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| PUB-01 | Health, chain/address/ABI and CORS agreement | public stack | pending | n/a | operator | n/a | n/a | pending | pending | pending | pending | — |
+| PUB-01 | Health, chain/address/ABI and CORS agreement | public Vercel/Render/Supabase plus local indexer | 2026-11-19 | n/a | operator | n/a | n/a | health/database/CORS/config pass; freshness failed at 23,266 seconds old despite two-block stored lag | frontend reachable | public URLs and smoke output; sanitized artifact pending | blocked | local indexer catch-up pending after credential rotation |
 | PUB-02 | Reviewed fixture registration | Sepolia/public stack | pending | pending | user + registrar | pending | pending | pending | pending | pending | pending | — |
 | PUB-03 | User-funded market creation | Sepolia/public stack | pending | pending | creator | pending | pending | pending | pending | pending | pending | — |
 | PUB-04 | Guarded buy and indexed position | Sepolia/public stack | pending | pending | trader | pending | pending | pending | pending | pending | pending | — |

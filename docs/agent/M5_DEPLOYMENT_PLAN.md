@@ -1,7 +1,8 @@
 # M5 Public Deployment And Rollback Plan
 
-Status: four-service Render Blueprint and public smoke tooling implemented on the M5 backend branch.
-Public URLs, paid-worker activation, and execution evidence remain pending.
+Status: public Vercel frontend and free Render API deployed. The team selected local operator-run
+indexer/registrar/proposer processes instead of paid hosted workers. Public freshness and remaining
+lifecycle evidence are pending a controlled local-worker window.
 
 ## Target Topology
 
@@ -12,23 +13,24 @@ Browser / MetaMask
             -> Supabase PostgreSQL
        -> Ethereum Sepolia RPC / M4 contracts
 
-Render indexer worker (exactly one) -> Sepolia logs -> Supabase projections
-Render registrar worker             -> approved jobs -> Sepolia registrar role
-Render proposer worker              -> reviewed intents -> Sepolia proposer role
+Local indexer process (exactly one) -> Sepolia logs -> Supabase projections
+Local registrar process             -> approved jobs -> Sepolia registrar role
+Local proposer process              -> reviewed intents -> Sepolia proposer role
 Operator-only PandaScore import/review -> Supabase source and audit rows
 ```
 
 The Safe owns administration and the VRF subscription. Safe-owner and resolver keys are never
-hosted. Render signers are separate least-privilege accounts. Contracts remain authoritative.
+hosted. Local signers use separate least-privilege accounts. Contracts remain authoritative.
 
 ## Configuration Ownership
 
 | Location | Public values | Secret values | Owner |
 |---|---|---|---|
 | Vercel | chain ID, contract/token addresses, Render API URL | none | Adriel |
-| Render web/indexer | chain/address/deployment block, ABI path, confirmation depth | database URL, RPC URL | Yudhveer |
-| Render registrar | public contract configuration | database, RPC, registrar key | Yudhveer |
-| Render proposer | public contract configuration | database, RPC, proposer key | Yudhveer |
+| Render web | chain ID and exact Vercel origin | database URL | Yudhveer |
+| Local indexer | chain/address/deployment block, ABI path, confirmation depth | database URL, RPC URL | Yudhveer |
+| Local registrar | public contract configuration | database, RPC, registrar key | Yudhveer |
+| Local proposer | public contract configuration | database, RPC, proposer key | Yudhveer |
 | Operator environment | provider selection | PandaScore token and review access | Yudhveer |
 | Team custody | Safe/VRF/resolver public configuration | Safe-owner and resolver keys | Benny/team; never hosted |
 
@@ -41,23 +43,20 @@ batch size at ten unless a new provider is tested.
 1. Rotate the exposed disposable challenger wallet; verify Git ignore and secret scanning.
 2. Back up Supabase and record table counts plus current Alembic revision.
 3. Apply `alembic upgrade head`; verify revision `20261102_0008` and preserved counts.
-4. Deploy the Render web service and verify `/health` without exposing configuration.
-5. Set `INDEXER_WORKER_ENABLED=true` and manually deploy exactly one indexer; verify
-   chain/address/ABI, safe-block advancement, and two-block lag.
-6. After verifying roles, balances, and pending work, set the registrar and proposer enable flags
-   to `true` and manually deploy the isolated signer workers.
+4. Deploy the free Render web service and verify `/health` without exposing configuration.
+5. Start exactly one local indexer; verify chain/address/ABI, safe-block advancement, recent update
+   time, and acceptable block lag through the public API.
+6. After verifying roles, balances, and pending work, start the separate local registrar/proposer
+   only for their intended jobs.
 7. Deploy Vercel with the public Render URL and exact Sepolia addresses.
 8. Run public smoke and Playwright reads, then controlled MetaMask acceptance transactions.
 9. Record sanitized results in the integration ledger before declaring the release healthy.
-10. Suspend proposer and registrar immediately after their evidence is complete, then suspend the
-    indexer after its final safe block is recorded. Confirm billing has stopped; retain the service
-    definitions for recovery evidence.
+10. Stop proposer and registrar immediately after their evidence is complete, then stop the indexer
+    after its final safe block is recorded. Leave the free API deployed.
 
-The root `render.yaml` uses the free API plan and the smallest paid worker plan. Blueprint creation
-can start billing even though later automatic deploys are disabled, so every worker command is
-gated by a service-specific `*_WORKER_ENABLED` variable that defaults to `false`. Complete the
-backup, migration, environment, role, and balance checks before enabling a worker. Suspend workers
-and restore their flags to `false` whenever the controlled evidence window is not active.
+The root `render.yaml` remains a reviewed reference for an optional paid-worker deployment. It is
+not synced for the cost-constrained M5 deployment. The actual free API is created as a standalone
+Render web service; no signer key or provider token is hosted there.
 
 ## Readiness And Monitoring
 
@@ -85,10 +84,12 @@ and restore their flags to `false` whenever the controlled evidence window is no
 ## Go/No-Go Checklist
 
 - [ ] Supabase backup, revision, and preservation checks recorded.
-- [x] Render Blueprint defines the API and three isolated least-privilege workers without secrets.
+- [x] Optional Render Blueprint defines the reviewed paid topology without secret values.
+- [x] Public free Render API and Vercel frontend are reachable and share Supabase data.
 - [x] Public smoke tooling validates health, CORS, chain/address/block/ABI and freshness.
-- [ ] Render web plus exactly three isolated workers healthy.
-- [ ] Vercel origin and Render CORS agree.
+- [ ] Exactly one local indexer is current during the public evidence window.
+- [ ] Separate local registrar/proposer processes complete intended jobs without duplicates.
+- [x] Vercel origin and Render CORS agree.
 - [ ] Chain ID, contract, ABI digest, deployment block, roles, VRF, and resolver pool verified.
 - [ ] No secrets appear in Git, client variables, logs, screenshots, or CI artifacts.
 - [ ] Automated baseline, public reads, and controlled write journeys recorded.
