@@ -23,7 +23,7 @@ Browser tab: 860963412, Title: "AC_ON · Esports Prediction Market", URL: "https
 			125 text PROPOSED RESULT
 			126 text NO (A Team wins)
 			127 container
-				128 text by  0x137F...c0Df  · 
+				128 text by  0x137F...c0Df  ·
 				129 link Description: evidence, Value: egamersworld.com/valorant/match/fyQReleD60/keepbest-gaming-vs-a-team-ZD59-Lj4XM
 			130 text CHALLENGE
 			131 container
