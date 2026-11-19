@@ -41,7 +41,7 @@ do not belong in service configuration. Browser variables contain public values 
 backend:  pytest
 frontend: npm test; npm run typecheck; npm run build
 contracts: forge fmt --check; forge build; forge test
-public:   python -m scripts.smoke_public --api-base-url URL --frontend-url URL --manifest ../deployments/sepolia-2026-11-02/manifest.post-setup.json
+public:   python -m scripts.smoke_public --api-base-url URL --frontend-url URL --manifest ../deployments/sepolia-2026-11-02/manifest.post-setup.json --max-indexer-age-seconds 120 --max-indexer-lag-blocks 20
 ```
 
 GitHub Actions additionally runs a disposable PostgreSQL 16 job for migrations, uint256 precision,

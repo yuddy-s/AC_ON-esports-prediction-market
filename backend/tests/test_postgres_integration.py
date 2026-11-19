@@ -6,10 +6,10 @@ from decimal import Decimal
 import os
 
 import pytest
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+from sqlalchemy import create_engine, func, select, text
+from sqlalchemy.engine import URL, make_url
+from sqlalchemy.orm import Session, sessionmaker
 
-from app.database import SessionLocal
 from app.fixture_data import deterministic_mock
 from app.fixture_service import import_document
 from app.indexer.provider import ChainLog
@@ -31,6 +31,19 @@ pytestmark = pytest.mark.skipif(
 CHAIN_ID = 911155111
 CONTRACT = "0x9999999999999999999999999999999999999999"
 MAX_UINT256 = 2**256 - 1
+LOCAL_TEST_DATABASE_HOSTS = {"localhost", "127.0.0.1", "::1", "postgres"}
+
+
+def _validated_test_database_url() -> URL:
+    url = make_url(os.environ.get("TEST_POSTGRES_URL", ""))
+    if url.get_backend_name() != "postgresql":
+        raise RuntimeError("TEST_POSTGRES_URL must use PostgreSQL")
+    if (url.host or "").lower() not in LOCAL_TEST_DATABASE_HOSTS:
+        raise RuntimeError("TEST_POSTGRES_URL must target a local disposable PostgreSQL service")
+    database = (url.database or "").lower()
+    if "test" not in database and "ci" not in database:
+        raise RuntimeError("TEST_POSTGRES_URL database name must contain 'test' or 'ci'")
+    return url
 
 
 def _hash(value: int) -> str:
@@ -137,37 +150,54 @@ def _add_preserved_records(session: Session) -> None:
 
 
 def test_postgresql_uint256_replay_reorg_and_rebuild_preservation() -> None:
-    with SessionLocal() as session:
-        _add_preserved_records(session)
-        market_log = _market()
-        trade_log = _trade()
-        provider = Provider([market_log, market_log, trade_log, trade_log])
-        service = _service(provider)
+    test_url = _validated_test_database_url()
+    engine = create_engine(test_url, pool_pre_ping=True)
+    try:
+        # Validate the actual target before opening a write-capable ORM session.
+        with engine.connect() as connection:
+            actual_database = connection.scalar(text("SELECT current_database()"))
+        if actual_database != test_url.database:
+            raise RuntimeError(
+                f"connected database {actual_database!r} does not match "
+                f"TEST_POSTGRES_URL database {test_url.database!r}"
+            )
 
-        first = service.sync_once(session)
-        assert first.processed_logs == 2
-        assert provider.requested_ranges == [(1, 2), (3, 4), (5, 5)]
-        assert session.scalar(select(func.count()).select_from(ProcessedLog)) == 2
-        trade = session.scalar(select(IndexedTrade))
-        market = session.scalar(select(IndexedMarket))
-        assert trade is not None and market is not None
-        assert Decimal(trade.shares) == MAX_UINT256
-        assert Decimal(trade.cost) == MAX_UINT256
-        assert Decimal(market.yes_quantity) == MAX_UINT256
-        assert _market_read(market)["yes_quantity"] == str(MAX_UINT256)
+        TestSession = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+        with TestSession() as session:
+            assert session.get_bind() is engine
+            assert session.get_bind().dialect.name == "postgresql"
+            _add_preserved_records(session)
+            market_log = _market()
+            trade_log = _trade()
+            provider = Provider([market_log, market_log, trade_log, trade_log])
+            service = _service(provider)
 
-        service.rebuild(session)
-        assert session.scalar(select(func.count()).select_from(ProcessedLog)) == 2
-        assert Decimal(session.scalar(select(IndexedTrade.shares))) == MAX_UINT256
-        for model in (
-            Fixture, FixtureRegistrationJob, RegistrationJobEvent, OracleResultAssessment,
-            OracleProposalIntent, OracleProposalEvent,
-        ):
-            assert session.scalar(select(func.count()).select_from(model)) == 1
+            first = service.sync_once(session)
+            assert first.processed_logs == 2
+            assert provider.requested_ranges == [(1, 2), (3, 4), (5, 5)]
+            assert session.scalar(select(func.count()).select_from(ProcessedLog)) == 2
+            trade = session.scalar(select(IndexedTrade))
+            market = session.scalar(select(IndexedMarket))
+            assert trade is not None and market is not None
+            assert Decimal(trade.shares) == MAX_UINT256
+            assert Decimal(trade.cost) == MAX_UINT256
+            assert Decimal(market.yes_quantity) == MAX_UINT256
+            assert _market_read(market)["yes_quantity"] == str(MAX_UINT256)
 
-        provider.hashes[5] = _hash(999)
-        provider.logs = [market_log, _trade(block_hash=_hash(999), suffix=2)]
-        reorg = service.sync_once(session)
-        assert reorg.rebuilt_after_reorg is True
-        assert session.scalar(select(func.count()).select_from(ProcessedLog)) == 2
-        assert Decimal(session.scalar(select(IndexedTrade.shares))) == MAX_UINT256
+            service.rebuild(session)
+            assert session.scalar(select(func.count()).select_from(ProcessedLog)) == 2
+            assert Decimal(session.scalar(select(IndexedTrade.shares))) == MAX_UINT256
+            for model in (
+                Fixture, FixtureRegistrationJob, RegistrationJobEvent, OracleResultAssessment,
+                OracleProposalIntent, OracleProposalEvent,
+            ):
+                assert session.scalar(select(func.count()).select_from(model)) == 1
+
+            provider.hashes[5] = _hash(999)
+            provider.logs = [market_log, _trade(block_hash=_hash(999), suffix=2)]
+            reorg = service.sync_once(session)
+            assert reorg.rebuilt_after_reorg is True
+            assert session.scalar(select(func.count()).select_from(ProcessedLog)) == 2
+            assert Decimal(session.scalar(select(IndexedTrade.shares))) == MAX_UINT256
+    finally:
+        engine.dispose()

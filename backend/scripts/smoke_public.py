@@ -43,8 +43,11 @@ def verify_public_stack(
     frontend_url: str,
     manifest: dict[str, object],
     max_indexer_age_seconds: int,
+    max_indexer_lag_blocks: int = 20,
     now: datetime | None = None,
 ) -> dict[str, object]:
+    if max_indexer_age_seconds < 1 or max_indexer_lag_blocks < 0:
+        raise ValueError("indexer age must be positive and block lag must be non-negative")
     api = _url(api_base_url)
     frontend = _url(frontend_url)
     expected_chain, expected_address, expected_block, expected_abi = _manifest_market(manifest)
@@ -68,6 +71,11 @@ def verify_public_stack(
 
     status_response = client.get(f"{api}/api/v2/indexer/status", headers={"Origin": frontend})
     status_response.raise_for_status()
+    get_allowed_origin = status_response.headers.get("access-control-allow-origin")
+    if get_allowed_origin != frontend:
+        raise ValueError(
+            f"CORS GET origin mismatch: expected {frontend}, received {get_allowed_origin!r}"
+        )
     status = status_response.json()
     expected = {
         "chain_id": expected_chain,
@@ -89,6 +97,11 @@ def verify_public_stack(
         raise ValueError("indexer has not reached the deployment block")
     if safe_block > latest_block:
         raise ValueError("indexer safe block is ahead of its observed head")
+    lag_blocks = latest_block - safe_block
+    if lag_blocks > max_indexer_lag_blocks:
+        raise ValueError(
+            f"indexer block lag exceeds limit: lag={lag_blocks}, limit={max_indexer_lag_blocks}"
+        )
     updated_text = status.get("updated_at")
     if not isinstance(updated_text, str):
         raise ValueError("indexer update timestamp is missing")
@@ -109,9 +122,11 @@ def verify_public_stack(
             **expected,
             "latest_observed_block": latest_block,
             "safe_block": safe_block,
-            "lag_blocks": latest_block - safe_block,
+            "lag_blocks": lag_blocks,
+            "max_lag_blocks": max_indexer_lag_blocks,
             "updated_at": updated_at.isoformat().replace("+00:00", "Z"),
             "age_seconds": int(age_seconds),
+            "max_age_seconds": max_indexer_age_seconds,
         },
         "status": "pass",
     }
@@ -123,10 +138,13 @@ def main() -> int:
     parser.add_argument("--frontend-url", required=True)
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--max-indexer-age-seconds", type=int, default=120)
+    parser.add_argument("--max-indexer-lag-blocks", type=int, default=20)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     if args.max_indexer_age_seconds < 1:
         parser.error("--max-indexer-age-seconds must be positive")
+    if args.max_indexer_lag_blocks < 0:
+        parser.error("--max-indexer-lag-blocks must be non-negative")
     manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
     try:
         with httpx.Client(timeout=30, follow_redirects=True) as client:
@@ -136,6 +154,7 @@ def main() -> int:
                 frontend_url=args.frontend_url,
                 manifest=manifest,
                 max_indexer_age_seconds=args.max_indexer_age_seconds,
+                max_indexer_lag_blocks=args.max_indexer_lag_blocks,
             )
     except (httpx.HTTPError, ValueError, json.JSONDecodeError) as exc:
         parser.exit(1, f"public smoke failed: {exc}\n")

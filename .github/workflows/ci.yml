@@ -133,7 +133,12 @@ jobs:
         run: alembic current | grep '20261102_0008 (head)'
 
       - name: Run PostgreSQL precision, replay, reorg, and preservation tests
-        run: pytest tests/test_postgres_integration.py -v
+        env:
+          # This intentional decoy proves the test writes only through TEST_POSTGRES_URL.
+          DATABASE_URL: sqlite+pysqlite:///./wrong-target-must-not-be-used.db
+        run: |
+          pytest tests/test_postgres_integration.py -v
+          test ! -e wrong-target-must-not-be-used.db
 
   contracts:
     name: Build and test Foundry contracts

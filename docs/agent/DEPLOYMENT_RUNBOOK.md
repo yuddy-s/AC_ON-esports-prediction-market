@@ -37,7 +37,7 @@ Enable and manually deploy signer workers only after inspecting expected pending
 role/balance state. Validate the public stack from `backend/`:
 
 ```text
-python -m scripts.smoke_public --api-base-url RENDER_URL --frontend-url VERCEL_URL --manifest ../deployments/sepolia-2026-11-02/manifest.post-setup.json --output ../deployments/M5-public-smoke.json
+python -m scripts.smoke_public --api-base-url RENDER_URL --frontend-url VERCEL_URL --manifest ../deployments/sepolia-2026-11-02/manifest.post-setup.json --max-indexer-age-seconds 120 --max-indexer-lag-blocks 20 --output ../deployments/M5-public-smoke.json
 ```
 
 Store the output only after confirming it contains public data. After testing, suspend proposer and
