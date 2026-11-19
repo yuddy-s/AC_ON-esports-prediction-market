@@ -25,7 +25,7 @@ contracts only until the Render API URL is configured as `VITE_API_URL`; see
 | PostgreSQL | migrations, 78-digit values, replay/rebuild | CI PostgreSQL service | pending implementation | pending | SQLite remains the fast unit path. |
 | Contracts | Foundry unit/fuzz/invariant and six journeys | GitHub Actions / Anvil | pending M5 rerun | pending CI/artifact | Record exact test summary. |
 | Security | Slither, coverage, ABI/runtime and GitGuardian | GitHub Actions | pending M5 rerun | pending CI/artifact | Do not copy secret scanner payloads. |
-| Browser | Playwright read-only and wallet-failure journeys | local build and public Vercel (contract reads only); Render pending | read-only: local 10/10, public 10/10; full 14-test suite: public 12/14 before the RPC fix (M5-004), local 14/14 after; with API pending | [frontend results](M5_FRONTEND_RESULTS.md) | MetaMask writes remain manual. |
+| Browser | Playwright read-only and wallet-failure journeys | local build and public Vercel (contract reads only); Render pending | read-only: local 10/10, public 10/10; full 14-test suite: public 12/14 before the RPC fix (M5-004), 14/14 after it both locally and on the redeployed public site; with API pending | [frontend results](M5_FRONTEND_RESULTS.md) | MetaMask writes remain manual. |
 
 ## Public Cross-Layer Acceptance
 
