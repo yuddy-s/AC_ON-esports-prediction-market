@@ -1,0 +1,100 @@
+{
+  "schema": "acon.market-backend-indexer-verification.v1",
+  "checked_at_utc": "2026-11-18T21:01:32.347370+00:00",
+  "market_id": 0,
+  "chain_id": 11155111,
+  "contract_address": "0x03ae48f03C7822540a91DA2168602bd49dC510E9",
+  "status": "shared_supabase_and_local_api_ui_verified_hosted_pending",
+  "database": {
+    "target": "shared Supabase PostgreSQL",
+    "connection_result": "ready after project owner resumed project",
+    "connection_rechecked_at_utc": "2026-11-18T21:00:32.467992+00:00",
+    "migration_revision": "20261102_0008",
+    "checkpoint": {
+      "configured": true,
+      "chain_id": 11155111,
+      "contract_address": "0x03ae48f03c7822540a91da2168602bd49dc510e9",
+      "abi_version": "PredictionMarket.721a6fef039a.4af9297937eb.abi.json",
+      "deployment_block": 12051223,
+      "latest_observed_block": 12163952,
+      "last_safe_block": 12163950,
+      "next_block": 12163951,
+      "lag_blocks": 2,
+      "updated_at": "2026-11-18T21:01:05.673906Z",
+      "authoritative": false
+    },
+    "dashboard_access": "organization membership not rechecked; database credentials work",
+    "catchup": {
+      "latest_observed_block": 12163726,
+      "last_safe_block": 12163724,
+      "processed_logs": 9,
+      "batches": 1,
+      "rebuilt_after_reorg": false
+    },
+    "backup": "private deployment-scoped snapshot retained before writes",
+    "projection_deletes_performed": false
+  },
+  "rpc": {
+    "supplied_historical_rpc": "verified chain 11155111 and fixture-registration log at block 12052271",
+    "publicnode_historical_backfill": "historical range rejected as pruned",
+    "confirmed_catchup": "archive log range and canonical anchors checked against configured Sepolia RPC"
+  },
+  "local_defect": {
+    "symptom": "PayoutClaimed clears wallet positions but leaves indexed market YES/NO quantities and position updated_block_number stale",
+    "reproduced": "Extended existing lifecycle test failed with indexed YES quantity 800000000000000000 after all shares claimed",
+    "fix": "Subtract yes_shares and no_shares from market quantities and update position.updated_block_number in the PayoutClaimed projection",
+    "source": "backend/app/indexer/service.py",
+    "regression_tests": "backend/tests/test_m4_indexer.py",
+    "focused_result": "3 passed",
+    "full_backend_suite_result": "130 passed",
+    "deployment_state": "PR #57 committed and pushed; corrected local indexer applied missing confirmed events to shared Supabase; local API/UI verified; hosted rollout not verified",
+    "verified_source_commit": "81850e9146e0512cc2d62cbbac05d90a6de2a5ee"
+  },
+  "expected_final_state": {
+    "state": "VOID",
+    "final_outcome": 2,
+    "yes_quantity": "0",
+    "no_quantity": "0",
+    "claimed": true,
+    "payout_base_units": "125005500000000000000",
+    "creator_surplus_withdrawn_base_units": "40665164062370061911"
+  },
+  "live_verification": {
+    "database_rows": "pass: VOID, final outcome 2, quantities/positions zero, claimed true",
+    "indexer_checkpoint_and_freshness": "pass at recorded check; see checkpoint timestamp",
+    "api_resolution_and_claims": "pass: exact receipt hashes, blocks and raw amounts",
+    "api_portfolio": "pass: payout 125.0055 ACON and update block 12158940",
+    "frontend_indexed_history": "pass in local UI: six historical trades with receipt links",
+    "frontend_market_and_portfolio": "pass in local UI: VOID/claimed, zero holdings and surplus",
+    "hosted_render_api": "not identified or verified",
+    "hosted_vercel_frontend": "not identified or verified",
+    "live_vrf_callback_committee_voting": "not demonstrated; issue #56 remains incomplete"
+  },
+  "related_evidence": [
+    "market-0-void-settlement-evidence.json",
+    "market-0-void-payout-evidence.json",
+    "market-0-creator-surplus-evidence.json",
+    "../m5-economics-2026-11-18/supabase-catchup-verification.json",
+    "../m5-economics-2026-11-18/supabase-local-api-verification.json",
+    "../m5-economics-2026-11-18/live-indexer-idempotence.json",
+    "../m5-economics-2026-11-18/market-0-chain-recheck.json",
+    "../m5-economics-2026-11-18/supabase-market-0-ui.png",
+    "../m5-economics-2026-11-18/public-trade-reconciliation.json"
+  ],
+  "next_verification_steps": [
+    "Obtain hosted Render API and Vercel frontend URLs and repeat acceptance checks there",
+    "Confirm the corrected handler is merged and rolled out to the intended hosted worker",
+    "Complete a separate successful live VRF, committee and voting journey for issue #56"
+  ],
+  "previous_verification": {
+    "checked_at_utc": "2026-11-18T04:08:28.127613+00:00",
+    "status": "blocked_pending_database_access",
+    "connection_result": "pooler rejects supplied connection with tenant/user not found",
+    "dashboard_access": {
+      "signed_in_github_account": "Matt-Leong822",
+      "visible_organizations": 0,
+      "direct_project_navigation": "redirects to empty organizations page",
+      "project_state": "unverified; owner must check active status and current connection settings"
+    }
+  }
+}

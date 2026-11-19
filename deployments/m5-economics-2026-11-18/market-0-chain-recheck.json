@@ -1,0 +1,59 @@
+{
+  "checked_at_utc": "2026-11-18T20:25:19.313057+00:00",
+  "chain_id": 11155111,
+  "block": 12163776,
+  "block_hash": "0xb748b3a81e7deefc850fd5bd5d2f99338fc1cc39921dbd60fd07e5ef2ef44c0d",
+  "contract_address": "0x03ae48f03C7822540a91DA2168602bd49dC510E9",
+  "wallet": "0xf350a4ebe6f0485bdcf8294e9e66b71473a2093b",
+  "market": {
+    "id": 0,
+    "fixtureKey": "0x97b8c76e6398a901469cf3f5d41402fe6177a2aa60c711d93565111375f003ed",
+    "question": "Will MOUZ beat BetBoom Team?",
+    "tradingDeadline": 1793679300,
+    "state": 7,
+    "creator": "0xf350a4ebe6f0485bdcf8294e9e66b71473a2093b",
+    "yesQuantity": 0,
+    "noQuantity": 0,
+    "collateralBalance": 0
+  },
+  "resolution": {
+    "proposed": true,
+    "proposal": 0,
+    "proposer": "0x137f79cc7ea5c59fa66bc09351b5f9331225c0df",
+    "proposalEvidenceHash": "0x3a000f3978595455924049ce180664c9c8dff0b6f5fffef90db9d647ef26d090",
+    "proposalEvidenceURI": "https://www.hltv.org/stats/matches/132719/mouz-vs-betboom",
+    "challengeDeadline": 1793799624,
+    "challenger": "0x178bbc1a619c2db9dc4ee325a87c9d09a394cd67",
+    "challengeEvidenceHash": "0x3b9c0b2510b3dc0e247d7d6be65f16eaaa93fe0b23609e7dfee966c896302e0a",
+    "bondEscrow": 0,
+    "round": 1,
+    "terminal": true,
+    "finalOutcome": 2
+  },
+  "remaining_liability": "0",
+  "claimable": "0",
+  "claimed": true,
+  "yes_position": "0",
+  "no_position": "0",
+  "creator_surplus": "0",
+  "wallet_acon": "1000000000000000000000",
+  "contract_acon": "0",
+  "market_count": 1,
+  "receipt_rechecks": [
+    {
+      "transaction_hash": "0x569d65ff15925d37ff0dabd00a8033e708a923fa68de8dd1e0cceef6cbcb4dcb",
+      "block": 12158923,
+      "successful_and_canonical": true
+    },
+    {
+      "transaction_hash": "0xc7d625cf7ddb708977c3c1e44cb6f4d23a650915a041d9ac393754cb8e5fa5f9",
+      "block": 12158940,
+      "successful_and_canonical": true
+    },
+    {
+      "transaction_hash": "0xe4f7b7e1c8e241007fa0bf435ccd5e48e303af4c67dba2abd5f084312b1eae13",
+      "block": 12158955,
+      "successful_and_canonical": true
+    }
+  ]
+}

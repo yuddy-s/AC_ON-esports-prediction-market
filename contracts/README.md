@@ -83,6 +83,11 @@ Safe administration transfers. `SafeSetupPlan` builds the Safe calls; `VerifyAdm
 the completed handoff. Follow the [deployment runbook](../docs/agent/CONTRACT_DEPLOYMENT.md) for
 simulation, authorization, live checks and recovery.
 
+Deployment now requires `VRF_MINIMUM_LINK_BALANCE_WEI`, a positive operator-reviewed reserve
+in LINK base units. `VerifyAdministration.verify` takes that reserve as its sixth argument.
+See [M5 VRF funding preflight](../docs/agent/testing/M5_VRF_FUNDING_PREFLIGHT.md) for reserve
+selection, regression coverage and the remaining live-validation gate.
+
 The current source/ABI supersedes the previous buy-only implementation. Previously published
 Sepolia receipts and source-versioned ABIs still describe those immutable deployed contracts:
 [`../deployments/sepolia-m3.json`](../deployments/sepolia-m3.json) and its

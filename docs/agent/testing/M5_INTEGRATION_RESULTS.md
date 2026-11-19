@@ -3,6 +3,15 @@
 Status: draft evidence ledger. Add results only after the named environment was exercised.
 Never include credentials, private keys, raw signatures, tokens, database URLs, or secret-bearing logs.
 
+November 18 update: Matthew's [economic results and receipt reconciliation](M5_ECONOMIC_RESULTS.md)
+record 120 local contract tests, five public buys and one sell, and the existing market 0
+VOID bond/payout/surplus journey. Shared Supabase and the local API/UI now agree after confirmed
+event catch-up with the #57 handler. These are dated local-stack subchecks of the hosted public
+acceptance rows below; hosted Render/Vercel verification remains pending. The
+[VRF recheck](../../../deployments/sepolia-2026-11-17-vrf-diagnostic/RECHECK-2026-11-18.md)
+still shows no successful callback, committee or votes, so issue #56 remains open. Local test
+results do not replace the pending CI rows below.
+
 ## Automated Baseline
 
 | Layer | Command/check | Environment | Result | Evidence | Notes |
