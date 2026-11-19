@@ -121,8 +121,12 @@ is a successful Sepolia transaction from that account, checked with `cast receip
 | 3 | Faucet: **Claim 1,000 ACON** | pass: balance 0 → 1,000 ACON | `0x8e8c170504d74d1ce67ab3dbf4ef416577b362d3ee7762c6da901f2843f1b5ba` (block 12166111) |
 | — | Market setup (not a wagmi 3 step): FlyQuest vs Masterclass, fixture registered by the registrar at block 12166366, market created from the public Vercel site because the fixture page needs the API | market 1 OPEN, deadline 2026-11-21 00:15 UTC, 34.657359 ACON subsidy | approve `0xdf1577d2ddd9886258a2614bf85b0e9c5d4acac51bf79ac27ba0ea896b393f6b`, create `0xfd391e8a92ac245d2c7bca9ba29bf5d388538213f051363c1e168f4f80d941b6` |
 | 4 | Coinbase Smart Wallet: **Connect Wallet** → Coinbase | pass: popup opened and the wallet connected (Sepolia writes are a known Coinbase limitation and were not attempted) | none |
-| 5 | Approve + buy 10 YES on market 1 at 1% slippage | pass after one retry (FE-B3): approval of exactly maxCost 5.302079 ACON mined; the buy then charged exactly the 5.249584 ACON quote; position 10 YES; 0.052496 ACON allowance left | approve `0x7092c5ab300b119776557973c41951604c0069e014118de5a3f440e91556b2ab`, buy `0x3e6a09decd226872784c335de47dd346e7cbfb11264f4d4e63b494512527c9bb` |
+| 5 | Approve + buy 10 YES on market 1 at 1% slippage | pass after one retry (FE-B3): approval of exactly maxCost (5.302080 ACON, rounded) mined; the buy then charged the quoted 5.249584 ACON (rounded); position 10 YES; 0.052496 ACON allowance left | approve `0x7092c5ab300b119776557973c41951604c0069e014118de5a3f440e91556b2ab`, buy `0x3e6a09decd226872784c335de47dd346e7cbfb11264f4d4e63b494512527c9bb` |
 | 6 | Sell 4 YES at 1% slippage | pass: received 2.159638 ACON; position 6 YES | `0x3075efb8536d0d5599a9ff4e2e60c987d3f934693e91b304ad360312bcb6f73d` |
+
+The exact approval was **5.302080285493149780 ACON**. The buy charged
+**5.249584441082326514 ACON**, leaving **0.052495844410823266 ACON** allowance.
+The table displays these amounts rounded to six decimal places.
 
 Market 1 collateral after the run is 37.747305 ACON = 34.657359 subsidy + 5.249584 buy − 2.159638
 sell, matching the contract's stored balance. Result: **pass**; wagmi 3 signs, approves, buys and
