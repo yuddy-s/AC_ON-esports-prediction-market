@@ -8,18 +8,20 @@ import { defineConfig, devices } from "@playwright/test";
 //
 // The local run builds against the public M4 Sepolia contracts with no backend, so the fixture
 // catalog uses the bundled mock data. Set PLAYWRIGHT_EXPECT_API=1 when the target has the Render
-// API configured to also require indexed history. PLAYWRIGHT_CHANNEL=chrome uses an installed
-// Chrome instead of a downloaded browser.
+// API configured to also require indexed history and run the mocked API-state regressions. For a
+// local build against an API, also set PLAYWRIGHT_API_URL. PLAYWRIGHT_CHANNEL=chrome uses an
+// installed Chrome instead of a downloaded browser.
 const baseURL = process.env.PLAYWRIGHT_BASE_URL;
 const channel = process.env.PLAYWRIGHT_CHANNEL;
+const apiURL = process.env.PLAYWRIGHT_API_URL ?? "";
 
 const SEPOLIA_M4 = {
   VITE_CHAIN: "sepolia",
   VITE_PREDICTION_MARKET_ADDRESS: "0x03ae48f03C7822540a91DA2168602bd49dC510E9",
   VITE_ACON_TOKEN_ADDRESS: "0xf85b2278a810410c6AE0b7490d34671E0C8e6E90",
   VITE_DEMO_MARKET_ID: "0",
-  VITE_API_URL: "",
-  VITE_FIXTURE_SOURCE: "mock",
+  VITE_API_URL: apiURL,
+  VITE_FIXTURE_SOURCE: apiURL ? "api" : "mock",
 };
 
 export default defineConfig({
@@ -41,7 +43,8 @@ export default defineConfig({
   webServer: baseURL
     ? undefined
     : {
-        command: "npm run build && npm run preview -- --port 4173 --strictPort",
+        // --host pins IPv4: on macOS "localhost" resolves to ::1 and the url check below never connects.
+        command: "npm run build && npm run preview -- --port 4173 --strictPort --host 127.0.0.1",
         url: "http://127.0.0.1:4173",
         timeout: 180_000,
         reuseExistingServer: !process.env.CI,

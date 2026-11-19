@@ -12,9 +12,9 @@ acceptance rows below; hosted Render/Vercel verification remains pending. The
 still shows no successful callback, committee or votes, so issue #56 remains open. Local test
 results do not replace the pending CI rows below.
 
-Hosted frontend: https://acon-esports-market.vercel.app (Vercel, M4 Sepolia contracts). It reads
-contracts only until the Render API URL is configured as `VITE_API_URL`; see
-[frontend results](M5_FRONTEND_RESULTS.md).
+Hosted frontend: https://acon-esports-market.vercel.app (Vercel, M4 Sepolia contracts), built with
+`VITE_API_URL=https://ac-on-esports-prediction-market.onrender.com` since November 19; see
+[frontend results](M5_FRONTEND_RESULTS.md#hosted-results-vercel--render).
 
 ## Automated Baseline
 
@@ -25,7 +25,7 @@ contracts only until the Render API URL is configured as `VITE_API_URL`; see
 | PostgreSQL | migrations, 78-digit values, replay/rebuild | CI PostgreSQL service | pending implementation | pending | SQLite remains the fast unit path. |
 | Contracts | Foundry unit/fuzz/invariant and six journeys | GitHub Actions / Anvil | pending M5 rerun | pending CI/artifact | Record exact test summary. |
 | Security | Slither, coverage, ABI/runtime and GitGuardian | GitHub Actions | pending M5 rerun | pending CI/artifact | Do not copy secret scanner payloads. |
-| Browser | Playwright read-only and wallet-failure journeys | local build and public Vercel (contract reads only); Render pending | read-only: local 10/10, public 10/10; full 14-test suite: public 12/14 before the RPC fix (M5-004), 14/14 after it both locally and on the redeployed public site; with API pending | [frontend results](M5_FRONTEND_RESULTS.md) | MetaMask writes remain manual. |
+| Browser | Playwright read-only and wallet-failure journeys, plus API-state regressions | local build and public Vercel; hosted Vercel + Render (FE-07) | read-only: local 10/10, public 10/10; full 14-test suite: public 12/14 before the RPC fix (M5-004), 14/14 after it both locally and on the redeployed public site; hosted with strict API checks (status body, six market 0 receipts, API fixture catalog) and 10 mocked regressions: 24/24 twice | [frontend results](M5_FRONTEND_RESULTS.md#hosted-results-vercel--render) | MetaMask writes remain manual. The indexer worker runs on a team machine, so the site can show its stale notice. |
 
 ## Public Cross-Layer Acceptance
 
