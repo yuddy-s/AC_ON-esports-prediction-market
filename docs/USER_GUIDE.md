@@ -55,6 +55,11 @@ cannot send transactions. Use MetaMask to claim ACON, trade, challenge, vote or 
 
 ## Trading
 
+**Current demo availability (November 21, 2026):** All three existing Sepolia markets have passed
+their trading deadlines. They remain available for read-only inspection, including MKT-002's
+completed dispute. To try the trading steps below, a new market must first be created for an
+eligible reviewed fixture using the registration and creation flow above.
+
 ![Market page](images/user-guide/02-market.png)
 
 1. Open a market from **Markets** before its trading deadline. Open markets show `Live` and a
